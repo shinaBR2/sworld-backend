@@ -7,7 +7,7 @@ import { validateRequest } from 'src/utils/validator';
 import { ConvertRequest, convert } from './convert';
 import { logger } from 'src/utils/logger';
 import { ConvertSchema } from './convert/schema';
-import { processM3U8, testParser } from './helpers/m3u8';
+import { processM3U8 } from './helpers/m3u8';
 
 initializeApp({
   storageBucket: envConfig.storageBucket,
@@ -41,14 +41,18 @@ videosRouter.post(
 );
 
 videosRouter.post('/upload-m3u8', async (req, res) => {
-  const { m3u8Url, excludePattern = /\/adjump\// } = req.body;
+  const { id, m3u8Url, excludePattern = /\/adjump\// } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Missing id in request body' });
+  }
 
   if (!m3u8Url) {
     return res.status(400).json({ error: 'Missing m3u8Url in request body' });
   }
 
   try {
-    const result = await processM3U8(m3u8Url, 'videos/thien-ha', {
+    const result = await processM3U8(m3u8Url, `videos/${id}`, {
       excludePattern,
       maxSegmentSize: 400 * 1024 * 1024, // 400MB limit
     });
