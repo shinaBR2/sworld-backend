@@ -153,12 +153,11 @@ const downloadSegments = async (
   const batches = chunks(segments, BATCH_SIZE);
 
   for (const batch of batches) {
-    // Process each segment in the batch sequentially
-    for (const segmentUrl of batch) {
-      const segmentName = path.basename(segmentUrl);
-      const localPath = path.join(tempDir, segmentName);
+    await Promise.all(
+      batch.map(async segmentUrl => {
+        const segmentName = path.basename(segmentUrl);
+        const localPath = path.join(tempDir, segmentName);
 
-      try {
         logger.info({ segmentName, segmentUrl }, 'Downloading segment');
         await downloadFile(segmentUrl, localPath);
 
@@ -167,19 +166,8 @@ const downloadSegments = async (
         }
 
         logger.info({ segmentName }, 'Successfully downloaded segment');
-      } catch (error) {
-        logger.error(
-          {
-            segmentName,
-            segmentUrl,
-            error: error instanceof Error ? error.message : String(error),
-          },
-          'Failed to download segment'
-        );
-        // If any segment fails, stop the process
-        throw error;
-      }
-    }
+      })
+    );
   }
 };
 
