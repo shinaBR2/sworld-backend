@@ -1,4 +1,6 @@
 import path from 'path';
+import { logger } from 'src/utils/logger';
+import { downloadFile, verifyFileSize } from '../file';
 
 const ESSENTIAL_TAGS = new Set([
   '#EXTM3U',
@@ -16,13 +18,47 @@ const normalizeContent = (content: string) => {
     .join('\n');
 };
 
+interface ParsedResult {
+  modifiedContent: string;
+  segments: { included: string[]; excluded: string[] };
+}
+
+/**
+ * Parse M3U8 playlist and filter out ad segments
+ * @param m3u8Url - URL of the M3U8 playlist
+ * @param excludePattern - RegExp to match ad segment URLs (e.g., /\/adjump\//)
+ * @returns {
+ *   modifiedContent: Clean M3U8 content without ads,
+ *   segments: {
+ *     included: Array of non-ad segment URLs to download,
+ *     excluded: Array of ad segment URLs that were filtered out
+ *   }
+ * }
+ *
+ * Example input:
+ * #EXTM3U
+ * #EXT-X-VERSION:3
+ * #EXTINF:3,
+ * segment1.ts
+ * #EXT-X-DISCONTINUITY
+ * #EXTINF:5.96,
+ * /adjump/ad1.ts
+ * #EXT-X-DISCONTINUITY
+ * #EXTINF:3,
+ * segment2.ts
+ *
+ * Example output:
+ * #EXTM3U
+ * #EXT-X-VERSION:3
+ * #EXTINF:3,
+ * segment1.ts
+ * #EXTINF:3,
+ * segment2.ts
+ */
 const parseM3U8Content = async (
   m3u8Url: string,
   excludePattern?: RegExp
-): Promise<{
-  modifiedContent: string;
-  segments: { included: string[]; excluded: string[] };
-}> => {
+): Promise<ParsedResult> => {
   const response = await fetch(m3u8Url);
   if (!response.ok) {
     throw new Error(`Failed to fetch m3u8: ${response.statusText}`);
@@ -77,4 +113,74 @@ const parseM3U8Content = async (
   return { modifiedContent, segments };
 };
 
-export { parseM3U8Content };
+const BATCH_SIZE = 5;
+
+const chunks = <T>(array: T[], size: number): T[][] => {
+  const result = [];
+  for (let i = 0; i < array.length; i += size) {
+    result.push(array.slice(i, i + size));
+  }
+  return result;
+};
+
+/**
+ * Download segments in batches and process them sequentially
+ * @param segments - Array of segment URLs to download
+ * @param tempDir - Temporary directory to store downloaded segments
+ * @param maxSegmentSize - Optional maximum size (in bytes) for each segment
+ *
+ * @throws Error if any segment fails to download
+ *
+ * Behavior:
+ * - Processes segments in batches of 5
+ * - Downloads segments sequentially within each batch
+ * - Verifies file size if maxSegmentSize is provided
+ * - Stops entire process if any segment fails
+ *
+ * Example:
+ * ```typescript
+ * await downloadSegments([
+ *   'https://example.com/segment1.ts',
+ *   'https://example.com/segment2.ts'
+ * ], '/tmp/123', 1024 * 1024);
+ * ```
+ */
+const downloadSegments = async (
+  segments: string[],
+  tempDir: string,
+  maxSegmentSize?: number
+) => {
+  const batches = chunks(segments, BATCH_SIZE);
+
+  for (const batch of batches) {
+    // Process each segment in the batch sequentially
+    for (const segmentUrl of batch) {
+      const segmentName = path.basename(segmentUrl);
+      const localPath = path.join(tempDir, segmentName);
+
+      try {
+        logger.info({ segmentName, segmentUrl }, 'Downloading segment');
+        await downloadFile(segmentUrl, localPath);
+
+        if (maxSegmentSize) {
+          await verifyFileSize(localPath, maxSegmentSize);
+        }
+
+        logger.info({ segmentName }, 'Successfully downloaded segment');
+      } catch (error) {
+        logger.error(
+          {
+            segmentName,
+            segmentUrl,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          'Failed to download segment'
+        );
+        // If any segment fails, stop the process
+        throw error;
+      }
+    }
+  }
+};
+
+export { parseM3U8Content, downloadSegments };

@@ -1,7 +1,21 @@
-import { describe, expect, vi, test } from 'vitest';
-import { parseM3U8Content } from './helpers';
+import { describe, expect, vi, test, beforeEach } from 'vitest';
+import { downloadSegments, parseM3U8Content } from './helpers';
+import { downloadFile, verifyFileSize } from '../file';
+import { logger } from 'src/utils/logger';
 
-describe('M3U8 Processing', () => {
+vi.mock('../file', () => ({
+  downloadFile: vi.fn(),
+  verifyFileSize: vi.fn(),
+}));
+
+vi.mock('src/utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
+describe('M3U8 parser', () => {
   // Helper to normalize line endings and whitespace
   const normalizeContent = (content: string) =>
     content
@@ -158,5 +172,79 @@ describe('M3U8 Processing', () => {
       expect(segments.included.length).toBeGreaterThanOrEqual(0);
       expect(normalizeContent(modifiedContent)).toMatch(/#EXTM3U/);
     });
+  });
+});
+
+describe('downloadSegments', () => {
+  const mockSegments = [
+    'https://example.com/segment1.ts',
+    'https://example.com/segment2.ts',
+    'https://example.com/segment3.ts',
+  ];
+  const mockTempDir = '/tmp/test';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test('should download segments successfully', async () => {
+    await downloadSegments(mockSegments, mockTempDir);
+
+    // Check if downloadFile was called for each segment
+    expect(downloadFile).toHaveBeenCalledTimes(3);
+    expect(downloadFile).toHaveBeenCalledWith(
+      'https://example.com/segment1.ts',
+      '/tmp/test/segment1.ts'
+    );
+    expect(logger.info).toHaveBeenCalledWith(
+      {
+        segmentName: 'segment1.ts',
+        segmentUrl: 'https://example.com/segment1.ts',
+      },
+      'Downloading segment'
+    );
+  });
+
+  test('should verify file size when maxSegmentSize is provided', async () => {
+    const maxSize = 1024;
+    await downloadSegments(mockSegments, mockTempDir, maxSize);
+
+    expect(verifyFileSize).toHaveBeenCalledTimes(3);
+    expect(verifyFileSize).toHaveBeenCalledWith(
+      '/tmp/test/segment1.ts',
+      maxSize
+    );
+  });
+
+  test('should process segments in batches of 5', async () => {
+    const sixSegments = Array(6)
+      .fill('')
+      .map((_, i) => `https://example.com/segment${i + 1}.ts`);
+
+    await downloadSegments(sixSegments, mockTempDir);
+
+    // Check if the first batch was processed before the second
+    const downloadCalls = vi.mocked(downloadFile).mock.calls;
+    expect(downloadCalls[0][0]).toBe('https://example.com/segment1.ts');
+    expect(downloadCalls[4][0]).toBe('https://example.com/segment5.ts');
+    expect(downloadCalls[5][0]).toBe('https://example.com/segment6.ts');
+  });
+
+  test('should stop processing on first error', async () => {
+    vi.mocked(downloadFile).mockRejectedValueOnce(new Error('Download failed'));
+
+    await expect(downloadSegments(mockSegments, mockTempDir)).rejects.toThrow(
+      'Download failed'
+    );
+
+    // Check only first segment was attempted
+    expect(downloadFile).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({
+        segmentName: 'segment1.ts',
+        error: 'Download failed',
+      }),
+      'Failed to download segment'
+    );
   });
 });
