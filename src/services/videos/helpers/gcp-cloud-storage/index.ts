@@ -1,3 +1,4 @@
+import { TransferManager } from '@google-cloud/storage';
 import { getStorage } from 'firebase-admin/storage';
 import { existsSync } from 'fs';
 import { readdir } from 'fs/promises';
@@ -14,6 +15,13 @@ const DEFAULT_UPLOAD_OPTIONS: UploadOptions = {
   cacheControl: 'public, max-age=31536000',
   resumable: true,
   batchSize: 3,
+};
+
+const getDefaultBucket = () => {
+  const storage = getStorage();
+  const bucket = storage.bucket();
+
+  return bucket;
 };
 
 /**
@@ -37,8 +45,7 @@ const uploadFile = async (
   storagePath: string,
   options: UploadOptions = DEFAULT_UPLOAD_OPTIONS
 ) => {
-  const storage = getStorage();
-  const bucket = storage.bucket();
+  const bucket = getDefaultBucket();
 
   await bucket.upload(localPath, {
     destination: storagePath,
@@ -101,4 +108,22 @@ const uploadDirectory = async (
   }
 };
 
-export { DEFAULT_UPLOAD_OPTIONS, getDownloadUrl, uploadFile, uploadDirectory };
+const uploadFolderParallel = async (localDir: string, storagePath: string) => {
+  const bucket = getDefaultBucket();
+  const transferManager = new TransferManager(bucket);
+
+  await transferManager.uploadManyFiles(localDir, {
+    customDestinationBuilder: filePath => {
+      const fileName = path.relative(localDir, filePath);
+      return path.join(storagePath, fileName);
+    },
+  });
+};
+
+export {
+  DEFAULT_UPLOAD_OPTIONS,
+  getDownloadUrl,
+  uploadFile,
+  uploadDirectory,
+  uploadFolderParallel,
+};
