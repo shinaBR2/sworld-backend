@@ -3,12 +3,10 @@ import path from 'path';
 import { writeFile } from 'fs/promises';
 import {
   generateTempDirName,
-  downloadFile,
   createDirectory,
   cleanupDirectory,
-  verifyFileSize,
 } from '../file';
-import { getDownloadUrl, uploadDirectory } from '../gcp-cloud-storage';
+import { getDownloadUrl, uploadFolderParallel } from '../gcp-cloud-storage';
 import { logger } from 'src/utils/logger';
 import { downloadSegments, parseM3U8Content } from './helpers';
 
@@ -58,10 +56,8 @@ async function processM3U8(
     await downloadSegments(segments.included, tempDir, options.maxSegmentSize);
 
     logger.info({ storagePath }, 'Uploading to Cloud Storage');
-    await uploadDirectory(tempDir, storagePath);
-
     // Upload to Cloud Storage
-    await uploadDirectory(tempDir, storagePath);
+    await uploadFolderParallel(tempDir, storagePath);
 
     // Clean up and return
     await cleanupDirectory(tempDir);
