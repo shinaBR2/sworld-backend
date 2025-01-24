@@ -40,6 +40,13 @@ videosRouter.post(
   }
 );
 
+/**
+ * For testing locally
+ * curl --location --request POST \
+  --header "Content-type: application/json" \
+  --data-raw '{"id":"d40214e0-095d-4b32-87fe-797b611833e4","m3u8Url":"https://s3.phim1280.tv/20240811/suHBWbzY/2000kb/hls/index.m3u8"}' \
+  'http://localhost:4000/videos/upload-m3u8'
+ */
 videosRouter.post('/upload-m3u8', async (req, res) => {
   const { id, m3u8Url, excludePattern = /\/adjump\// } = req.body;
 
