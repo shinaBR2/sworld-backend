@@ -10,7 +10,7 @@ import {
   streamFile,
 } from '.';
 import { existsSync } from 'fs';
-import { Readable } from 'node:stream';
+import { PassThrough, Readable } from 'node:stream';
 
 const mockReadable = {
   on: vi.fn().mockReturnThis(),
@@ -24,7 +24,7 @@ const bucketMock = vi.fn(() => ({
   name: 'test-bucket',
   upload: uploadMock,
   file: vi.fn(() => ({
-    createWriteStream: vi.fn(() => ({ on: vi.fn().mockReturnThis() })),
+    createWriteStream: vi.fn(() => new PassThrough()),
   })),
 }));
 
@@ -195,6 +195,69 @@ describe('gcp-cloud-storage-helpers', () => {
         contentType: 'test/type',
       },
     };
+
+    it('should handle network interruption', async () => {
+      mockReadable.on.mockImplementation((event, handler) => {
+        if (event === 'error') {
+          // Simulate network error
+          handler(new Error('Network connection lost'));
+        }
+        return mockReadable;
+      });
+
+      await expect(streamFile(testParams)).rejects.toThrow(
+        'Network connection lost'
+      );
+    });
+
+    it('should handle network timeout', async () => {
+      const params = {
+        stream: new Readable({
+          read() {}, // Never push any data
+        }),
+        storagePath: 'test-path',
+        options: {
+          contentType: 'test/type',
+          timeout: 100, // Short timeout for testing
+        },
+      };
+
+      // Use fake timers for reliable timeout testing
+      vi.useFakeTimers();
+
+      const uploadPromise = streamFile(params);
+
+      // Advance timers to trigger timeout
+      vi.advanceTimersByTime(100);
+
+      await expect(uploadPromise).rejects.toThrow(
+        'Upload timed out after 100ms'
+      );
+
+      // Clean up
+      vi.useRealTimers();
+    });
+
+    it('should validate input parameters', async () => {
+      await expect(
+        streamFile({
+          ...testParams,
+          stream: null as any,
+        })
+      ).rejects.toThrow('Invalid input stream');
+    });
+
+    it('should reject when invalid stream is provided', async () => {
+      const params = {
+        ...testParams,
+        stream: { notAStream: true },
+      };
+
+      // @ts-expect-error
+      await expect(streamFile(params)).rejects.toThrow(
+        'Invalid stream provided'
+      );
+    });
 
     it('should stream file to Cloud Storage', async () => {
       mockReadable.on.mockImplementation((event, handler) => {

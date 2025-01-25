@@ -7,6 +7,7 @@ import { existsSync } from 'fs';
 import { readdir } from 'fs/promises';
 import path from 'path';
 import { logger } from 'src/utils/logger';
+import { systemConfig } from 'src/utils/systemConfig';
 
 interface UploadOptions {
   cacheControl?: string;
@@ -141,11 +142,22 @@ interface StreamFileParams {
  */
 const streamFile = async (params: StreamFileParams) => {
   const { stream, storagePath, options } = params;
+
+  if (!stream) {
+    throw new Error('Invalid input stream');
+  }
+
+  if (typeof stream.pipe !== 'function' || typeof stream.on !== 'function') {
+    throw new Error('Invalid stream provided');
+  }
+
   const bucket = getDefaultBucket();
   const file = bucket.file(storagePath);
   const writeStream = file.createWriteStream(options);
+  const { timeout = systemConfig.defaultExternalRequestTimeout } = options;
 
   return new Promise((resolve, reject) => {
+    let timeoutId: NodeJS.Timeout;
     // Flag to track if we've already handled an error
     let errorHandled = false;
 
@@ -153,6 +165,7 @@ const streamFile = async (params: StreamFileParams) => {
     const handleError = async (errorMessage: string, originalError?: Error) => {
       if (errorHandled) return;
       errorHandled = true;
+      clearTimeout(timeoutId);
 
       try {
         // Delete the partially uploaded file
@@ -176,6 +189,13 @@ const streamFile = async (params: StreamFileParams) => {
       reject(new Error(errorMessage, { cause: originalError }));
     };
 
+    if (timeout > 0) {
+      timeoutId = setTimeout(() => {
+        const errorMessage = `Upload timed out after ${timeout}ms`;
+        handleError(errorMessage, new Error(errorMessage));
+      }, timeout);
+    }
+
     // Handle stream read errors
     stream.on('error', readError => {
       handleError(`Stream read error: ${readError.message}`, readError);
@@ -191,6 +211,7 @@ const streamFile = async (params: StreamFileParams) => {
 
     // Successful completion
     writeStream.on('finish', () => {
+      clearTimeout(timeoutId);
       resolve(undefined);
     });
 
