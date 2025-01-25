@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import {
-  generateTempDirName,
+  generateTempDir,
   downloadFile,
   createDirectory,
   cleanupDirectory,
@@ -8,30 +8,65 @@ import {
 } from '.';
 import { createWriteStream, unlink, stat } from 'fs';
 import { mkdir, rm } from 'fs/promises';
+import path from 'path';
+import os from 'os';
+import crypto from 'crypto';
 
 // Mock all filesystem-related modules
 vi.mock('fs');
 vi.mock('fs/promises');
 vi.mock('firebase-admin/storage');
 vi.mock('path');
+vi.mock('crypto');
+vi.mock('os');
 
 describe('File Handlers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('generateTempDirName', () => {
-    it('generates 32-char hex string', () => {
-      const result = generateTempDirName();
-      expect(result).toMatch(/^[0-9a-f]{32}$/);
+  describe('generateTempDir', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      vi.mocked(os.tmpdir).mockReturnValue('/temp');
+      vi.mocked(path.join).mockImplementation((...args) => args.join('/'));
     });
 
-    it('generates unique values', () => {
-      const results = new Set();
-      for (let i = 0; i < 10; i++) {
-        results.add(generateTempDirName());
-      }
-      expect(results.size).toBe(10);
+    it('should generate temp directory path with random name', () => {
+      const mockHex = 'mock123';
+      vi.mocked(crypto.randomBytes).mockImplementation(
+        () =>
+          ({
+            toString: () => mockHex,
+          }) as unknown as Buffer
+      );
+
+      const result = generateTempDir();
+
+      expect(crypto.randomBytes).toHaveBeenCalledWith(16);
+      expect(path.join).toHaveBeenCalledWith('/temp', mockHex);
+      expect(result).toBe('/temp/mock123');
+    });
+
+    it('should generate unique paths each time', () => {
+      vi.mocked(crypto.randomBytes)
+        .mockImplementationOnce(
+          () =>
+            ({
+              toString: () => 'aaa',
+            }) as unknown as Buffer
+        )
+        .mockImplementationOnce(
+          () =>
+            ({
+              toString: () => 'bbb',
+            }) as unknown as Buffer
+        );
+
+      const path1 = generateTempDir();
+      const path2 = generateTempDir();
+
+      expect(path1).not.toBe(path2);
     });
   });
 

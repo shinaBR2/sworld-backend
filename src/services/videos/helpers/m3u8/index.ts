@@ -1,11 +1,7 @@
 import * as os from 'os';
 import path from 'path';
 import { writeFile } from 'fs/promises';
-import {
-  generateTempDirName,
-  createDirectory,
-  cleanupDirectory,
-} from '../file';
+import { generateTempDir, createDirectory, cleanupDirectory } from '../file';
 import { getDownloadUrl, uploadFolderParallel } from '../gcp-cloud-storage';
 import { logger } from 'src/utils/logger';
 import { downloadSegments, parseM3U8Content } from './helpers';
@@ -28,7 +24,7 @@ async function processM3U8(
   storagePath: string,
   options: ProcessOptions = {}
 ): Promise<ProcessResult> {
-  const tempDir = path.join(os.tmpdir(), generateTempDirName());
+  const tempDir = generateTempDir();
 
   try {
     await createDirectory(tempDir);
