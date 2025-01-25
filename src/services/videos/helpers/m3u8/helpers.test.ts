@@ -189,8 +189,19 @@ describe('M3U8 parser', () => {
       );
 
       // Should still produce valid output even with malformed input
-      expect(segments.included.length).toBeGreaterThanOrEqual(0);
-      expect(normalizeContent(modifiedContent)).toMatch(/#EXTM3U/);
+      // Verify specific handling of malformed input
+      expect(segments.included).toEqual(['https://example.com/segment1.ts']);
+      expect(segments.excluded).toEqual([]);
+      // Verify the structure of modified content
+      const expectedContent = normalizeContent(`
+        #EXTM3U
+        #EXT-X-VERSION:3
+        #EXTINF:3,
+        segment1.ts
+      `);
+      expect(normalizeContent(modifiedContent)).toBe(expectedContent);
+      // expect(segments.included.length).toBeGreaterThanOrEqual(0);
+      // expect(normalizeContent(modifiedContent)).toMatch(/#EXTM3U/);
     });
   });
 });
@@ -243,14 +254,24 @@ describe('downloadSegments', () => {
 
     await downloadSegments(sixSegments, mockTempDir);
 
-    // Check if the first batch was processed before the second
     const downloadCalls = vi.mocked(downloadFile).mock.calls;
-    expect(downloadCalls[0][0]).toBe('https://example.com/segment1.ts');
-    expect(downloadCalls[4][0]).toBe('https://example.com/segment5.ts');
-    expect(downloadCalls[5][0]).toBe('https://example.com/segment6.ts');
+    // Verify first batch (5 segments)
+    const firstBatch = downloadCalls.slice(0, 5);
+    expect(firstBatch.map(call => call[0])).toEqual([
+      'https://example.com/segment1.ts',
+      'https://example.com/segment2.ts',
+      'https://example.com/segment3.ts',
+      'https://example.com/segment4.ts',
+      'https://example.com/segment5.ts',
+    ]);
+    // Verify second batch (1 segment)
+    const secondBatch = downloadCalls.slice(5);
+    expect(secondBatch.map(call => call[0])).toEqual([
+      'https://example.com/segment6.ts',
+    ]);
   });
 
-  test('should stop processing on first error', async () => {
+  test('when error with promise.all', async () => {
     vi.mocked(downloadFile).mockRejectedValueOnce(new Error('Download failed'));
 
     await expect(downloadSegments(mockSegments, mockTempDir)).rejects.toThrow(

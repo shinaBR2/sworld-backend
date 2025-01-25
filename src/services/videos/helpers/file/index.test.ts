@@ -68,6 +68,14 @@ describe('File Handlers', () => {
 
       expect(path1).not.toBe(path2);
     });
+
+    it('should handle os.tmpdir() failure', () => {
+      vi.mocked(os.tmpdir).mockImplementation(() => {
+        throw new Error('Cannot access temp directory');
+      });
+
+      expect(() => generateTempDir()).toThrow('Cannot access temp directory');
+    });
   });
 
   describe('downloadFile', () => {
