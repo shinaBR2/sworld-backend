@@ -76,6 +76,27 @@ describe('File Handlers', () => {
 
       expect(() => generateTempDir()).toThrow('Cannot access temp directory');
     });
+
+    it('should generate hex string of correct length', () => {
+      vi.mocked(crypto.randomBytes).mockImplementation(() => {
+        return Buffer.from('a'.repeat(16));
+      });
+      vi.mocked(path.basename).mockImplementation(
+        p => p.split('/').pop() || ''
+      );
+
+      const result = generateTempDir();
+      const dirName = path.basename(result);
+      expect(dirName.length).toBe(32);
+    });
+
+    it('should use existing temporary directory', () => {
+      vi.mocked(os.tmpdir).mockReturnValue('/existing/temp/dir');
+      vi.mocked(path.join).mockImplementation((...args) => args.join('/'));
+
+      const result = generateTempDir();
+      expect(result.startsWith('/existing/temp/dir/')).toBe(true);
+    });
   });
 
   describe('downloadFile', () => {
