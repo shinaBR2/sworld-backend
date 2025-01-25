@@ -217,5 +217,50 @@ describe('gcp-cloud-storage-helpers', () => {
         })
       ).rejects.toThrow('Upload failed');
     });
+
+    it('should handle read stream error', async () => {
+      mockReadable.on.mockImplementation((event, handler) => {
+        if (event === 'error') {
+          handler(new Error('Read stream error'));
+        }
+        return mockReadable;
+      });
+
+      await expect(
+        streamFile(Readable.from(['test']), 'test-path', {
+          contentType: 'test/type',
+        })
+      ).rejects.toThrow('Read stream error');
+    });
+
+    it('should handle write stream error', async () => {
+      mockReadable.on.mockImplementation((event, handler) => {
+        if (event === 'error') {
+          handler(new Error('Write stream error'));
+        }
+        return mockReadable;
+      });
+
+      await expect(
+        streamFile(Readable.from(['test']), 'test-path', {
+          contentType: 'test/type',
+        })
+      ).rejects.toThrow('Write stream error');
+    });
+
+    it('should successfully complete file upload', async () => {
+      mockReadable.on.mockImplementation((event, handler) => {
+        if (event === 'finish') {
+          handler();
+        }
+        return mockReadable;
+      });
+
+      await expect(
+        streamFile(Readable.from(['test']), 'test-path', {
+          contentType: 'test/type',
+        })
+      ).resolves.not.toThrow();
+    });
   });
 });

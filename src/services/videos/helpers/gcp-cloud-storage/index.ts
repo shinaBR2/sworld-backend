@@ -140,8 +140,65 @@ const streamFile = async (
   const bucket = getDefaultBucket();
   const file = bucket.file(storagePath);
   const writeStream = file.createWriteStream(options);
+
   return new Promise((resolve, reject) => {
-    body.pipe(writeStream).on('error', reject).on('finish', resolve);
+    // Flag to track if we've already handled an error
+    let errorHandled = false;
+
+    // Helper function to handle errors and cleanup
+    const handleError = async (errorMessage: string, originalError?: Error) => {
+      if (errorHandled) return;
+      errorHandled = true;
+
+      try {
+        // Delete the partially uploaded file
+        await file.delete();
+      } catch (deleteError) {
+        // Log deletion error, but don't override the original error
+        logger.error(
+          {
+            storagePath,
+            deleteError:
+              deleteError instanceof Error
+                ? deleteError.message
+                : String(deleteError),
+            originalError: originalError?.message,
+          },
+          'Failed to delete partial file after upload error'
+        );
+      }
+
+      // Reject with a descriptive error
+      reject(new Error(errorMessage, { cause: originalError }));
+    };
+
+    // Handle stream read errors
+    body.on('error', readError => {
+      handleError(`Stream read error: ${readError.message}`, readError);
+    });
+
+    // Handle write stream errors
+    writeStream.on('error', writeError => {
+      handleError(
+        `Cloud storage write error: ${writeError.message}`,
+        writeError
+      );
+    });
+
+    // Successful completion
+    writeStream.on('finish', () => {
+      resolve(undefined);
+    });
+
+    // Pipe the stream and handle potential immediate piping errors
+    try {
+      body.pipe(writeStream).on('error', reject).on('finish', resolve);
+    } catch (pipeError) {
+      handleError(
+        `Stream piping error: ${pipeError instanceof Error ? pipeError.message : String(pipeError)}`,
+        pipeError instanceof Error ? pipeError : undefined
+      );
+    }
   });
 };
 
