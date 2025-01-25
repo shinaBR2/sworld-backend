@@ -59,8 +59,6 @@ const parseM3U8Content = async (
   parser.push(content);
   parser.end();
 
-  // const content = normalizeContent(await response.text());
-  // const lines = content.split('\n');
   const manifest = parser.manifest;
   const segments = {
     included: [] as string[],
@@ -194,13 +192,21 @@ const downloadSegments = async (
 const streamPlaylistFile = async (content: string, storagePath: string) => {
   const playlistStream = Readable.from(content);
 
-  return streamFile({
-    stream: playlistStream,
-    storagePath,
-    options: {
-      contentType: 'application/vnd.apple.mpegurl',
-    },
-  });
+  try {
+    return streamFile({
+      stream: playlistStream,
+      storagePath,
+      options: {
+        contentType: 'application/vnd.apple.mpegurl',
+      },
+    });
+  } catch (error) {
+    throw new Error(
+      `Failed to stream playlist to ${storagePath}: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+  }
 };
 
 /**
