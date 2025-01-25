@@ -188,6 +188,14 @@ describe('gcp-cloud-storage-helpers', () => {
       vi.clearAllMocks();
     });
 
+    const testParams = {
+      stream: Readable.from(['test']),
+      storagePath: 'test-path',
+      options: {
+        contentType: 'test/type',
+      },
+    };
+
     it('should stream file to Cloud Storage', async () => {
       mockReadable.on.mockImplementation((event, handler) => {
         if (event === 'finish') {
@@ -196,11 +204,7 @@ describe('gcp-cloud-storage-helpers', () => {
         return mockReadable;
       });
 
-      await expect(
-        streamFile(Readable.from(['test']), 'test-path', {
-          contentType: 'test/type',
-        })
-      ).resolves.not.toThrow();
+      await expect(streamFile(testParams)).resolves.not.toThrow();
     });
 
     it('should reject when streaming fails', async () => {
@@ -211,11 +215,7 @@ describe('gcp-cloud-storage-helpers', () => {
         return mockReadable;
       });
 
-      await expect(
-        streamFile(Readable.from(['test']), 'test-path', {
-          contentType: 'test/type',
-        })
-      ).rejects.toThrow('Upload failed');
+      await expect(streamFile(testParams)).rejects.toThrow('Upload failed');
     });
 
     it('should handle read stream error', async () => {
@@ -226,11 +226,7 @@ describe('gcp-cloud-storage-helpers', () => {
         return mockReadable;
       });
 
-      await expect(
-        streamFile(Readable.from(['test']), 'test-path', {
-          contentType: 'test/type',
-        })
-      ).rejects.toThrow('Read stream error');
+      await expect(streamFile(testParams)).rejects.toThrow('Read stream error');
     });
 
     it('should handle write stream error', async () => {
@@ -241,11 +237,9 @@ describe('gcp-cloud-storage-helpers', () => {
         return mockReadable;
       });
 
-      await expect(
-        streamFile(Readable.from(['test']), 'test-path', {
-          contentType: 'test/type',
-        })
-      ).rejects.toThrow('Write stream error');
+      await expect(streamFile(testParams)).rejects.toThrow(
+        'Write stream error'
+      );
     });
 
     it('should successfully complete file upload', async () => {
@@ -256,11 +250,7 @@ describe('gcp-cloud-storage-helpers', () => {
         return mockReadable;
       });
 
-      await expect(
-        streamFile(Readable.from(['test']), 'test-path', {
-          contentType: 'test/type',
-        })
-      ).resolves.not.toThrow();
+      await expect(streamFile(testParams)).resolves.not.toThrow();
     });
   });
 });

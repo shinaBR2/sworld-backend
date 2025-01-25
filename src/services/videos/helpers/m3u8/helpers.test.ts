@@ -311,8 +311,12 @@ describe('streamSegmentFile', () => {
     expect(fetch).toHaveBeenCalledWith('http://example.com/segment.ts');
 
     // Verify streamFile was called with correct arguments
-    expect(streamFile).toHaveBeenCalledWith(mockBody, 'test-path/segment.ts', {
-      contentType: 'video/MP2T',
+    expect(streamFile).toHaveBeenCalledWith({
+      stream: mockBody,
+      storagePath: 'test-path/segment.ts',
+      options: {
+        contentType: 'video/MP2T',
+      },
     });
   });
 
@@ -360,16 +364,16 @@ describe('streamPlaylistFile', () => {
     expect(mockStreamFile).toHaveBeenCalledOnce();
 
     // Get the arguments passed to streamFile
-    const [stream, path, options] = mockStreamFile.mock.calls[0];
+    const params = mockStreamFile.mock.calls[0][0];
 
     // Check stream is a Readable
-    expect(stream).toBeInstanceOf(Readable);
+    expect(params.stream).toBeInstanceOf(Readable);
 
     // Check storage path
-    expect(path).toBe(storagePath);
+    expect(params.storagePath).toBe(storagePath);
 
     // Check content type
-    expect(options).toEqual({
+    expect(params.options).toEqual({
       contentType: 'application/vnd.apple.mpegurl',
     });
   });
@@ -382,7 +386,7 @@ describe('streamPlaylistFile', () => {
 
     expect(mockStreamFile).toHaveBeenCalledOnce();
 
-    const [stream] = mockStreamFile.mock.calls[0];
+    const { stream } = mockStreamFile.mock.calls[0][0];
     expect(stream).toBeInstanceOf(Readable);
   });
 
@@ -395,9 +399,9 @@ describe('streamPlaylistFile', () => {
 
     expect(mockStreamFile).toHaveBeenCalledOnce();
 
-    const [stream, path, options] = mockStreamFile.mock.calls[0];
-    expect(path).toBe(storagePath);
-    expect(options.contentType).toBe('application/vnd.apple.mpegurl');
+    const params = mockStreamFile.mock.calls[0][0];
+    expect(params.storagePath).toBe(storagePath);
+    expect(params.options.contentType).toBe('application/vnd.apple.mpegurl');
   });
 
   test('should propagate errors from streamFile', async () => {

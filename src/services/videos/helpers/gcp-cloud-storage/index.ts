@@ -125,18 +125,22 @@ const uploadFolderParallel = async (localDir: string, storagePath: string) => {
   });
 };
 
+interface StreamFileParams {
+  /** The readable stream of the file content */
+  stream: NodeJS.ReadableStream;
+  /** Destination path in Cloud Storage (e.g., 'videos/123/segments/file.ts') */
+  storagePath: string;
+  /** Configuration options for the write stream (e.g., contentType, metadata) */
+  options: CreateWriteStreamOptions;
+}
+
 /**
  * Streams a file to Cloud Storage
- * @param body The readable stream of the file content
- * @param storagePath Destination path in Cloud Storage (e.g., 'videos/123/segments/file.ts')
- * @param options Configuration options for the write stream (e.g., contentType, metadata)
+ * @param params Configuration object containing all parameters
  * @returns Promise that resolves when streaming is complete
  */
-const streamFile = async (
-  body: NodeJS.ReadableStream,
-  storagePath: string,
-  options: CreateWriteStreamOptions
-) => {
+const streamFile = async (params: StreamFileParams) => {
+  const { stream, storagePath, options } = params;
   const bucket = getDefaultBucket();
   const file = bucket.file(storagePath);
   const writeStream = file.createWriteStream(options);
@@ -173,7 +177,7 @@ const streamFile = async (
     };
 
     // Handle stream read errors
-    body.on('error', readError => {
+    stream.on('error', readError => {
       handleError(`Stream read error: ${readError.message}`, readError);
     });
 
@@ -192,7 +196,7 @@ const streamFile = async (
 
     // Pipe the stream and handle potential immediate piping errors
     try {
-      body.pipe(writeStream).on('error', reject).on('finish', resolve);
+      stream.pipe(writeStream).on('error', reject).on('finish', resolve);
     } catch (pipeError) {
       handleError(
         `Stream piping error: ${pipeError instanceof Error ? pipeError.message : String(pipeError)}`,

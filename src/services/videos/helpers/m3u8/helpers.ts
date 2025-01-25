@@ -197,8 +197,12 @@ const downloadSegments = async (
 const streamPlaylistFile = async (content: string, storagePath: string) => {
   const playlistStream = Readable.from(content);
 
-  return streamFile(playlistStream, storagePath, {
-    contentType: 'application/vnd.apple.mpegurl',
+  return streamFile({
+    stream: playlistStream,
+    storagePath,
+    options: {
+      contentType: 'application/vnd.apple.mpegurl',
+    },
   });
 };
 
@@ -214,8 +218,12 @@ const streamSegmentFile = async (segmentUrl: string, storagePath: string) => {
     throw new Error('Failed to fetch segment');
   }
 
-  return streamFile(response.body, storagePath, {
-    contentType: 'video/MP2T', // Standard MIME type for .ts segment files
+  return streamFile({
+    stream: response.body,
+    storagePath,
+    options: {
+      contentType: 'video/MP2T', // Standard MIME type for .ts segment files
+    },
   });
 };
 
