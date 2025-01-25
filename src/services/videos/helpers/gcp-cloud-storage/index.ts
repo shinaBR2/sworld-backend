@@ -17,6 +17,8 @@ const DEFAULT_UPLOAD_OPTIONS: UploadOptions = {
   batchSize: 3,
 };
 
+// TODO
+// Consider migrate from firebase-admin to @google-cloud/storage
 const getDefaultBucket = () => {
   const storage = getStorage();
   const bucket = storage.bucket();
