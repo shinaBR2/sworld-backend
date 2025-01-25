@@ -1,4 +1,7 @@
-import { TransferManager } from '@google-cloud/storage';
+import {
+  TransferManager,
+  CreateWriteStreamOptions,
+} from '@google-cloud/storage';
 import { getStorage } from 'firebase-admin/storage';
 import { existsSync } from 'fs';
 import { readdir } from 'fs/promises';
@@ -122,10 +125,31 @@ const uploadFolderParallel = async (localDir: string, storagePath: string) => {
   });
 };
 
+/**
+ * Streams a file to Cloud Storage
+ * @param body The readable stream of the file content
+ * @param storagePath Destination path in Cloud Storage (e.g., 'videos/123/segments/file.ts')
+ * @param options Configuration options for the write stream (e.g., contentType, metadata)
+ * @returns Promise that resolves when streaming is complete
+ */
+const streamFile = async (
+  body: NodeJS.ReadableStream,
+  storagePath: string,
+  options: CreateWriteStreamOptions
+) => {
+  const bucket = getDefaultBucket();
+  const file = bucket.file(storagePath);
+  const writeStream = file.createWriteStream(options);
+  return new Promise((resolve, reject) => {
+    body.pipe(writeStream).on('error', reject).on('finish', resolve);
+  });
+};
+
 export {
   DEFAULT_UPLOAD_OPTIONS,
   getDownloadUrl,
   uploadFile,
   uploadDirectory,
   uploadFolderParallel,
+  streamFile,
 };

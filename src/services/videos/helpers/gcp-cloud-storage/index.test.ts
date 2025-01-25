@@ -7,14 +7,25 @@ import {
   uploadFile,
   uploadDirectory,
   DEFAULT_UPLOAD_OPTIONS,
+  streamFile,
 } from '.';
 import { existsSync } from 'fs';
+import { Readable } from 'node:stream';
+
+const mockReadable = {
+  on: vi.fn().mockReturnThis(),
+  pipe: vi.fn().mockReturnThis(),
+};
+vi.spyOn(Readable, 'from').mockImplementation(() => mockReadable as any);
 
 // Create mock functions
 const uploadMock = vi.fn().mockResolvedValue([{}]);
 const bucketMock = vi.fn(() => ({
   name: 'test-bucket',
   upload: uploadMock,
+  file: vi.fn(() => ({
+    createWriteStream: vi.fn(() => ({ on: vi.fn().mockReturnThis() })),
+  })),
 }));
 
 // Mock firebase-admin/storage
@@ -30,6 +41,12 @@ vi.mock('fs', () => ({
 vi.mock('fs/promises', () => ({
   readdir: vi.fn(),
 }));
+
+vi.mock('node-fetch', () => {
+  return {
+    default: vi.fn(),
+  };
+});
 
 describe('gcp-cloud-storage-helpers', () => {
   beforeEach(() => {
@@ -163,6 +180,42 @@ describe('gcp-cloud-storage-helpers', () => {
       await expect(uploadDirectory(localDir, storagePath)).rejects.toThrow(
         'Upload failed'
       );
+    });
+  });
+
+  describe('streamFile', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('should stream file to Cloud Storage', async () => {
+      mockReadable.on.mockImplementation((event, handler) => {
+        if (event === 'finish') {
+          handler();
+        }
+        return mockReadable;
+      });
+
+      await expect(
+        streamFile(Readable.from(['test']), 'test-path', {
+          contentType: 'test/type',
+        })
+      ).resolves.not.toThrow();
+    });
+
+    it('should reject when streaming fails', async () => {
+      mockReadable.on.mockImplementation((event, handler) => {
+        if (event === 'error') {
+          handler(new Error('Upload failed'));
+        }
+        return mockReadable;
+      });
+
+      await expect(
+        streamFile(Readable.from(['test']), 'test-path', {
+          contentType: 'test/type',
+        })
+      ).rejects.toThrow('Upload failed');
     });
   });
 });
