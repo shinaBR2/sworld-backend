@@ -188,20 +188,19 @@ describe('M3U8 parser', () => {
         excludePattern
       );
 
-      // Should still produce valid output even with malformed input
-      // Verify specific handling of malformed input
-      expect(segments.included).toEqual(['https://example.com/segment1.ts']);
-      expect(segments.excluded).toEqual([]);
-      // Verify the structure of modified content
+      expect(segments.included).toEqual([
+        'https://example.com/segment1.ts',
+        'https://example.com/segment2.ts',
+      ]);
+      expect(segments.excluded).toEqual(['https://example.com/adjump/ad1.ts']);
       const expectedContent = normalizeContent(`
         #EXTM3U
         #EXT-X-VERSION:3
         #EXTINF:3,
         segment1.ts
+        segment2.ts
       `);
       expect(normalizeContent(modifiedContent)).toBe(expectedContent);
-      // expect(segments.included.length).toBeGreaterThanOrEqual(0);
-      // expect(normalizeContent(modifiedContent)).toMatch(/#EXTM3U/);
     });
   });
 });
@@ -308,7 +307,9 @@ describe('streamSegmentFile', () => {
     );
 
     // Verify fetch was called with correct URL
-    expect(fetch).toHaveBeenCalledWith('http://example.com/segment.ts');
+    expect(fetch).toHaveBeenCalledWith('http://example.com/segment.ts', {
+      timeout: 5000,
+    });
 
     // Verify streamFile was called with correct arguments
     expect(streamFile).toHaveBeenCalledWith({

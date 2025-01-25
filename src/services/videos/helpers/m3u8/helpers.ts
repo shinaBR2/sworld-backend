@@ -5,14 +5,8 @@ import { downloadFile, verifyFileSize } from '../file';
 import { streamFile } from '../gcp-cloud-storage';
 import { Readable } from 'node:stream';
 import { videoConfig } from '../../config';
-
-const normalizeContent = (content: string) => {
-  return content
-    .split('\n')
-    .map(line => line.trim())
-    .filter(Boolean)
-    .join('\n');
-};
+import { systemConfig } from 'src/utils/systemConfig';
+import { Parser } from 'm3u8-parser';
 
 interface ParsedResult {
   modifiedContent: string;
@@ -60,8 +54,14 @@ const parseM3U8Content = async (
     throw new Error(`Failed to fetch m3u8: ${response.statusText}`);
   }
 
-  const content = normalizeContent(await response.text());
-  const lines = content.split('\n');
+  const content = await response.text();
+  const parser = new Parser();
+  parser.push(content);
+  parser.end();
+
+  // const content = normalizeContent(await response.text());
+  // const lines = content.split('\n');
+  const manifest = parser.manifest;
   const segments = {
     included: [] as string[],
     excluded: [] as string[],
@@ -69,41 +69,42 @@ const parseM3U8Content = async (
 
   let modifiedContent = '';
 
-  // Process lines sequentially
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  // Add header tags
+  if (manifest.version) {
+    modifiedContent += `#EXTM3U\n`;
+    modifiedContent += `#EXT-X-VERSION:${manifest.version}\n`;
+  }
 
-    // Keep essential HLS tags
-    if (videoConfig.essentialHLSTags.has(line.split(':')[0])) {
-      modifiedContent += line + '\n';
-      continue;
-    }
+  // Add playlist type if present
+  if (manifest.playlistType) {
+    modifiedContent += `#EXT-X-PLAYLIST-TYPE:${manifest.playlistType}\n`;
+  }
 
-    // Handle EXTINF and its corresponding segment
-    if (line.startsWith('#EXTINF')) {
-      // Look ahead for the segment URL
-      const nextLine = lines[i + 1];
+  // Add target duration
+  if (manifest.targetDuration) {
+    modifiedContent += `#EXT-X-TARGETDURATION:${manifest.targetDuration}\n`;
+  }
 
-      // Skip if no segment URL follows
-      if (!nextLine || !nextLine.includes('.ts')) {
-        continue;
+  // Process segments
+  manifest.segments?.forEach(segment => {
+    const segmentUrl = new URL(segment.uri, m3u8Url).toString();
+
+    if (!excludePattern || !excludePattern.test(segmentUrl)) {
+      // Include non-ad segment
+      if (segment.duration) {
+        modifiedContent += `#EXTINF:${segment.duration},\n`;
       }
 
-      // Check if this is an ad segment
-      const segmentUrl = new URL(nextLine, m3u8Url).toString();
-      if (!excludePattern || !excludePattern.test(segmentUrl)) {
-        // Include non-ad segment
-        modifiedContent += line + '\n';
-        modifiedContent += path.basename(nextLine) + '\n';
-        segments.included.push(segmentUrl);
-      } else {
-        segments.excluded.push(segmentUrl);
-      }
-
-      // Skip the segment URL line since we've processed it
-      i++;
+      modifiedContent += `${segment.uri}\n`;
+      segments.included.push(segmentUrl);
+    } else {
+      segments.excluded.push(segmentUrl);
     }
-    // Skip DISCONTINUITY markers and other tags
+  });
+
+  // Add endlist if present
+  if (manifest.endList) {
+    modifiedContent += '#EXT-X-ENDLIST\n';
   }
 
   return { modifiedContent, segments };
@@ -209,7 +210,9 @@ const streamPlaylistFile = async (content: string, storagePath: string) => {
  * @returns Promise that resolves when upload is complete
  */
 const streamSegmentFile = async (segmentUrl: string, storagePath: string) => {
-  const response = await fetch(segmentUrl);
+  const response = await fetch(segmentUrl, {
+    timeout: systemConfig.defaultExternalRequestTimeout,
+  });
   if (!response.ok || !response.body) {
     throw new Error(
       `Failed to fetch segment: ${response.status} ${response.statusText}`
