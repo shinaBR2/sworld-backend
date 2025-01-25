@@ -64,7 +64,10 @@ const streamM3U8 = async (
     await streamPlaylistFile(modifiedContent, playlistStoragePath);
 
     // Stream segments in parallel
-    await streamSegments(segments.included, storagePath);
+    await streamSegments({
+      segmentUrls: segments.included,
+      baseStoragePath: storagePath,
+    });
 
     const result = {
       playlistUrl: getDownloadUrl(playlistStoragePath),

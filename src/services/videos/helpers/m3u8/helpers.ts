@@ -4,6 +4,7 @@ import { logger } from 'src/utils/logger';
 import { downloadFile, verifyFileSize } from '../file';
 import { streamFile } from '../gcp-cloud-storage';
 import { Readable } from 'node:stream';
+import { videoConfig } from '../../config';
 
 const ESSENTIAL_TAGS = new Set([
   '#EXTM3U',
@@ -227,12 +228,21 @@ const streamSegmentFile = async (segmentUrl: string, storagePath: string) => {
   });
 };
 
-const streamSegments = async (
-  segmentUrls: string[],
-  baseStoragePath: string
-) => {
-  // Use Promise.all with concurrency limit
-  const concurrencyLimit = 5; // Adjust based on your needs
+interface StreamSegmentsParams {
+  /** Array of segment URLs to stream */
+  segmentUrls: string[];
+  /** Base path in Cloud Storage to store the segments */
+  baseStoragePath: string;
+  options?: {
+    /** Optional concurrency limit for streaming segments */
+    concurrencyLimit?: number;
+  };
+}
+
+const streamSegments = async (params: StreamSegmentsParams) => {
+  const { segmentUrls, baseStoragePath, options } = params;
+  const { defaultConcurrencyLimit } = videoConfig;
+  const concurrencyLimit = options?.concurrencyLimit || defaultConcurrencyLimit;
 
   for (let i = 0; i < segmentUrls.length; i += concurrencyLimit) {
     const batch = segmentUrls.slice(i, i + concurrencyLimit);
