@@ -1,11 +1,7 @@
-import * as os from 'os';
 import path from 'path';
-import { writeFile } from 'fs/promises';
-import { generateTempDir, createDirectory, cleanupDirectory } from '../file';
-import { getDownloadUrl, uploadFolderParallel } from '../gcp-cloud-storage';
+import { getDownloadUrl } from '../gcp-cloud-storage';
 import { logger } from 'src/utils/logger';
 import {
-  downloadSegments,
   parseM3U8Content,
   streamPlaylistFile,
   streamSegments,
@@ -16,6 +12,31 @@ interface ProcessOptions {
   maxSegmentSize?: number;
 }
 
+/**
+ * Stream an M3U8 playlist and its video segments to cloud storage.
+ *
+ * @param m3u8Url - The URL of the source M3U8 playlist
+ * @param storagePath - The base path in cloud storage where files will be uploaded
+ * @param options - Optional configuration for streaming process
+ * @returns A promise resolving to the cloud storage URL of the streamed playlist
+ *
+ * @remarks
+ * - Parses the M3U8 playlist to extract video segments
+ * - Streams the modified playlist file to cloud storage
+ * - Streams all included video segments in parallel
+ * - Supports optional segment exclusion via excludePattern
+ *
+ * @example
+ * ```typescript
+ * const playlistUrl = await streamM3U8(
+ *   'https://example.com/video.m3u8',
+ *   'videos/my-movie'
+ * );
+ * ```
+ *
+ * @throws {Error} Propagates any errors encountered during streaming process
+ * - Logs detailed error information before throwing
+ */
 const streamM3U8 = async (
   m3u8Url: string,
   storagePath: string,

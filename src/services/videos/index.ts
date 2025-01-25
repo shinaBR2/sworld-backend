@@ -40,36 +40,4 @@ videosRouter.post(
   }
 );
 
-videosRouter.post('/stream-m3u8', async (req, res) => {
-  const { id, m3u8Url, excludePattern = /\/adjump\// } = req.body;
-
-  if (!id) {
-    return res.status(400).json({ error: 'Missing id in request body' });
-  }
-
-  if (!m3u8Url) {
-    return res.status(400).json({ error: 'Missing m3u8Url in request body' });
-  }
-
-  try {
-    const result = await streamM3U8(m3u8Url, `videos/test-${id}`, {
-      excludePattern,
-    });
-
-    res.json(result);
-  } catch (error) {
-    // logger.error('Failed to process M3U8:', {
-    //   error: error instanceof Error ? error.message : String(error),
-    //   stack: error instanceof Error ? error.stack : undefined,
-    //   m3u8Url,
-    // });
-    console.error('Error processing M3U8:', error);
-
-    res.status(500).json({
-      error: 'Internal server error',
-      message: (error as unknown as Error).message,
-    });
-  }
-});
-
 export { videosRouter };
