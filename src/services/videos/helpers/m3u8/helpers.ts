@@ -218,6 +218,7 @@ const streamPlaylistFile = async (content: string, storagePath: string) => {
 const streamSegmentFile = async (segmentUrl: string, storagePath: string) => {
   const response = await fetch(segmentUrl, {
     timeout: systemConfig.defaultExternalRequestTimeout,
+    size: 32 * 1024 * 1024, // 32MB as safe maximum for high quality segments
   });
   if (!response.ok || !response.body) {
     throw new Error(

@@ -309,6 +309,7 @@ describe('streamSegmentFile', () => {
     // Verify fetch was called with correct URL
     expect(fetch).toHaveBeenCalledWith('http://example.com/segment.ts', {
       timeout: 5000,
+      size: 32 * 1024 * 1024,
     });
 
     // Verify streamFile was called with correct arguments
