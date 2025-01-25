@@ -7,8 +7,7 @@ import { validateRequest } from 'src/utils/validator';
 import { ConvertRequest, convert } from './convert';
 import { logger } from 'src/utils/logger';
 import { ConvertSchema } from './convert/schema';
-import { processM3U8 } from './helpers/m3u8';
-import { streamSegmentFile } from './helpers/m3u8/helpers';
+import { streamM3U8 } from './helpers/m3u8';
 
 initializeApp({
   storageBucket: envConfig.storageBucket,
@@ -41,14 +40,7 @@ videosRouter.post(
   }
 );
 
-/**
- * For testing locally
- * curl --location --request POST \
-  --header "Content-type: application/json" \
-  --data-raw '{"id":"d40214e0-095d-4b32-87fe-797b611833e4","m3u8Url":"https://s3.phim1280.tv/20240811/suHBWbzY/2000kb/hls/index.m3u8"}' \
-  'http://localhost:4000/videos/upload-m3u8'
- */
-videosRouter.post('/upload-m3u8', async (req, res) => {
+videosRouter.post('/stream-m3u8', async (req, res) => {
   const { id, m3u8Url, excludePattern = /\/adjump\// } = req.body;
 
   if (!id) {
@@ -60,47 +52,9 @@ videosRouter.post('/upload-m3u8', async (req, res) => {
   }
 
   try {
-    const result = await processM3U8(m3u8Url, `videos/${id}`, {
+    const result = await streamM3U8(m3u8Url, `videos/test-${id}`, {
       excludePattern,
-      maxSegmentSize: 400 * 1024 * 1024, // 400MB limit
     });
-
-    res.json(result);
-  } catch (error) {
-    // logger.error('Failed to process M3U8:', {
-    //   error: error instanceof Error ? error.message : String(error),
-    //   stack: error instanceof Error ? error.stack : undefined,
-    //   m3u8Url,
-    // });
-    console.error('Error processing M3U8:', error);
-
-    res.status(500).json({
-      error: 'Internal server error',
-      message: (error as unknown as Error).message,
-    });
-  }
-});
-
-videosRouter.post('/test-stream-segment', async (req, res) => {
-  const { id, segmentUrl, excludePattern = /\/adjump\// } = req.body;
-
-  if (!id) {
-    return res.status(400).json({ error: 'Missing id in request body' });
-  }
-
-  if (!segmentUrl) {
-    return res
-      .status(400)
-      .json({ error: 'Missing segmentUrl in request body' });
-  }
-
-  try {
-    const segmentFileName = segmentUrl.split('/').pop();
-
-    const result = await streamSegmentFile(
-      segmentUrl,
-      `videos/test-segment-${id}/${segmentFileName}`
-    );
 
     res.json(result);
   } catch (error) {

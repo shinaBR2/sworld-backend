@@ -2,6 +2,7 @@ import { describe, expect, vi, test, beforeEach } from 'vitest';
 import {
   downloadSegments,
   parseM3U8Content,
+  streamPlaylistFile,
   streamSegmentFile,
 } from './helpers';
 import { downloadFile, verifyFileSize } from '../file';
@@ -316,5 +317,81 @@ describe('streamSegmentFile', () => {
     await expect(
       streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')
     ).rejects.toThrow('Failed to fetch segment');
+  });
+});
+
+describe('streamPlaylistFile', () => {
+  const mockStreamFile = vi.mocked(streamFile);
+
+  beforeEach(() => {
+    // Clear all mocks before each test
+    vi.clearAllMocks();
+  });
+
+  test('should create a readable stream from content', async () => {
+    const content = '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1280000\ntest.ts';
+    const storagePath = 'test/playlist.m3u8';
+
+    // Call the function
+    await streamPlaylistFile(content, storagePath);
+
+    // Verify streamFile was called
+    expect(mockStreamFile).toHaveBeenCalledOnce();
+
+    // Get the arguments passed to streamFile
+    const [stream, path, options] = mockStreamFile.mock.calls[0];
+
+    // Check stream is a Readable
+    expect(stream).toBeInstanceOf(Readable);
+
+    // Check storage path
+    expect(path).toBe(storagePath);
+
+    // Check content type
+    expect(options).toEqual({
+      contentType: 'application/vnd.apple.mpegurl',
+    });
+  });
+
+  test('should handle empty content', async () => {
+    const content = '';
+    const storagePath = 'test/empty-playlist.m3u8';
+
+    await streamPlaylistFile(content, storagePath);
+
+    expect(mockStreamFile).toHaveBeenCalledOnce();
+
+    const [stream] = mockStreamFile.mock.calls[0];
+    expect(stream).toBeInstanceOf(Readable);
+  });
+
+  test('should stream playlist with special characters', async () => {
+    const content =
+      '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1280000,RESOLUTION=1280x720\npath/with/special-chars.ts';
+    const storagePath = 'test/complex-playlist.m3u8';
+
+    await streamPlaylistFile(content, storagePath);
+
+    expect(mockStreamFile).toHaveBeenCalledOnce();
+
+    const [stream, path, options] = mockStreamFile.mock.calls[0];
+    expect(path).toBe(storagePath);
+    expect(options.contentType).toBe('application/vnd.apple.mpegurl');
+  });
+
+  test('should propagate errors from streamFile', async () => {
+    const content = '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1280000\ntest.ts';
+    const storagePath = 'test/error-playlist.m3u8';
+    const mockError = new Error('Stream error');
+
+    // Mock streamFile to throw an error
+    mockStreamFile.mockRejectedValueOnce(mockError);
+
+    // Expect the error to be propagated
+    await expect(streamPlaylistFile(content, storagePath)).rejects.toThrow(
+      'Stream error'
+    );
+
+    expect(mockStreamFile).toHaveBeenCalledOnce();
   });
 });

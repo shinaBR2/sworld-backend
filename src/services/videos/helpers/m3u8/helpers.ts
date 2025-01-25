@@ -3,6 +3,7 @@ import fetch from 'node-fetch';
 import { logger } from 'src/utils/logger';
 import { downloadFile, verifyFileSize } from '../file';
 import { streamFile } from '../gcp-cloud-storage';
+import { Readable } from 'node:stream';
 
 const ESSENTIAL_TAGS = new Set([
   '#EXTM3U',
@@ -174,6 +175,34 @@ const downloadSegments = async (
 };
 
 /**
+ * Streams an M3U8 playlist file to cloud storage.
+ *
+ * @param content - The raw content of the M3U8 playlist
+ * @param storagePath - The destination path in cloud storage
+ * @returns A promise that resolves when the file is successfully streamed
+ *
+ * @remarks
+ * - Converts the playlist content to a Node.js Readable stream
+ * - Uses the Apple-specific MIME type for maximum compatibility
+ * - Suitable for streaming both complete and partial playlist contents
+ *
+ * @example
+ * ```typescript
+ * const playlistContent = '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1280000\nindex.ts';
+ * await streamPlaylistFile(playlistContent, 'videos/playlist.m3u8');
+ * ```
+ *
+ * @throws {Error} Propagates any errors from the underlying stream operation
+ */
+const streamPlaylistFile = async (content: string, storagePath: string) => {
+  const playlistStream = Readable.from(content);
+
+  return streamFile(playlistStream, storagePath, {
+    contentType: 'application/vnd.apple.mpegurl',
+  });
+};
+
+/**
  * Downloads a video segment from URL and streams it to Cloud Storage
  * @param segmentUrl Source URL of the video segment (.ts file)
  * @param storagePath Destination path in Cloud Storage (e.g., 'videos/123/segments/segment.ts')
@@ -190,4 +219,45 @@ const streamSegmentFile = async (segmentUrl: string, storagePath: string) => {
   });
 };
 
-export { parseM3U8Content, downloadSegments, streamSegmentFile };
+const streamSegments = async (
+  segmentUrls: string[],
+  baseStoragePath: string
+) => {
+  // Use Promise.all with concurrency limit
+  const concurrencyLimit = 5; // Adjust based on your needs
+
+  for (let i = 0; i < segmentUrls.length; i += concurrencyLimit) {
+    const batch = segmentUrls.slice(i, i + concurrencyLimit);
+
+    await Promise.all(
+      batch.map(async segmentUrl => {
+        const segmentFileName = segmentUrl.split('/').pop();
+        const segmentStoragePath = path.join(
+          baseStoragePath,
+          segmentFileName as string
+        );
+
+        try {
+          await streamSegmentFile(segmentUrl, segmentStoragePath);
+        } catch (error) {
+          logger.error(
+            {
+              segmentUrl,
+              error: error instanceof Error ? error.message : String(error),
+            },
+            'Failed to stream segment'
+          );
+          // Optionally, you can choose to throw or continue
+          // throw error;
+        }
+      })
+    );
+  }
+};
+export {
+  parseM3U8Content,
+  downloadSegments,
+  streamPlaylistFile,
+  streamSegmentFile,
+  streamSegments,
+};

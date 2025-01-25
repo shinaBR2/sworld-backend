@@ -4,32 +4,25 @@ import { writeFile } from 'fs/promises';
 import { generateTempDir, createDirectory, cleanupDirectory } from '../file';
 import { getDownloadUrl, uploadFolderParallel } from '../gcp-cloud-storage';
 import { logger } from 'src/utils/logger';
-import { downloadSegments, parseM3U8Content } from './helpers';
+import {
+  downloadSegments,
+  parseM3U8Content,
+  streamPlaylistFile,
+  streamSegments,
+} from './helpers';
 
 interface ProcessOptions {
   excludePattern?: RegExp;
   maxSegmentSize?: number;
 }
 
-interface ProcessResult {
-  playlistUrl: string;
-  segments: {
-    included: string[];
-    excluded: string[];
-  };
-}
-
-async function processM3U8(
+const streamM3U8 = async (
   m3u8Url: string,
   storagePath: string,
   options: ProcessOptions = {}
-): Promise<ProcessResult> {
-  const tempDir = generateTempDir();
-
+): Promise<string> => {
   try {
-    await createDirectory(tempDir);
-
-    logger.info({ m3u8Url, storagePath }, 'Starting M3U8 processing');
+    logger.info({ m3u8Url, storagePath }, 'Starting M3U8 streaming');
 
     // Parse m3u8 and get segments
     const { modifiedContent, segments } = await parseM3U8Content(
@@ -45,29 +38,23 @@ async function processM3U8(
       'Parsed M3U8 content'
     );
 
-    // Save modified playlist
-    const playlistPath = path.join(tempDir, 'playlist.m3u8');
-    await writeFile(playlistPath, modifiedContent);
+    // Stream playlist file
+    const playlistStoragePath = path.join(storagePath, 'playlist.m3u8');
+    await streamPlaylistFile(modifiedContent, playlistStoragePath);
 
-    await downloadSegments(segments.included, tempDir, options.maxSegmentSize);
-
-    logger.info({ storagePath }, 'Uploading to Cloud Storage');
-    // Upload to Cloud Storage
-    await uploadFolderParallel(tempDir, storagePath);
-
-    // Clean up and return
-    await cleanupDirectory(tempDir);
+    // Stream segments in parallel
+    await streamSegments(segments.included, storagePath);
 
     const result = {
-      playlistUrl: getDownloadUrl(path.join(storagePath, 'playlist.m3u8')),
+      playlistUrl: getDownloadUrl(playlistStoragePath),
       segments,
     };
 
     logger.info(
       { playlistUrl: result.playlistUrl },
-      'M3U8 processing completed'
+      'M3U8 streaming completed'
     );
-    return result;
+    return result.playlistUrl;
   } catch (error) {
     logger.error(
       {
@@ -75,11 +62,10 @@ async function processM3U8(
         m3u8Url,
         storagePath,
       },
-      'M3U8 processing failed'
+      'M3U8 streaming failed'
     );
-    await cleanupDirectory(tempDir);
     throw error;
   }
-}
+};
 
-export { processM3U8, ProcessOptions, ProcessResult };
+export { streamM3U8, ProcessOptions };
