@@ -211,7 +211,9 @@ const streamPlaylistFile = async (content: string, storagePath: string) => {
 const streamSegmentFile = async (segmentUrl: string, storagePath: string) => {
   const response = await fetch(segmentUrl);
   if (!response.ok || !response.body) {
-    throw new Error('Failed to fetch segment');
+    throw new Error(
+      `Failed to fetch segment: ${response.status} ${response.statusText}`
+    );
   }
 
   return streamFile({
