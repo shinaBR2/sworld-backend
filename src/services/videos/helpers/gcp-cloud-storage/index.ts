@@ -151,6 +151,13 @@ const streamFile = async (params: StreamFileParams) => {
     throw new Error('Invalid stream provided');
   }
 
+  if (!storagePath?.trim()) {
+    throw new Error('Storage path is required');
+  }
+  if (!options) {
+    throw new Error('Write stream options are required');
+  }
+
   const bucket = getDefaultBucket();
   const file = bucket.file(storagePath);
   const writeStream = file.createWriteStream(options);

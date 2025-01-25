@@ -247,6 +247,24 @@ describe('gcp-cloud-storage-helpers', () => {
       ).rejects.toThrow('Invalid input stream');
     });
 
+    it('should validate input parameters', async () => {
+      await expect(
+        streamFile({
+          ...testParams,
+          storagePath: '',
+        })
+      ).rejects.toThrow('Storage path is required');
+    });
+
+    it('should validate input parameters', async () => {
+      await expect(
+        streamFile({
+          ...testParams,
+          options: null as any,
+        })
+      ).rejects.toThrow('Write stream options are required');
+    });
+
     it('should reject when invalid stream is provided', async () => {
       const params = {
         ...testParams,
