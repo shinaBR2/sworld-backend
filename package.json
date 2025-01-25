@@ -6,6 +6,9 @@
   "license": "MPL-2.0",
   "main": "index.ts",
   "type": "module",
+  "engines": {
+    "node": "20.10.0"
+  },
   "scripts": {
     "build": "tsc",
     "start": "tsx src/index.ts",
