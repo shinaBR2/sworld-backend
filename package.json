@@ -11,6 +11,7 @@
     "start": "tsx src/index.ts",
     "dev": "tsx watch --clear-screen=false src/index.ts | pino-pretty",
     "test": "vitest",
+    "test:ci": "vitest run",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org sworld-dc --project node-express ./dist && sentry-cli sourcemaps upload --org sworld-dc --project node-express ./dist",
     "prepare": "husky install",
     "lint-staged": "lint-staged"
