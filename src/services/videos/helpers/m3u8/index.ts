@@ -10,6 +10,7 @@ import {
 interface ProcessOptions {
   excludePattern?: RegExp;
   maxSegmentSize?: number;
+  concurrencyLimit?: number;
 }
 
 /**
@@ -67,6 +68,7 @@ const streamM3U8 = async (
     await streamSegments({
       segmentUrls: segments.included,
       baseStoragePath: storagePath,
+      options,
     });
 
     const result = {

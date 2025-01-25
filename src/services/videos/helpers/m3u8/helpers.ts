@@ -6,14 +6,6 @@ import { streamFile } from '../gcp-cloud-storage';
 import { Readable } from 'node:stream';
 import { videoConfig } from '../../config';
 
-const ESSENTIAL_TAGS = new Set([
-  '#EXTM3U',
-  '#EXT-X-VERSION',
-  '#EXT-X-TARGETDURATION',
-  '#EXT-X-MEDIA-SEQUENCE',
-  '#EXT-X-ENDLIST',
-]);
-
 const normalizeContent = (content: string) => {
   return content
     .split('\n')
@@ -82,7 +74,7 @@ const parseM3U8Content = async (
     const line = lines[i];
 
     // Keep essential HLS tags
-    if (ESSENTIAL_TAGS.has(line.split(':')[0])) {
+    if (videoConfig.essentialHLSTags.has(line.split(':')[0])) {
       modifiedContent += line + '\n';
       continue;
     }
@@ -117,8 +109,10 @@ const parseM3U8Content = async (
   return { modifiedContent, segments };
 };
 
+// TODO - remove if downloadSegments is unused
 const BATCH_SIZE = 5;
 
+// chunks only used in downloadSegments
 const chunks = <T>(array: T[], size: number): T[][] => {
   const result = [];
   for (let i = 0; i < array.length; i += size) {
@@ -127,6 +121,7 @@ const chunks = <T>(array: T[], size: number): T[][] => {
   return result;
 };
 
+// TODO remove if unused, use stream instead
 /**
  * Download segments in batches and process them sequentially
  * @param segments - Array of segment URLs to download
@@ -272,6 +267,7 @@ const streamSegments = async (params: StreamSegmentsParams) => {
     );
   }
 };
+
 export {
   parseM3U8Content,
   downloadSegments,
