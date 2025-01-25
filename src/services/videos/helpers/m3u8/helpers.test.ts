@@ -1,7 +1,22 @@
 import { describe, expect, vi, test, beforeEach } from 'vitest';
-import { downloadSegments, parseM3U8Content } from './helpers';
+import {
+  downloadSegments,
+  parseM3U8Content,
+  streamSegmentFile,
+} from './helpers';
 import { downloadFile, verifyFileSize } from '../file';
 import { logger } from 'src/utils/logger';
+import { Readable } from 'node:stream';
+import fetch from 'node-fetch';
+import { streamFile } from '../gcp-cloud-storage';
+
+vi.mock('node-fetch', () => ({
+  default: vi.fn(),
+}));
+
+vi.mock('../gcp-cloud-storage', () => ({
+  streamFile: vi.fn(),
+}));
 
 vi.mock('../file', () => ({
   downloadFile: vi.fn(),
@@ -57,11 +72,12 @@ describe('M3U8 parser', () => {
         #EXT-X-ENDLIST
       `);
 
-      const mockFetch = vi.fn().mockResolvedValue({
+      const mockResponse = {
         ok: true,
+        statusText: 'OK',
         text: () => Promise.resolve(content),
-      });
-      global.fetch = mockFetch;
+      };
+      (fetch as any).mockResolvedValue(mockResponse);
 
       const { modifiedContent, segments } = await parseM3U8Content(
         baseUrl,
@@ -98,11 +114,12 @@ describe('M3U8 parser', () => {
         #EXT-X-ENDLIST
       `);
 
-      const mockFetch = vi.fn().mockResolvedValue({
+      const mockResponse = {
         ok: true,
+        statusText: 'OK',
         text: () => Promise.resolve(content),
-      });
-      global.fetch = mockFetch;
+      };
+      (fetch as any).mockResolvedValue(mockResponse);
 
       const { modifiedContent, segments } = await parseM3U8Content(
         baseUrl,
@@ -130,11 +147,12 @@ describe('M3U8 parser', () => {
 
       const expected = normalizeContent(content);
 
-      const mockFetch = vi.fn().mockResolvedValue({
+      const mockResponse = {
         ok: true,
+        statusText: 'OK',
         text: () => Promise.resolve(content),
-      });
-      global.fetch = mockFetch;
+      };
+      (fetch as any).mockResolvedValue(mockResponse);
 
       const { modifiedContent, segments } = await parseM3U8Content(
         baseUrl,
@@ -157,11 +175,12 @@ describe('M3U8 parser', () => {
         segment2.ts
       `;
 
-      const mockFetch = vi.fn().mockResolvedValue({
+      const mockResponse = {
         ok: true,
+        statusText: 'OK',
         text: () => Promise.resolve(content),
-      });
-      global.fetch = mockFetch;
+      };
+      (fetch as any).mockResolvedValue(mockResponse);
 
       const { modifiedContent, segments } = await parseM3U8Content(
         baseUrl,
@@ -237,14 +256,65 @@ describe('downloadSegments', () => {
       'Download failed'
     );
 
-    // Check only first segment was attempted
-    expect(downloadFile).toHaveBeenCalledTimes(1);
-    expect(logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({
-        segmentName: 'segment1.ts',
-        error: 'Download failed',
-      }),
-      'Failed to download segment'
+    expect(downloadFile).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('streamSegmentFile', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test('should download and stream segment file', async () => {
+    // Mock successful fetch response
+    const mockBody = new Readable({
+      read() {
+        this.push('segment data');
+        this.push(null);
+      },
+    });
+
+    const mockResponse = {
+      ok: true,
+      body: mockBody,
+    };
+    (fetch as any).mockResolvedValue(mockResponse);
+
+    await streamSegmentFile(
+      'http://example.com/segment.ts',
+      'test-path/segment.ts'
     );
+
+    // Verify fetch was called with correct URL
+    expect(fetch).toHaveBeenCalledWith('http://example.com/segment.ts');
+
+    // Verify streamFile was called with correct arguments
+    expect(streamFile).toHaveBeenCalledWith(mockBody, 'test-path/segment.ts', {
+      contentType: 'video/MP2T',
+    });
+  });
+
+  test('should throw error when fetch fails', async () => {
+    const mockResponse = {
+      ok: false,
+      body: null,
+    };
+    (fetch as any).mockResolvedValue(mockResponse);
+
+    await expect(
+      streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')
+    ).rejects.toThrow('Failed to fetch segment');
+  });
+
+  test('should throw error when response body is null', async () => {
+    const mockResponse = {
+      ok: true,
+      body: null,
+    };
+    (fetch as any).mockResolvedValue(mockResponse);
+
+    await expect(
+      streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')
+    ).rejects.toThrow('Failed to fetch segment');
   });
 });

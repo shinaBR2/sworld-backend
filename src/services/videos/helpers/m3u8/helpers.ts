@@ -1,6 +1,8 @@
 import path from 'path';
+import fetch from 'node-fetch';
 import { logger } from 'src/utils/logger';
 import { downloadFile, verifyFileSize } from '../file';
+import { streamFile } from '../gcp-cloud-storage';
 
 const ESSENTIAL_TAGS = new Set([
   '#EXTM3U',
@@ -171,4 +173,21 @@ const downloadSegments = async (
   }
 };
 
-export { parseM3U8Content, downloadSegments };
+/**
+ * Downloads a video segment from URL and streams it to Cloud Storage
+ * @param segmentUrl Source URL of the video segment (.ts file)
+ * @param storagePath Destination path in Cloud Storage (e.g., 'videos/123/segments/segment.ts')
+ * @returns Promise that resolves when upload is complete
+ */
+const streamSegmentFile = async (segmentUrl: string, storagePath: string) => {
+  const response = await fetch(segmentUrl);
+  if (!response.ok || !response.body) {
+    throw new Error('Failed to fetch segment');
+  }
+
+  return streamFile(response.body, storagePath, {
+    contentType: 'video/MP2T', // Standard MIME type for .ts segment files
+  });
+};
+
+export { parseM3U8Content, downloadSegments, streamSegmentFile };

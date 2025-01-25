@@ -8,6 +8,7 @@ import { ConvertRequest, convert } from './convert';
 import { logger } from 'src/utils/logger';
 import { ConvertSchema } from './convert/schema';
 import { processM3U8 } from './helpers/m3u8';
+import { streamSegmentFile } from './helpers/m3u8/helpers';
 
 initializeApp({
   storageBucket: envConfig.storageBucket,
@@ -63,6 +64,43 @@ videosRouter.post('/upload-m3u8', async (req, res) => {
       excludePattern,
       maxSegmentSize: 400 * 1024 * 1024, // 400MB limit
     });
+
+    res.json(result);
+  } catch (error) {
+    // logger.error('Failed to process M3U8:', {
+    //   error: error instanceof Error ? error.message : String(error),
+    //   stack: error instanceof Error ? error.stack : undefined,
+    //   m3u8Url,
+    // });
+    console.error('Error processing M3U8:', error);
+
+    res.status(500).json({
+      error: 'Internal server error',
+      message: (error as unknown as Error).message,
+    });
+  }
+});
+
+videosRouter.post('/test-stream-segment', async (req, res) => {
+  const { id, segmentUrl, excludePattern = /\/adjump\// } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Missing id in request body' });
+  }
+
+  if (!segmentUrl) {
+    return res
+      .status(400)
+      .json({ error: 'Missing segmentUrl in request body' });
+  }
+
+  try {
+    const segmentFileName = segmentUrl.split('/').pop();
+
+    const result = await streamSegmentFile(
+      segmentUrl,
+      `videos/test-segment-${id}/${segmentFileName}`
+    );
 
     res.json(result);
   } catch (error) {
