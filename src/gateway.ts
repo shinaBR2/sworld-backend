@@ -1,6 +1,5 @@
 import 'dotenv/config';
 import './utils/instrument';
-
 import * as Sentry from '@sentry/node';
 import { app } from './server';
 import { envConfig } from './utils/envConfig';
