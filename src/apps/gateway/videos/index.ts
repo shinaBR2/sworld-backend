@@ -39,8 +39,10 @@ videosRouter.post(
 
       return res.json(AppResponse(true, 'ok', task));
     } catch (error) {
-      logger.info(error, `[/videos/convert] Failed to create cloud task`);
-      return res.json(AppError('Failed to create conversion task', error));
+      throw AppError('Failed to create conversion task', {
+        eventId: metadata.id,
+        error,
+      });
     }
   }
 );

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { envConfig } from 'src/utils/envConfig';
 import { AppError } from 'src/utils/schema';
 import { validateRequest } from 'src/utils/validator';
@@ -8,7 +8,9 @@ import { createCloudTasks } from '../../../utils/cloud-task';
 import { verifySignature } from '../../../services/videos/convert/validator';
 
 // Mock dependencies
-let routeHandlers: { path: string; middlewares: Function[] }[] = [];
+// let routeHandlers: { path: string; middlewares: Function[] }[] = [];
+type RouteHandler = (req: Request, res: Response, next: NextFunction) => void;
+let routeHandlers: { path: string; middlewares: RouteHandler[] }[] = [];
 
 vi.mock('express', () => {
   const mockRouter = {
@@ -68,8 +70,8 @@ describe('videosRouter', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   let mockNext: ReturnType<typeof vi.fn>;
-  let routeHandler: Function;
-  let validationMiddleware: Function;
+  let routeHandler: RouteHandler;
+  let validationMiddleware: RouteHandler;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -151,7 +153,7 @@ describe('videosRouter', () => {
       mockEnvConfig.computeServiceUrl = undefined;
 
       await expect(routeHandler(mockReq, mockRes, mockNext)).rejects.toThrow(
-        'Missng environment variable'
+        'Missing environment variable: computeServiceUrl'
       );
       expect(createCloudTasks).not.toHaveBeenCalled();
     });
@@ -160,18 +162,16 @@ describe('videosRouter', () => {
       const error = new Error('Task creation failed');
       vi.mocked(createCloudTasks).mockRejectedValue(error);
 
-      await routeHandler(mockReq, mockRes, mockNext);
-
-      expect(logger.info).toHaveBeenCalledWith(
-        error,
-        '[/videos/convert] Failed to create cloud task'
+      await expect(routeHandler(mockReq, mockRes, mockNext)).rejects.toThrow(
+        'Failed to create conversion task'
       );
+
       expect(AppError).toHaveBeenCalledWith(
         'Failed to create conversion task',
-        error
-      );
-      expect(mockRes.json).toHaveBeenCalledWith(
-        AppError('Failed to create conversion task', error)
+        expect.objectContaining({
+          eventId: mockReq.validatedData.event.metadata.id,
+          error,
+        })
       );
     });
 
