@@ -2,6 +2,45 @@ import { describe, it, expect } from 'vitest';
 import { ConvertHandlerSchema } from './schema';
 
 describe('ConvertHandlerSchema', () => {
+  it('should reject request with missing required fields', () => {
+    const invalidRequest = {
+      body: {
+        data: {
+          userId: '123e4567-e89b-12d3-a456-426614174001',
+          videoUrl: 'https://storage.example.com/video.mp4',
+        },
+        metadata: {
+          id: 'event-789',
+          spanId: 'span-abc',
+          traceId: 'trace-def',
+        },
+      },
+    };
+
+    const result = ConvertHandlerSchema.safeParse(invalidRequest);
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject empty string values', () => {
+    const invalidRequest = {
+      body: {
+        data: {
+          id: '',
+          userId: '123e4567-e89b-12d3-a456-426614174001',
+          videoUrl: 'https://storage.example.com/video.mp4',
+        },
+        metadata: {
+          id: 'event-789',
+          spanId: 'span-abc',
+          traceId: 'trace-def',
+        },
+      },
+    };
+
+    const result = ConvertHandlerSchema.safeParse(invalidRequest);
+    expect(result.success).toBe(false);
+  });
+
   it('should validate correct request structure', () => {
     const validRequest = {
       body: {

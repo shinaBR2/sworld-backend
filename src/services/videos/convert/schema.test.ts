@@ -131,4 +131,30 @@ describe('ConvertSchema', () => {
       });
     }
   });
+
+  it('should fail transformation for invalid data structure', () => {
+    const invalidPayload = {
+      ...validPayload,
+      body: {
+        event: {
+          data: {
+            id: 'not-a-uuid',
+            user_id: 'not-a-uuid',
+            video_url: 'https://example.com/video.mp4',
+          },
+          metadata: validPayload.body.event.metadata,
+        },
+      },
+      headers: validPayload.headers,
+    };
+    const result = ConvertSchema.safeParse(invalidPayload);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some(
+          issue => issue.path.includes('id') || issue.path.includes('user_id')
+        )
+      ).toBe(true);
+    }
+  });
 });
