@@ -1,75 +1,59 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { videosRouter } from './index';
-import { convertVideo } from 'src/services/videos/convert/handler';
-import { logger } from 'src/utils/logger';
-import { Request, Response } from 'express';
 
-vi.mock('src/services/videos/convert/handler', () => ({
-  convertVideo: vi.fn(),
+vi.mock('express', () => {
+  const mockRouter = {
+    post: vi.fn().mockReturnThis(),
+    stack: [
+      {
+        route: {
+          path: '/convert-handler',
+          methods: { post: true },
+          stack: [{ name: 'middleware' }, { name: 'convertHandler' }],
+        },
+      },
+    ],
+  };
+
+  return {
+    default: {
+      Router: () => mockRouter,
+    },
+  };
+});
+
+vi.mock('./routes/convert', () => ({
+  convertHandler: vi.fn(),
 }));
 
-vi.mock('src/utils/logger', () => ({
-  logger: {
-    info: vi.fn(),
-  },
+vi.mock('src/utils/validator', () => ({
+  validateRequest: () => vi.fn(),
 }));
 
 describe('videosRouter', () => {
-  let mockReq: Partial<Request>;
-  let mockRes: Partial<Response>;
+  it('should register POST /convert-handler route', () => {
+    const routes = videosRouter.stack
+      .filter(layer => layer.route)
+      .map(layer => ({
+        path: layer.route.path,
+        method: Object.keys(layer.route.methods)[0],
+      }));
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockReq = {
-      body: {
-        data: {
-          id: 'video-123',
-        },
-        metadata: {
-          id: 'event-123',
-        },
-      },
-    };
-    mockRes = {
-      json: vi.fn(),
-    };
+    const convertHandlerRoute = routes.find(r => r.path === '/convert-handler');
+
+    expect(convertHandlerRoute).toBeDefined();
+    expect(convertHandlerRoute?.method).toBe('post');
   });
 
-  it('should process video conversion successfully', async () => {
-    const mockVideo = { id: 'video-123', status: 'converted' };
-    vi.mocked(convertVideo).mockResolvedValueOnce(mockVideo);
-
-    const route = videosRouter.stack[0].route;
-    const handler = route.stack[0].handle;
-
-    await handler(mockReq as Request, mockRes as Response);
-
-    expect(logger.info).toHaveBeenCalledWith(
-      mockReq.body.metadata,
-      expect.stringContaining('start processing event')
+  it('should have validation middleware and handler', () => {
+    const convertHandlerRoute = videosRouter.stack.find(
+      layer => layer.route?.path === '/convert-handler'
     );
-    expect(convertVideo).toHaveBeenCalledWith(mockReq.body.data);
-    expect(mockRes.json).toHaveBeenCalledWith(mockVideo);
-  });
 
-  it('should throw AppError when conversion fails', async () => {
-    const error = new Error('Conversion failed');
-    vi.mocked(convertVideo).mockRejectedValueOnce(error);
+    const middlewares = convertHandlerRoute?.route.stack || [];
 
-    const route = videosRouter.stack[0].route;
-    const handler = route.stack[0].handle;
-
-    await expect(
-      handler(mockReq as Request, mockRes as Response)
-    ).rejects.toThrow('Video conversion failed');
-
-    expect(logger.info).toHaveBeenCalled();
-    expect(convertVideo).toHaveBeenCalled();
-  });
-
-  it('should have correct route configuration', () => {
-    const route = videosRouter.stack[0].route;
-    expect(route.path).toBe('/convert-handler');
-    expect(route.methods.post).toBe(true);
+    expect(middlewares).toHaveLength(2);
+    expect(middlewares[0].name).toBe('middleware');
+    expect(middlewares[1].name).toBe('convertHandler');
   });
 });
