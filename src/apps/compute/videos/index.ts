@@ -22,8 +22,6 @@ videosRouter.post('/convert-handler', async (req: any, res) => {
       error: (error as Error).message,
     });
   }
-
-  return video;
 });
 
 export { videosRouter };
