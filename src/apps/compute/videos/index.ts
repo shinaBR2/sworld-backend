@@ -15,6 +15,7 @@ videosRouter.post('/convert-handler', async (req: any, res) => {
       `[/videos/convert-handler] start processing event "${metadata.id}", video "${data.id}"`
     );
     video = await convertVideo(data);
+    return res.json(video);
   } catch (error) {
     throw AppError('Video conversion failed', {
       videoId: data.id,
