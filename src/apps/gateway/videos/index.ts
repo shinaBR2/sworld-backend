@@ -1,0 +1,53 @@
+import express, { Router } from 'express';
+import { initializeApp } from 'firebase-admin/app';
+import { envConfig } from 'src/utils/envConfig';
+import { AppError, AppResponse } from 'src/utils/schema';
+import { validateRequest } from 'src/utils/validator';
+import { logger } from 'src/utils/logger';
+import { ConvertRequest } from '../../../services/videos/convert';
+import { ConvertSchema } from '../../../services/videos/convert/schema';
+import { createCloudTasks } from '../../../utils/cloud-task';
+import { verifySignature } from '../../../services/videos/convert/validator';
+
+initializeApp({
+  storageBucket: envConfig.storageBucket,
+});
+
+const videosRouter: Router = express.Router();
+
+videosRouter.post(
+  '/convert',
+  validateRequest<ConvertRequest>(ConvertSchema),
+  async (req: any, res) => {
+    const { validatedData } = req;
+    const { signatureHeader, event } = validatedData;
+    const { data, metadata } = event;
+
+    if (!verifySignature(signatureHeader)) {
+      throw AppError('Invalid webhook signature for event', {
+        eventId: metadata.id,
+      });
+    }
+
+    if (!envConfig.computeServiceUrl) {
+      throw AppError('Missng environment variable', {
+        eventId: metadata.id,
+      });
+    }
+
+    try {
+      const task = await createCloudTasks({
+        url: envConfig.computeServiceUrl,
+        queue: 'convert-video',
+        payload: data,
+      });
+
+      return res.json(AppResponse(true, 'ok', task));
+    } catch (error) {
+      logger.info(error, `[/videos/convert] Failed to create cloud task`);
+      return res.json(AppError('Failed to create conversion task', error));
+    }
+  }
+);
+
+export { videosRouter };
