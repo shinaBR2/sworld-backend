@@ -25,7 +25,7 @@ videosRouter.post(
     }
 
     if (!envConfig.computeServiceUrl) {
-      throw AppError('Missng environment variable', {
+      throw AppError('Missing environment variable: computeServiceUrl', {
         eventId: metadata.id,
       });
     }
