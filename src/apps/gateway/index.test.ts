@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Express } from 'express';
 import { errorHandler } from '../../utils/error-handler';
-import { logger } from '../../utils/logger';
-import { videosRouter } from './videos';
 import { createBaseApp } from '../../utils/base-app';
 
 // Mock dependencies
