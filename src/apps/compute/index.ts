@@ -1,8 +1,8 @@
 import express, { type Express } from 'express';
 import helmet from 'helmet';
-import { videosRouter } from '../services/videos';
-import { errorHandler } from '../utils/error-handler';
-import { httpLogger, logger } from '../utils/logger';
+import { videosRouter } from '../../services/videos';
+import { errorHandler } from '../../utils/error-handler';
+import { httpLogger, logger } from '../../utils/logger';
 
 const app: Express = express();
 
