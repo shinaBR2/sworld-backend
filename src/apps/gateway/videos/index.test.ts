@@ -123,7 +123,7 @@ describe('videosRouter', () => {
       await routeHandler(mockReq, mockRes, mockNext);
 
       expect(createCloudTasks).toHaveBeenCalledWith({
-        url: 'http://test-compute-service',
+        url: 'http://test-compute-service/videos/convert-handler',
         queue: 'convert-video',
         payload: mockReq.validatedData.event.data,
       });

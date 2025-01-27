@@ -32,7 +32,7 @@ videosRouter.post(
 
     try {
       const task = await createCloudTasks({
-        url: envConfig.computeServiceUrl,
+        url: `${envConfig.computeServiceUrl}/videos/convert-handler`,
         queue: 'convert-video',
         payload: data,
       });
