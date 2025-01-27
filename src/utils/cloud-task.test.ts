@@ -182,4 +182,17 @@ describe('createCloudTasks', () => {
       'Missing url or queue'
     );
   });
+
+  it('should throw error when failed to init task', async () => {
+    const params = {
+      queue: 'test-queue',
+      url: 'https://test.com',
+    };
+
+    const { createCloudTasks } = await import('./cloud-task');
+    mockCreateTask.mockRejectedValue(new Error('Task creation failed'));
+    await expect(createCloudTasks(params)).rejects.toThrow(
+      'Failed to init Cloud Tasks'
+    );
+  });
 });

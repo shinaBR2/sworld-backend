@@ -93,9 +93,12 @@ const createCloudTasks = async (
   }
 
   const request = { parent, task };
-  const [response] = await client.createTask(request);
-
-  return response;
+  try {
+    const [response] = await client.createTask(request);
+    return response;
+  } catch (error) {
+    throw new Error('Failed to init Cloud Tasks');
+  }
 };
 
 export { createCloudTasks };
