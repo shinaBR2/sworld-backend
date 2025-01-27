@@ -36,7 +36,11 @@ const ConvertSchema = z
   })
   .transform(req => ({
     event: {
-      data: req.body.event.data,
+      data: {
+        id: req.body.event.data.id,
+        userId: req.body.event.data.user_id,
+        videoUrl: req.body.event.data.video_url,
+      },
       metadata: {
         id: req.body.event.metadata.id,
         spanId: req.body.event.metadata.span_id,
@@ -48,3 +52,4 @@ const ConvertSchema = z
   }));
 
 export { ConvertSchema };
+export type ConvertRequest = z.infer<typeof ConvertSchema>;

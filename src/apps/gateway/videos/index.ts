@@ -16,7 +16,7 @@ videosRouter.post(
   async (req: any, res) => {
     const { validatedData } = req;
     const { signatureHeader, event } = validatedData;
-    const { data, metadata } = event;
+    const { metadata } = event;
 
     if (!verifySignature(signatureHeader)) {
       throw AppError('Invalid webhook signature for event', {
@@ -34,7 +34,7 @@ videosRouter.post(
       const task = await createCloudTasks({
         url: `${envConfig.computeServiceUrl}/videos/convert-handler`,
         queue: 'convert-video',
-        payload: data,
+        payload: event,
       });
 
       return res.json(AppResponse(true, 'ok', task));
