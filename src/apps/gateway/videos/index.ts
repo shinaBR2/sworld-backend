@@ -1,5 +1,4 @@
 import express, { Router } from 'express';
-import { initializeApp } from 'firebase-admin/app';
 import { envConfig } from 'src/utils/envConfig';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { validateRequest } from 'src/utils/validator';
@@ -8,10 +7,6 @@ import { ConvertRequest } from '../../../services/videos/convert';
 import { ConvertSchema } from '../../../services/videos/convert/schema';
 import { createCloudTasks } from '../../../utils/cloud-task';
 import { verifySignature } from '../../../services/videos/convert/validator';
-
-initializeApp({
-  storageBucket: envConfig.storageBucket,
-});
 
 const videosRouter: Router = express.Router();
 
