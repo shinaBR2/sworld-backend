@@ -5,6 +5,10 @@ import { uuidNamespaces } from './systemConfig';
 
 let client: CloudTasksClient | null = null;
 
+/**
+ * Returns a singleton instance of CloudTasksClient
+ * @returns {CloudTasksClient} The Cloud Tasks client instance
+ */
 const getCloudTasksClient = (): CloudTasksClient => {
   if (!client) {
     client = new CloudTasksClient();
@@ -12,17 +16,34 @@ const getCloudTasksClient = (): CloudTasksClient => {
   return client;
 };
 
+/**
+ * Parameters for creating a Cloud Task
+ * @interface CreateCloudTasksParams
+ * @property {string} queue - The name of the queue to create the task in
+ * @property {string} url - The URL to send the task request to
+ * @property {Record<string, any>} [payload] - Optional payload to send with the task
+ * @property {number} [inSeconds] - Optional delay in seconds before executing the task
+ * @property {Record<string, string>} [headers] - Optional HTTP headers to include with the request
+ */
 interface CreateCloudTasksParams {
   queue: string;
   url: string;
-  payload?: string;
+  payload?: Record<string, any>;
   inSeconds?: number;
   headers?: Record<string, string>;
 }
 
 type Task = protos.google.cloud.tasks.v2.ITask;
 
-const createCloudTasks = async (params: CreateCloudTasksParams) => {
+/**
+ * Creates a new Cloud Task with the specified parameters
+ * @param {CreateCloudTasksParams} params - Parameters for creating the task
+ * @returns {Promise<protos.google.cloud.tasks.v2.ITask>} The created task
+ * @throws {Error} If required parameters are missing
+ */
+const createCloudTasks = async (
+  params: CreateCloudTasksParams
+): Promise<protos.google.cloud.tasks.v2.ITask> => {
   const projectId = envConfig.projectId;
   const location = envConfig.location;
 
@@ -60,9 +81,9 @@ const createCloudTasks = async (params: CreateCloudTasksParams) => {
   };
 
   if (payload) {
-    const stringifiedPayload =
-      typeof payload === 'string' ? payload : JSON.stringify(payload);
-    task.httpRequest!.body = Buffer.from(stringifiedPayload).toString('base64');
+    task.httpRequest!.body = Buffer.from(JSON.stringify(payload)).toString(
+      'base64'
+    );
   }
 
   if (inSeconds) {
