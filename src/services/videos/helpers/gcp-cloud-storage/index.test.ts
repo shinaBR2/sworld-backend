@@ -120,6 +120,17 @@ describe('gcp-cloud-storage-helpers', () => {
   });
 
   describe('uploadDirectory', () => {
+    it('should throw error if local directory does not exist', async () => {
+      vi.mocked(existsSync).mockReturnValue(false);
+
+      await expect(
+        uploadDirectory('/not/exists', 'videos/test')
+      ).rejects.toThrow('Local directory does not exist');
+
+      expect(readdir).not.toHaveBeenCalled();
+      expect(uploadMock).not.toHaveBeenCalled();
+    });
+
     it('should upload files in batches', async () => {
       const localDir = '/tmp/videos';
       const storagePath = 'videos/test';
@@ -142,6 +153,29 @@ describe('gcp-cloud-storage-helpers', () => {
           cacheControl: DEFAULT_UPLOAD_OPTIONS.cacheControl,
         },
       });
+    });
+
+    it('should use default batch size when not specified', async () => {
+      const localDir = '/tmp/videos';
+      const storagePath = 'videos/test';
+      const files = ['1.ts', '2.ts', '3.ts'];
+
+      vi.mocked(readdir).mockResolvedValue(files as any);
+      uploadMock.mockResolvedValue(undefined);
+
+      await uploadDirectory(localDir, storagePath, {
+        ...DEFAULT_UPLOAD_OPTIONS,
+        batchSize: undefined,
+      });
+
+      expect(uploadMock).toHaveBeenCalledTimes(3);
+      expect(uploadMock).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          resumable: DEFAULT_UPLOAD_OPTIONS.resumable,
+          metadata: expect.any(Object),
+        })
+      );
     });
 
     it('should handle empty directory', async () => {
