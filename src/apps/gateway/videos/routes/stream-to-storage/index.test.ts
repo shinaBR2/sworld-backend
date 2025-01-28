@@ -115,7 +115,7 @@ describe('streamToStorage', () => {
     await streamToStorage(platformReq, mockRes as Response);
 
     expect(createCloudTasks).toHaveBeenCalledWith({
-      url: 'http://test-io-service/videos/platform-import-handler',
+      url: 'http://test-io-service/videos/import-platform-handler',
       queue: queues.streamVideoQueue,
       payload: platformReq.validatedData.event,
     });

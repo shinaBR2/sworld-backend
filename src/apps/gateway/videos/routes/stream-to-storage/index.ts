@@ -11,7 +11,7 @@ import { ValidatedRequest } from 'src/utils/validator';
 const VIDEO_HANDLERS = {
   HLS: '/videos/stream-hls-handler',
   CONVERT: '/videos/convert-handler',
-  PLATFORM_IMPORT: '/videos/platform-import-handler',
+  PLATFORM_IMPORT: '/videos/import-platform-handler',
 } as const;
 
 interface TaskConfig {
