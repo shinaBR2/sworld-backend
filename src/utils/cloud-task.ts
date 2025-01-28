@@ -98,6 +98,16 @@ const createCloudTasks = async (
     const [response] = await client.createTask(request);
     return response;
   } catch (error) {
+    logger.error(
+      {
+        err: error,
+        projectId,
+        queue,
+        url,
+        taskId: task.name,
+      },
+      'Failed to init Cloud Tasks'
+    );
     logger.error(error, 'Failed to init Cloud Tasks');
     throw new Error('Failed to init Cloud Tasks');
   }

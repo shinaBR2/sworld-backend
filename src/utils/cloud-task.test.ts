@@ -201,7 +201,11 @@ describe('createCloudTasks', () => {
       'Failed to init Cloud Tasks'
     );
     expect(logger.error).toHaveBeenCalledWith(
-      originalError,
+      expect.objectContaining({
+        err: originalError,
+        queue: 'test-queue',
+        url: 'https://test.com',
+      }),
       'Failed to init Cloud Tasks'
     );
   });
