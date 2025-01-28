@@ -158,12 +158,10 @@ describe('FFmpeg Helpers', () => {
 
     it('should throw error if videoPath is not absolute', async () => {
       const relativePath = 'videos/video.mp4';
-      await expect(getDuration(relativePath)).resolves.toBe(1);
-      expect(ffmpeg.ffprobe).not.toHaveBeenCalled();
-      expect(logger.error).toHaveBeenCalledWith(
-        new Error('videoPath must be absolute'),
-        'Failed to get video duration:'
+      await expect(getDuration(relativePath)).rejects.toThrow(
+        'videoPath must be absolute'
       );
+      expect(ffmpeg.ffprobe).not.toHaveBeenCalled();
     });
 
     it('should return duration for valid video', async () => {
