@@ -7,7 +7,7 @@ const uuidNamespaces = {
 };
 
 const queues = {
-  streamVideosQueue: 'stream-video',
+  streamVideoQueue: 'stream-video',
   convertVideoQueue: 'convert-video',
 };
 

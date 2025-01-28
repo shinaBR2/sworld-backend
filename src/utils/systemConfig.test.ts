@@ -17,7 +17,7 @@ describe('uuidNamespaces', () => {
 
 describe('queues', () => {
   it('has cloudTask UUID namespace', () => {
-    expect(queues.streamVideosQueue).toBe('stream-video');
+    expect(queues.streamVideoQueue).toBe('stream-video');
     expect(queues.convertVideoQueue).toBe('convert-video');
   });
 });
