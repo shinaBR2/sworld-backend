@@ -248,6 +248,21 @@ describe('gcp-cloud-storage-helpers', () => {
       const destinationPath = customDestinationBuilder(testFilePath);
       expect(destinationPath).toBe('remote/path/subfolder/file.txt');
     });
+
+    it('should handle empty folders', async () => {
+      mockTransferManager.uploadManyFiles.mockResolvedValueOnce([]);
+      await uploadFolderParallel('/empty/dir', 'remote/path');
+      expect(mockTransferManager.uploadManyFiles).toHaveBeenCalled();
+    });
+
+    it('should handle upload errors', async () => {
+      mockTransferManager.uploadManyFiles.mockRejectedValueOnce(
+        new Error('Upload failed')
+      );
+      await expect(
+        uploadFolderParallel('/local/path', 'remote/path')
+      ).rejects.toThrow('Upload failed');
+    });
   });
 
   describe('streamFile', () => {
