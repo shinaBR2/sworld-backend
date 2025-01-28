@@ -119,6 +119,8 @@ describe('ConvertSchema', () => {
             id: '550e8400-e29b-41d4-a716-446655440000',
             userId: '550e8400-e29b-41d4-a716-446655440001',
             videoUrl: 'https://example.com/video.mp4',
+            fileType: 'video',
+            platform: null,
           },
           metadata: {
             id: 'event-123',
