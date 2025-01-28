@@ -6,4 +6,9 @@ const uuidNamespaces = {
   cloudTask: 'abd32375-5036-44a1-bc75-c7bb33051b99',
 };
 
-export { systemConfig, uuidNamespaces };
+const queues = {
+  streamVideosQueue: 'stream-video',
+  convertVideoQueue: 'convert-video',
+};
+
+export { systemConfig, uuidNamespaces, queues };
