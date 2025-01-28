@@ -22,9 +22,13 @@ const DEFAULT_UPLOAD_OPTIONS: UploadOptions = {
   batchSize: 3,
 };
 
+let storageInstance: Storage | null = null;
+
 const getDefaultBucket = () => {
-  const storage = new Storage();
-  const bucket = storage.bucket(envConfig.storageBucket as string);
+  if (!storageInstance) {
+    storageInstance = new Storage();
+  }
+  const bucket = storageInstance.bucket(envConfig.storageBucket as string);
 
   return bucket;
 };
