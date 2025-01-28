@@ -86,6 +86,7 @@ describe('createCloudTasks', () => {
           url: 'https://test.com',
           oidcToken: {
             serviceAccountEmail: mockConfig.cloudTaskServiceAccount,
+            audience: 'https://test.com',
           },
         },
       },

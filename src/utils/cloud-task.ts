@@ -79,6 +79,7 @@ const createCloudTasks = async (
       url,
       oidcToken: {
         serviceAccountEmail: cloudTaskServiceAccount,
+        audience: url,
       },
     },
   };
