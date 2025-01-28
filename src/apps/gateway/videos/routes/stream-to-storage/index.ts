@@ -1,11 +1,12 @@
-import { Response } from 'express';
-// import { ConvertRequest } from 'src/services/videos/convert/schema';
+import { Request, Response } from 'express';
+import { ConvertRequest } from 'src/services/videos/convert/schema';
 import { verifySignature } from 'src/services/videos/convert/validator';
 import { createCloudTasks } from 'src/utils/cloud-task';
 import { envConfig } from 'src/utils/envConfig';
 import { logger } from 'src/utils/logger';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
+import { ValidatedRequest } from 'src/utils/validator';
 
 const VIDEO_HANDLERS = {
   HLS: '/videos/stream-hls-handler',
@@ -31,9 +32,9 @@ const buildHandlerUrl = (baseUrl: string, handler: string): string => {
   return `${baseUrl}${handler}`;
 };
 
-const streamToStorage = async (req: any, res: Response) => {
+const streamToStorage = async (req: Request, res: Response) => {
   const { computeServiceUrl, ioServiceUrl } = envConfig;
-  const { validatedData } = req;
+  const { validatedData } = req as ValidatedRequest<ConvertRequest>;
   const { signatureHeader, event } = validatedData;
   const { data, metadata } = event;
 
