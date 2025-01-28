@@ -26,6 +26,7 @@ const bucketMock = vi.fn(() => ({
   upload: uploadMock,
   file: vi.fn(() => ({
     createWriteStream: vi.fn(() => new PassThrough()),
+    delete: vi.fn(),
   })),
 }));
 
@@ -398,6 +399,37 @@ describe('gcp-cloud-storage-helpers', () => {
       });
 
       await expect(streamFile(testParams)).resolves.not.toThrow();
+    });
+
+    it('should handle successful upload', async () => {
+      const mockFile = {
+        createWriteStream: vi.fn(() => {
+          const writeStream = new PassThrough();
+          setTimeout(() => writeStream.emit('finish'), 0);
+          return writeStream;
+        }),
+        delete: vi.fn(),
+      };
+
+      await expect(streamFile(testParams)).resolves.toBeUndefined();
+    });
+
+    it('should handle non-Error pipe errors', async () => {
+      const mockReadable = {
+        pipe: vi.fn(() => {
+          throw 'string error';
+        }),
+        on: vi.fn(),
+      };
+
+      const params = {
+        ...testParams,
+        stream: mockReadable as any,
+      };
+
+      await expect(streamFile(params)).rejects.toThrow(
+        'Stream piping error: string error'
+      );
     });
   });
 });
