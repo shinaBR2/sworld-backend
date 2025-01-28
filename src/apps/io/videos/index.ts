@@ -1,14 +1,15 @@
 import express, { Router } from 'express';
 import { validateRequest } from 'src/utils/validator';
-// import {
-//   ConvertHandlerRequest,
-//   ConvertHandlerSchema,
-// } from './routes/convert/schema';
 import {
   StreamHandlerRequest,
   StreamHandlerSchema,
 } from './routes/stream-hls/schema';
 import { streamHLSHandler } from './routes/stream-hls';
+import { importPlatformHandler } from './routes/import-platform';
+import {
+  ImportHandlerRequest,
+  ImportHandlerSchema,
+} from './routes/import-platform/schema';
 
 const videosRouter: Router = express.Router();
 
@@ -17,10 +18,10 @@ videosRouter.post(
   validateRequest<StreamHandlerRequest>(StreamHandlerSchema),
   streamHLSHandler
 );
-// videosRouter.post(
-//   '/import-platform-handler',
-//   validateRequest<ConvertHandlerRequest>(ConvertHandlerSchema),
-//   importPlatformHandler
-// );
+videosRouter.post(
+  '/import-platform-handler',
+  validateRequest<ImportHandlerRequest>(ImportHandlerSchema),
+  importPlatformHandler
+);
 
 export { videosRouter };
