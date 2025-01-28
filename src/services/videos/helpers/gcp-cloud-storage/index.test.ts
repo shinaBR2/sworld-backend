@@ -8,6 +8,7 @@ import {
   uploadDirectory,
   DEFAULT_UPLOAD_OPTIONS,
   streamFile,
+  uploadFolderParallel,
 } from '.';
 import { existsSync } from 'fs';
 import { PassThrough, Readable } from 'node:stream';
@@ -33,6 +34,14 @@ vi.mock('firebase-admin/storage', () => ({
   getStorage: vi.fn(() => ({
     bucket: bucketMock,
   })),
+}));
+
+const mockTransferManager = {
+  uploadManyFiles: vi.fn().mockResolvedValue(undefined),
+};
+
+vi.mock('@google-cloud/storage', () => ({
+  TransferManager: vi.fn(() => mockTransferManager),
 }));
 
 vi.mock('fs', () => ({
@@ -180,6 +189,29 @@ describe('gcp-cloud-storage-helpers', () => {
       await expect(uploadDirectory(localDir, storagePath)).rejects.toThrow(
         'Upload failed'
       );
+    });
+  });
+
+  describe('uploadFolderParallel', () => {
+    it('should upload files with correct destination paths', async () => {
+      const localDir = '/local/path';
+      const storagePath = 'remote/path';
+
+      await uploadFolderParallel(localDir, storagePath);
+
+      expect(mockTransferManager.uploadManyFiles).toHaveBeenCalledWith(
+        localDir,
+        expect.objectContaining({
+          customDestinationBuilder: expect.any(Function),
+        })
+      );
+
+      // Test the destination builder
+      const { customDestinationBuilder } =
+        mockTransferManager.uploadManyFiles.mock.calls[0][1];
+      const testFilePath = '/local/path/subfolder/file.txt';
+      const destinationPath = customDestinationBuilder(testFilePath);
+      expect(destinationPath).toBe('remote/path/subfolder/file.txt');
     });
   });
 
