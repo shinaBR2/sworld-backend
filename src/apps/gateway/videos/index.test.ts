@@ -3,8 +3,8 @@ import { validateRequest } from 'src/utils/validator';
 import { streamToStorage } from './routes/stream-to-storage';
 import { ConvertSchema } from '../../../services/videos/convert/schema';
 
-// Mock dependencies
-let routeHandlers: { path: string; middlewares: Function[] }[] = [];
+type Middleware = (req: any, res: any, next: any) => void;
+let routeHandlers: { path: string; middlewares: Middleware[] }[] = [];
 
 vi.mock('express', () => {
   const mockRouter = {

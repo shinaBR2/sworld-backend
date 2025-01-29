@@ -21,11 +21,7 @@ interface TaskConfig {
 }
 
 const createVideoTask = async (config: TaskConfig) => {
-  try {
-    return await createCloudTasks(config);
-  } catch (error) {
-    throw error;
-  }
+  return await createCloudTasks(config);
 };
 
 const buildHandlerUrl = (baseUrl: string, handler: string): string => {

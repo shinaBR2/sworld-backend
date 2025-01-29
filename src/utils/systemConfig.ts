@@ -6,9 +6,15 @@ const uuidNamespaces = {
   cloudTask: 'abd32375-5036-44a1-bc75-c7bb33051b99',
 };
 
-const queues = {
-  streamVideoQueue: 'stream-video',
-  convertVideoQueue: 'convert-video',
-};
+enum QueueName {
+  StreamVideo = 'stream-video',
+  ConvertVideo = 'convert-video',
+}
 
-export { systemConfig, uuidNamespaces, queues };
+const queues = {
+  streamVideoQueue: QueueName.StreamVideo,
+  convertVideoQueue: QueueName.ConvertVideo,
+};
+type Queues = typeof queues;
+
+export { QueueName, Queues, systemConfig, uuidNamespaces, queues };
