@@ -18,6 +18,10 @@ describe('urlPatterns', () => {
     const invalidUrls = [
       'https://youtu.be/tooshort',
       'https://youtube.com/notavalidpath',
+      'https://youtube.com/watch',
+      'https://youtube.com/watch?',
+      'https://youtube.com/watch?v=',
+      'https://youtube.com/shorts/',
     ];
 
     validUrls.forEach(url => {
@@ -129,6 +133,10 @@ describe('fileExtensionPatterns', () => {
       'https://example.com/video.mp',
       'https://example.com/videomp4',
       'https://example.com/video.mp3',
+      'https://example.com/video.mpeg',
+      'https://example.com/video.flv',
+      'https://example.com/video.wmv',
+      'https://example.com/video.mkv',
     ];
 
     validUrls.forEach(url => {
