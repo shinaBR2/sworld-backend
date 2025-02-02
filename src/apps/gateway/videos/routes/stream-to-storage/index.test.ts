@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
 import { envConfig } from 'src/utils/envConfig';
-import { AppError, AppResponse } from 'src/utils/schema';
 import { createCloudTasks } from 'src/utils/cloud-task';
 import { verifySignature } from 'src/services/videos/convert/validator';
 import { streamToStorage } from './index';
@@ -92,7 +91,6 @@ describe('streamToStorage', () => {
       expect.objectContaining({
         success: true,
         message: 'ok',
-        data: { taskId: 'test-task' },
       })
     );
   });
@@ -161,8 +159,15 @@ describe('streamToStorage', () => {
   it('should throw error when signature is invalid', async () => {
     vi.mocked(verifySignature).mockReturnValue(false);
 
-    await expect(streamToStorage(mockReq, mockRes as Response)).rejects.toThrow(
-      'Invalid webhook signature for event'
+    await streamToStorage(mockReq, mockRes as Response);
+
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Invalid webhook signature for event',
+        details: {
+          eventId: 'test-event',
+        },
+      })
     );
     expect(createCloudTasks).not.toHaveBeenCalled();
   });
@@ -171,8 +176,14 @@ describe('streamToStorage', () => {
     const mockEnvConfig = vi.mocked(envConfig);
     mockEnvConfig.computeServiceUrl = undefined;
 
-    await expect(streamToStorage(mockReq, mockRes as Response)).rejects.toThrow(
-      'Missing environment variable'
+    await streamToStorage(mockReq, mockRes as Response);
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Missing environment variable',
+        details: {
+          eventId: 'test-event',
+        },
+      })
     );
     expect(createCloudTasks).not.toHaveBeenCalled();
   });
@@ -183,18 +194,15 @@ describe('streamToStorage', () => {
 
     const videoReq = createMockRequest({ fileType: 'video' });
 
-    await expect(
-      streamToStorage(videoReq, mockRes as Response)
-    ).rejects.toThrow('Failed to create task');
-
-    // Only expect one call to AppError with the correct message and details
-    expect(AppError).toHaveBeenCalledWith(
-      'Failed to create task',
+    await streamToStorage(videoReq, mockRes as Response);
+    expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        eventId: videoReq.validatedData.event.metadata.id,
-        error,
+        message: 'Failed to create task',
+        details: {
+          error,
+          eventId: 'test-event',
+        },
       })
     );
-    expect(AppError).toHaveBeenCalledTimes(1);
   });
 });

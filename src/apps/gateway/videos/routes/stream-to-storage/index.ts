@@ -36,16 +36,20 @@ const streamToStorage = async (req: Request, res: Response) => {
   const { data, metadata } = event;
 
   if (!verifySignature(signatureHeader)) {
-    throw AppError('Invalid webhook signature for event', {
-      eventId: metadata.id,
-    });
+    return res.json(
+      AppError('Invalid webhook signature for event', {
+        eventId: metadata.id,
+      })
+    );
   }
 
   // TODO remove this for simplicity
   if (!computeServiceUrl || !ioServiceUrl) {
-    throw AppError('Missing environment variable', {
-      eventId: metadata.id,
-    });
+    return res.json(
+      AppError('Missing environment variable', {
+        eventId: metadata.id,
+      })
+    );
   }
 
   const { platform, fileType } = data;
@@ -85,12 +89,14 @@ const streamToStorage = async (req: Request, res: Response) => {
 
     const task = await createVideoTask(taskConfig);
     logger.info({ metadata, task }, 'Video task created successfully');
-    return res.json(AppResponse(true, 'ok', task));
+    return res.json(AppResponse(true, 'ok'));
   } catch (error) {
-    throw AppError('Failed to create task', {
-      eventId: metadata.id,
-      error,
-    });
+    return res.json(
+      AppError('Failed to create task', {
+        eventId: metadata.id,
+        error,
+      })
+    );
   }
 };
 
