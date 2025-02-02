@@ -4,6 +4,7 @@ import { verifySignature } from 'src/services/videos/convert/validator';
 import { createCloudTasks } from 'src/utils/cloud-task';
 import { envConfig } from 'src/utils/envConfig';
 import { logger } from 'src/utils/logger';
+import { Platform, urlPatterns } from 'src/utils/patterns';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
 import { ValidatedRequest } from 'src/utils/validator';
@@ -55,6 +56,7 @@ const streamToStorage = async (req: Request, res: Response) => {
     payload: event,
     url: '',
   };
+  const allowedPlatforms = Object.keys(urlPatterns) as Platform[];
 
   try {
     switch (fileType) {
@@ -69,7 +71,8 @@ const streamToStorage = async (req: Request, res: Response) => {
         taskConfig.queue = convertVideoQueue;
         break;
       default:
-        if (platform) {
+        // TODO enhance list of allowed platform in the future
+        if (platform && allowedPlatforms.includes(platform)) {
           taskConfig.url = buildHandlerUrl(
             ioServiceUrl,
             VIDEO_HANDLERS.PLATFORM_IMPORT

@@ -134,6 +134,30 @@ describe('streamToStorage', () => {
     expect(createCloudTasks).not.toHaveBeenCalled();
   });
 
+  it('should return invalid source error for unsupported file type', async () => {
+    const invalidReq = createMockRequest({ fileType: 'unsupported' });
+
+    await streamToStorage(invalidReq, mockRes as Response);
+
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Invalid source',
+      })
+    );
+  });
+
+  it('should return invalid source error for unsupported platform', async () => {
+    const invalidReq = createMockRequest({ platform: 'unsupported' });
+
+    await streamToStorage(invalidReq, mockRes as Response);
+
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'Invalid source',
+      })
+    );
+  });
+
   it('should throw error when signature is invalid', async () => {
     vi.mocked(verifySignature).mockReturnValue(false);
 
@@ -171,5 +195,6 @@ describe('streamToStorage', () => {
         error,
       })
     );
+    expect(AppError).toHaveBeenCalledTimes(1);
   });
 });
