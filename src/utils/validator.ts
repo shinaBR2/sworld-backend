@@ -61,7 +61,6 @@ const validateRequest: ValidateRequest =
       });
       (req as ValidatedRequest<T>).validatedData = validated;
 
-      console.log('Validation successful:', JSON.stringify(validated, null, 2));
       next();
     } catch (err) {
       const errorMessage = `Invalid input: ${formatZodError(err as ZodError)}`;
