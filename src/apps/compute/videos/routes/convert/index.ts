@@ -14,7 +14,6 @@ const convertHandler = async (req: ConvertHandlerRequest, res: Response) => {
       `[/videos/convert-handler] start processing event "${metadata.id}", video "${data.id}"`
     );
     playableVideoUrl = await convertVideo(data);
-    // TODO response { playableVideoUrl } for consistent
     return res.json({ playableVideoUrl });
   } catch (error) {
     throw AppError('Video conversion failed', {

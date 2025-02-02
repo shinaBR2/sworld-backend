@@ -84,6 +84,7 @@ const streamToStorage = async (req: Request, res: Response) => {
     }
 
     const task = await createVideoTask(taskConfig);
+    logger.info({ metadata, task }, 'Video task created successfully');
     return res.json(AppResponse(true, 'ok', task));
   } catch (error) {
     throw AppError('Failed to create task', {
