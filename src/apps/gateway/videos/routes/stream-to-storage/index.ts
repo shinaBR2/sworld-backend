@@ -17,7 +17,7 @@ const VIDEO_HANDLERS = {
 interface TaskConfig {
   url: string;
   queue: string;
-  payload: any; // TODO
+  payload: Record<string, any>;
 }
 
 const createVideoTask = async (config: TaskConfig) => {

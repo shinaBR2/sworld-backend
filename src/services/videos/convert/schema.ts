@@ -34,14 +34,15 @@ const EventSchema = z.object({
 
 const transformEvent = (event: z.infer<typeof EventSchema>) => {
   const mediaInfo = validateMediaURL(event.data.video_url);
+  const { platform = null, fileType = null } = mediaInfo;
 
   return {
     data: {
       id: event.data.id,
       userId: event.data.user_id,
       videoUrl: event.data.video_url,
-      platform: mediaInfo.platform,
-      fileType: mediaInfo.fileType,
+      platform,
+      fileType,
     },
     metadata: {
       id: event.metadata.id,
