@@ -15,7 +15,6 @@ const importPlatformHandler = async (
       metadata,
       `[/videos/import-platform-handler] start processing event "${metadata.id}", video "${data.id}"`
     );
-    // TODO save source to database
     return res.json({ playableVideoUrl: videoUrl });
   } catch (error) {
     throw AppError('Video conversion failed', {
