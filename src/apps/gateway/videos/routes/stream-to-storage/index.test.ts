@@ -7,14 +7,6 @@ import { streamToStorage } from './index';
 import { queues } from 'src/utils/systemConfig';
 import { TaskEntityType, TaskType } from 'src/database/models/task';
 
-// Mock dependencies
-vi.mock('src/utils/envConfig', () => ({
-  envConfig: {
-    computeServiceUrl: 'http://test-compute-service',
-    ioServiceUrl: 'http://test-io-service',
-  },
-}));
-
 vi.mock('src/utils/schema', () => ({
   AppError: vi.fn((message, details) => {
     const error = new Error(message);

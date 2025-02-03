@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { logger } from './logger';
-import '../database/__mocks__/sequelize';
 
 // Mock modules
 const mockCreateTask = vi.fn();
