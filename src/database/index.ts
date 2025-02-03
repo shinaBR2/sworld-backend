@@ -8,6 +8,7 @@ const sequelize = new Sequelize(databaseUrl, {
   dialect: 'postgres',
 });
 
+// TODO refactor this into separate module
 const User = sequelize.define(
   'users',
   {
@@ -30,6 +31,7 @@ const User = sequelize.define(
   }
 );
 
+// TODO refactor this into separate module
 const Video = sequelize.define(
   'videos',
   {
@@ -80,4 +82,4 @@ const finalizeVideo = async (props: any) => {
   );
 };
 
-export { initialize, listUsers, finalizeVideo };
+export { sequelize, initialize, listUsers, finalizeVideo };
