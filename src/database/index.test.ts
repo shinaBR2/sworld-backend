@@ -18,6 +18,11 @@ describe('Database Initialization', () => {
   it('should create a Sequelize instance with the correct configuration', () => {
     // Verify that the Sequelize constructor was called with the correct parameters
     expect(sequelize).toBeDefined();
+    expect(sequelize).toBeDefined();
+    expect(sequelize.config.database).toBe('test-db');
+    expect(sequelize.config.username).toBe('test-user');
+    expect(sequelize.config.host).toBe('localhost');
+    expect(sequelize.config.port).toBe('5432');
   });
 
   describe('initialize method', () => {
