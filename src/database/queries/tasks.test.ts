@@ -142,47 +142,59 @@ describe('Task Queries', () => {
   });
 
   describe('updateTaskStatus', () => {
+    const mockParams = {
+      taskId: 'test-task-id',
+      status: TaskStatus.COMPLETED,
+    };
+
     it('should update task status', async () => {
-      const mockUpdate = { taskId: 'test-task-id', status: TaskStatus.COMPLETED };
-
       // Mock update to return update result
-      (Task.update as vi.Mock).mockResolvedValue([1]); // Simulate one row updated
+      (Task.update as Mock).mockResolvedValue([1]); // Simulate one row updated
 
-      const result = await updateTaskStatus(mockUpdate);
+      const result = await updateTaskStatus(mockParams);
 
       expect(Task.update).toHaveBeenCalledWith(
-        { status: mockUpdate.status },
+        { status: mockParams.status },
         {
-          where: { taskId: mockUpdate.taskId },
+          where: { taskId: mockParams.taskId },
           transaction: undefined,
         }
       );
 
-      expect(result).toEqual([1]);
+      expect(result).toEqual(1);
     });
 
     it('should update task status with a transaction', async () => {
       const mockTransaction = {} as any;
-      const mockUpdate = {
-        taskId: 'test-task-id',
-        status: TaskStatus.COMPLETED,
-        transaction: mockTransaction,
-      };
+      const paramsWithTransaction = { ...mockParams, transaction: mockTransaction };
 
       // Mock update to return update result
-      (Task.update as vi.Mock).mockResolvedValue([1]); // Simulate one row updated
+      (Task.update as Mock).mockResolvedValue([1]); // Simulate one row updated
 
-      const result = await updateTaskStatus(mockUpdate);
+      const result = await updateTaskStatus(paramsWithTransaction);
 
       expect(Task.update).toHaveBeenCalledWith(
-        { status: mockUpdate.status },
+        { status: paramsWithTransaction.status },
         {
-          where: { taskId: mockUpdate.taskId },
+          where: { taskId: paramsWithTransaction.taskId },
           transaction: mockTransaction,
         }
       );
 
-      expect(result).toEqual([1]);
+      expect(result).toEqual(1);
+    });
+
+    it('should throw error when task is not found', async () => {
+      (Task.update as Mock).mockResolvedValue([0]);
+
+      await expect(updateTaskStatus(mockParams)).rejects.toThrow(`Task with ID ${mockParams.taskId} not found`);
+    });
+
+    it('should handle database errors', async () => {
+      const mockError = new Error('Database error');
+      (Task.update as Mock).mockRejectedValue(mockError);
+
+      await expect(updateTaskStatus(mockParams)).rejects.toThrow('Database error');
     });
   });
 
@@ -191,7 +203,7 @@ describe('Task Queries', () => {
       const taskId = 'test-task-id';
 
       // Mock update to return update result
-      (Task.update as vi.Mock).mockResolvedValue([1]); // Simulate one row updated
+      (Task.update as Mock).mockResolvedValue([1]); // Simulate one row updated
 
       const result = await completeTask(taskId);
 
@@ -214,7 +226,7 @@ describe('Task Queries', () => {
       const mockTransaction = {} as any;
 
       // Mock update to return update result
-      (Task.update as vi.Mock).mockResolvedValue([1]); // Simulate one row updated
+      (Task.update as Mock).mockResolvedValue([1]); // Simulate one row updated
 
       const result = await completeTask(taskId, mockTransaction);
 

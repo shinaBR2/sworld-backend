@@ -39,13 +39,18 @@ interface UpdateTaskParams {
 }
 
 const updateTaskStatus = async ({ taskId, status, transaction }: UpdateTaskParams) => {
-  return await Task.update(
+  const [updatedCount] = await Task.update(
     { status },
     {
       where: { taskId },
       transaction,
     }
   );
+
+  if (updatedCount === 0) {
+    throw new Error(`Task with ID ${taskId} not found`);
+  }
+  return updatedCount;
 };
 
 const completeTask = async (taskId: string, transaction?: Transaction) => {
