@@ -55,10 +55,4 @@ const completeTask = async (taskId: string, transaction?: Transaction) => {
   );
 };
 
-// const getTaskByEntityId = async (entityId: string, entityType: string) => {
-//   return await Task.findOne({
-//     where: { entityId, entityType },
-//   });
-// };
-
 export { createTask, updateTaskStatus, completeTask };
