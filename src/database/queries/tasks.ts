@@ -11,6 +11,10 @@ interface CreateTaskParams {
 }
 
 const createTask = async ({ taskId, type, metadata, entityType, entityId, transaction }: CreateTaskParams) => {
+  if (!taskId || !type || !metadata || !entityType || !entityId) {
+    throw new Error('Missing required fields for task creation');
+  }
+
   const [task] = await Task.findOrCreate({
     where: { taskId },
     defaults: {

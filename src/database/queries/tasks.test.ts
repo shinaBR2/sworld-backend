@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { Task } from '../models/task';
 import { createTask, updateTaskStatus, completeTask } from './tasks';
 import { TaskStatus } from '../models/task';
@@ -21,13 +21,56 @@ describe('Task Queries', () => {
   });
 
   describe('createTask', () => {
+    const baseTask = {
+      taskId: 'test-task-id',
+      type: 'test-type',
+      metadata: { key: 'value' },
+      entityType: 'test-entity',
+      entityId: 'test-entity-id',
+    };
+
+    it('should throw error if taskId is missing', async () => {
+      const { taskId, ...paramsWithoutTaskId } = baseTask;
+      await expect(createTask(paramsWithoutTaskId as any)).rejects.toThrow('Missing required fields for task creation');
+    });
+
+    it('should throw error if type is missing', async () => {
+      const { type, ...paramsWithoutType } = baseTask;
+      await expect(createTask(paramsWithoutType as any)).rejects.toThrow('Missing required fields for task creation');
+    });
+
+    it('should throw error if metadata is missing', async () => {
+      const { metadata, ...paramsWithoutMetadata } = baseTask;
+      await expect(createTask(paramsWithoutMetadata as any)).rejects.toThrow(
+        'Missing required fields for task creation'
+      );
+    });
+
+    it('should throw error if entityType is missing', async () => {
+      const { entityType, ...paramsWithoutEntityType } = baseTask;
+      await expect(createTask(paramsWithoutEntityType as any)).rejects.toThrow(
+        'Missing required fields for task creation'
+      );
+    });
+
+    it('should throw error if entityId is missing', async () => {
+      const { entityId, ...paramsWithoutEntityId } = baseTask;
+      await expect(createTask(paramsWithoutEntityId as any)).rejects.toThrow(
+        'Missing required fields for task creation'
+      );
+    });
+
+    it('should handle database errors', async () => {
+      const mockError = new Error('Database error');
+      (Task.findOrCreate as any).mockRejectedValue(mockError);
+
+      await expect(createTask(baseTask)).rejects.toThrow('Database error');
+      expect(Task.findOrCreate).toHaveBeenCalledTimes(1);
+    });
+
     it('should create a new task when it does not exist', async () => {
       const mockTask = {
-        taskId: 'test-task-id',
-        type: 'test-type',
-        metadata: { key: 'value' },
-        entityType: 'test-entity',
-        entityId: 'test-entity-id',
+        ...baseTask,
       };
 
       const mockCreatedTask = {
@@ -37,7 +80,7 @@ describe('Task Queries', () => {
       };
 
       // Mock findOrCreate to return the task
-      (Task.findOrCreate as vi.Mock).mockResolvedValue([mockCreatedTask]);
+      (Task.findOrCreate as Mock).mockResolvedValue([mockCreatedTask]);
 
       const result = await createTask(mockTask);
 
@@ -63,11 +106,7 @@ describe('Task Queries', () => {
     it('should create a task with a transaction', async () => {
       const mockTransaction = {} as any;
       const mockTask = {
-        taskId: 'test-task-id',
-        type: 'test-type',
-        metadata: { key: 'value' },
-        entityType: 'test-entity',
-        entityId: 'test-entity-id',
+        ...baseTask,
         transaction: mockTransaction,
       };
 
