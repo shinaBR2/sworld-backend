@@ -38,7 +38,7 @@ vi.mock('sequelize', async importOriginal => {
 
   return {
     ...(typeof actual === 'object' ? actual : {}),
-    default: mockSequelize,
+    Sequelize: mockSequelize,
     DataTypes: (actual as any).DataTypes,
     mockTransaction,
   };
