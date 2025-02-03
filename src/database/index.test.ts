@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { sequelize, initialize } from './index';
 import './__mocks__/sequelize';
 
@@ -21,29 +21,32 @@ describe('Database Initialization', () => {
   });
 
   describe('initialize method', () => {
+    let originalAuthenticate: any;
+    let originalSync: any;
+
+    beforeEach(() => {
+      originalAuthenticate = sequelize.authenticate;
+      originalSync = sequelize.sync;
+    });
+
+    afterEach(() => {
+      sequelize.authenticate = originalAuthenticate;
+      sequelize.sync = originalSync;
+    });
+
     it('should authenticate and sync the database', async () => {
       // Mock the authenticate and sync methods
       const authenticateMock = vi.fn().mockResolvedValue(undefined);
       const syncMock = vi.fn().mockResolvedValue(undefined);
 
-      // Temporarily replace the methods
-      const originalAuthenticate = sequelize.authenticate;
-      const originalSync = sequelize.sync;
-
       sequelize.authenticate = authenticateMock;
       sequelize.sync = syncMock;
 
-      try {
-        await initialize();
+      await initialize();
 
-        // Verify that authenticate and sync were called
-        expect(authenticateMock).toHaveBeenCalledTimes(1);
-        expect(syncMock).toHaveBeenCalledTimes(1);
-      } finally {
-        // Restore original methods
-        sequelize.authenticate = originalAuthenticate;
-        sequelize.sync = originalSync;
-      }
+      // Verify that authenticate and sync were called
+      expect(authenticateMock).toHaveBeenCalledTimes(1);
+      expect(syncMock).toHaveBeenCalledTimes(1);
     });
 
     it('should throw error if authentication fails', async () => {
