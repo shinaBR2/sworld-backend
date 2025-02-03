@@ -17,6 +17,8 @@ const createTask = async ({ taskId, type, metadata, entityType, entityId, transa
       taskId,
       type,
       metadata,
+      entityId,
+      entityType,
       status: TaskStatus.PENDING,
       completed: false,
     },

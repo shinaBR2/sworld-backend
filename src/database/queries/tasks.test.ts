@@ -48,6 +48,8 @@ describe('Task Queries', () => {
         defaults: {
           taskId: mockTask.taskId,
           type: mockTask.type,
+          entityId: mockTask.entityId,
+          entityType: mockTask.entityType,
           metadata: mockTask.metadata,
           status: TaskStatus.PENDING,
           completed: false,
@@ -87,6 +89,8 @@ describe('Task Queries', () => {
         defaults: {
           taskId: mockTask.taskId,
           type: mockTask.type,
+          entityId: mockTask.entityId,
+          entityType: mockTask.entityType,
           metadata: mockTask.metadata,
           status: TaskStatus.PENDING,
           completed: false,
