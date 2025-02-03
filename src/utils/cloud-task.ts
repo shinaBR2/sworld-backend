@@ -4,7 +4,7 @@ import { v5 as uuidv5 } from 'uuid';
 import { uuidNamespaces } from './systemConfig';
 import { logger } from './logger';
 import { sequelize } from 'src/database';
-import { Task, TaskStatus } from 'src/database/models/task';
+import { TaskEntityType, TaskStatus, TaskType } from 'src/database/models/task';
 import { createTask, updateTaskStatus } from 'src/database/queries/tasks';
 
 let client: CloudTasksClient | null = null;
@@ -35,9 +35,9 @@ interface CreateCloudTasksParams {
   payload?: Record<string, any>;
   inSeconds?: number;
   headers?: Record<string, string>;
-  entityType: string;
+  entityType: TaskEntityType;
   entityId: string;
-  type: string;
+  type: TaskType;
 }
 
 type CloudTask = protos.google.cloud.tasks.v2.ITask;
@@ -139,4 +139,4 @@ const createCloudTasks = async (params: CreateCloudTasksParams): Promise<CloudTa
   }
 };
 
-export { createCloudTasks };
+export { CreateCloudTasksParams, createCloudTasks };
