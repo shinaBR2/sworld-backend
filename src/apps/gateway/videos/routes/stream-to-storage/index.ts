@@ -47,14 +47,14 @@ const streamToStorage = async (req: Request, res: Response) => {
     );
   }
 
-  const { id, platform, fileType } = data;
+  const { id: entityId, platform, fileType } = data;
   const { streamVideoQueue, convertVideoQueue } = queues;
 
   const taskConfig: CreateCloudTasksParams = {
     queue: streamVideoQueue,
     payload: event,
     url: '',
-    entityId: id,
+    entityId,
     entityType: TaskEntityType.VIDEO,
     type: TaskType.IMPORT_PLATFORM,
   };

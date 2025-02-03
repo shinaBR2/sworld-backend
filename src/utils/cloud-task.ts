@@ -28,6 +28,9 @@ const getCloudTasksClient = (): CloudTasksClient => {
  * @property {Record<string, any>} [payload] - Optional payload to send with the task
  * @property {number} [inSeconds] - Optional delay in seconds before executing the task
  * @property {Record<string, string>} [headers] - Optional HTTP headers to include with the request
+ * @property {TaskEntityType} entityType - The type of entity associated with the task
+ * @property {string} entityId - The ID of the entity associated with the task
+ * @property {TaskType} type - The type of task to be executed
  */
 interface CreateCloudTasksParams {
   queue: string;
@@ -100,7 +103,14 @@ const createCloudTasks = async (params: CreateCloudTasksParams): Promise<CloudTa
     };
 
     if (payload) {
-      cloudTask.httpRequest!.body = JSON.stringify(payload);
+      // cloudTask.httpRequest!.body = JSON.stringify(payload);
+
+      try {
+        cloudTask.httpRequest!.body = JSON.stringify(payload);
+      } catch (error) {
+        logger.error({ error, payload }, 'Failed to serialize payload');
+        throw new Error('Invalid payload: Failed to serialize to JSON');
+      }
     }
 
     if (inSeconds) {

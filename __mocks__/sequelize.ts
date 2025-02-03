@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 
 const parseDbUrl = (url: string) => {
+  if (!url) throw new Error('Database URL is required');
   const match = url.match(/postgres:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
   if (!match) throw new Error('Invalid database URL format');
   const [, username, password, host, port, database] = match;

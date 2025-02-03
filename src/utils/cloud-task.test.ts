@@ -366,6 +366,23 @@ describe('createCloudTasks', () => {
     await expect(createCloudTasks(params)).rejects.toThrow('Missing url or queue');
   });
 
+  it('should throw error when failed to stringify payload', async () => {
+    const transaction = { commit: vi.fn(), rollback: vi.fn() };
+    sequelize.transaction.mockResolvedValue(transaction);
+    dbCreateTask.mockResolvedValue({ completed: false });
+    dbUpdateStatus.mockResolvedValue({});
+
+    const payload: any = { key: 'value' };
+    payload.circular = payload;
+    const params = {
+      ...baseParams,
+      payload,
+    };
+
+    const { createCloudTasks } = await import('./cloud-task');
+    await expect(createCloudTasks(params)).rejects.toThrow('Invalid payload: Failed to serialize to JSON');
+  });
+
   it('should throw error when failed to init task', async () => {
     const transaction = { commit: vi.fn(), rollback: vi.fn() };
     sequelize.transaction.mockResolvedValue(transaction);
