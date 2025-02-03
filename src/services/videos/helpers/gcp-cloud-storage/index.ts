@@ -210,32 +210,11 @@ const streamFile = async (params: StreamFileParams) => {
       resolve(undefined);
     });
 
-    console.log('Initial stream:', {
-      hasOn: typeof stream.on === 'function',
-      hasPipe: typeof stream.pipe === 'function',
-      hasEmit: typeof stream.emit === 'function',
-    });
-
-    console.log('Initial writeStream:', {
-      hasOn: typeof writeStream.on === 'function',
-      hasPipe: typeof writeStream.pipe === 'function',
-      hasEmit: typeof writeStream.emit === 'function',
-    });
-
-    console.log('writeStream.on:', writeStream.on);
-    console.log('writeStream:', writeStream);
-    console.log('stream:', stream);
     // Pipe the stream and handle potential immediate piping errors
     try {
       const piped = stream.pipe(writeStream);
-      console.log('After pipe:', piped);
-      console.log('After pipe on method:', piped.on);
       piped.on('error', reject).on('finish', resolve);
     } catch (pipeError) {
-      // handleError(
-      //   `Stream piping error: ${pipeError instanceof Error ? pipeError.message : String(pipeError)}`,
-      //   pipeError instanceof Error ? pipeError : undefined
-      // );
       handleError(
         `Stream piping error: ${pipeError instanceof Error ? pipeError.message : String(pipeError)}`,
         pipeError instanceof Error ? pipeError : undefined
