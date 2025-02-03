@@ -10,7 +10,7 @@ interface CreateTaskParams {
   transaction?: Transaction;
 }
 
-export const createTask = async ({ taskId, type, metadata, entityType, entityId, transaction }: CreateTaskParams) => {
+const createTask = async ({ taskId, type, metadata, entityType, entityId, transaction }: CreateTaskParams) => {
   const [task] = await Task.findOrCreate({
     where: { entityId, entityType },
     defaults: {
@@ -26,7 +26,13 @@ export const createTask = async ({ taskId, type, metadata, entityType, entityId,
   return task;
 };
 
-export const updateTaskStatus = async (taskId: string, status: TaskStatus, transaction?: Transaction) => {
+interface UpdateTaskParams {
+  taskId: string;
+  status: TaskStatus;
+  transaction?: Transaction;
+}
+
+const updateTaskStatus = async ({ taskId, status, transaction }: UpdateTaskParams) => {
   return await Task.update(
     { status },
     {
@@ -36,7 +42,7 @@ export const updateTaskStatus = async (taskId: string, status: TaskStatus, trans
   );
 };
 
-export const completeTask = async (taskId: string, transaction?: Transaction) => {
+const completeTask = async (taskId: string, transaction?: Transaction) => {
   return await Task.update(
     {
       status: TaskStatus.COMPLETED,
@@ -49,8 +55,10 @@ export const completeTask = async (taskId: string, transaction?: Transaction) =>
   );
 };
 
-export const getTaskByEntityId = async (entityId: string, entityType: string) => {
-  return await Task.findOne({
-    where: { entityId, entityType },
-  });
-};
+// const getTaskByEntityId = async (entityId: string, entityType: string) => {
+//   return await Task.findOne({
+//     where: { entityId, entityType },
+//   });
+// };
+
+export { createTask, updateTaskStatus, completeTask };
