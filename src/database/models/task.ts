@@ -26,6 +26,14 @@ export const Task = sequelize.define(
       allowNull: false,
       field: 'task_id',
     },
+    type: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    metadata: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+    },
     status: {
       type: DataTypes.TEXT,
       allowNull: false,
