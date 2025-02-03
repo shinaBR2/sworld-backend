@@ -100,7 +100,7 @@ const createCloudTasks = async (params: CreateCloudTasksParams): Promise<CloudTa
     };
 
     if (payload) {
-      cloudTask.httpRequest!.body = Buffer.from(JSON.stringify(payload)).toString('base64');
+      cloudTask.httpRequest!.body = JSON.stringify(payload);
     }
 
     if (inSeconds) {

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { logger } from './logger';
+import { TaskEntityType, TaskType } from 'src/database/models/task';
 
 // Mock modules
 const mockCreateTask = vi.fn();
@@ -66,9 +67,9 @@ describe('createCloudTasks', () => {
   const baseParams = {
     queue: 'test-queue',
     url: 'https://test.com',
-    entityType: 'video',
+    entityType: TaskEntityType.VIDEO,
     entityId: '123',
-    type: 'process',
+    type: TaskType.CONVERT,
     payload: basePayload,
   };
 
@@ -117,7 +118,7 @@ describe('createCloudTasks', () => {
 
     expect(dbCreateTask).toHaveBeenCalledWith({
       taskId: 'mock-uuid',
-      type: 'process',
+      type: TaskType.CONVERT,
       metadata: testPayload,
       entityType: 'video',
       entityId: '123',
@@ -140,7 +141,7 @@ describe('createCloudTasks', () => {
             serviceAccountEmail: mockConfig.cloudTaskServiceAccount,
             audience: 'https://test.com',
           },
-          body: Buffer.from(JSON.stringify(testPayload)).toString('base64'),
+          body: JSON.stringify(testPayload),
         },
       },
     });
@@ -232,7 +233,7 @@ describe('createCloudTasks', () => {
       expect.objectContaining({
         task: expect.objectContaining({
           httpRequest: expect.objectContaining({
-            body: Buffer.from(JSON.stringify(testPayload)).toString('base64'),
+            body: JSON.stringify(testPayload),
           }),
         }),
       })
