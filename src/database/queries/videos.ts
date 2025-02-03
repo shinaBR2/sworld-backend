@@ -9,7 +9,7 @@ interface FinalizeVideoProps {
 const finalizeVideo = async (props: FinalizeVideoProps) => {
   const { id, source, thumbnailUrl } = props;
 
-  return await Video.update(
+  const [updatedCount] = await Video.update(
     { source, status: 'ready', thumbnail_url: thumbnailUrl },
     {
       where: {
@@ -17,6 +17,12 @@ const finalizeVideo = async (props: FinalizeVideoProps) => {
       },
     }
   );
+
+  if (updatedCount === 0) {
+    throw new Error(`Video with ID ${id} not found`);
+  }
+
+  return updatedCount;
 };
 
 export { finalizeVideo };

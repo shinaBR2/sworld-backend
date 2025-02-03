@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { Video } from '../models/video';
 import { finalizeVideo } from './videos';
 
@@ -42,7 +42,13 @@ describe('finalizeVideo', () => {
         },
       }
     );
-    expect(result).toBe(mockUpdateResult);
+    expect(result).toBe(1);
+  });
+
+  it('should throw error when video is not found', async () => {
+    (Video.update as Mock).mockResolvedValue([0]);
+
+    await expect(finalizeVideo(mockProps)).rejects.toThrow(`Video with ID ${mockProps.id} not found`);
   });
 
   it('should handle database errors', async () => {
