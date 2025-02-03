@@ -8,6 +8,8 @@ export enum TaskStatus {
   FAILED = 'failed',
 }
 
+// TODO
+// Make enum for type and entityType
 export const Task = sequelize.define(
   'tasks',
   {

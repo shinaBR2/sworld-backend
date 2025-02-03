@@ -2,6 +2,10 @@ import { vi } from 'vitest';
 
 vi.mock('sequelize', async importOriginal => {
   const actual = await importOriginal();
+  const mockTransaction = {
+    commit: vi.fn().mockResolvedValue(undefined),
+    rollback: vi.fn().mockResolvedValue(undefined),
+  };
 
   const mockSequelize = vi.fn().mockImplementation(() => ({
     define: vi.fn().mockImplementation((modelName, attributes, options) => {
@@ -29,11 +33,13 @@ vi.mock('sequelize', async importOriginal => {
         },
       };
     }),
+    transaction: vi.fn().mockResolvedValue(mockTransaction),
   }));
 
   return {
     ...(typeof actual === 'object' ? actual : {}),
     default: mockSequelize,
     DataTypes: (actual as any).DataTypes,
+    mockTransaction,
   };
 });
