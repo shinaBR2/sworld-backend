@@ -40,7 +40,7 @@ interface CreateCloudTasksParams {
   type: string;
 }
 
-type Task = protos.google.cloud.tasks.v2.ITask;
+type CloudTask = protos.google.cloud.tasks.v2.ITask;
 
 /**
  * Creates a new Cloud Task with the specified parameters
@@ -48,7 +48,7 @@ type Task = protos.google.cloud.tasks.v2.ITask;
  * @returns {Promise<protos.google.cloud.tasks.v2.ITask>} The created task
  * @throws {Error} If required parameters are missing
  */
-const createCloudTasks = async (params: CreateCloudTasksParams): Promise<Task | null> => {
+const createCloudTasks = async (params: CreateCloudTasksParams): Promise<CloudTask | null> => {
   const { projectId, location, cloudTaskServiceAccount } = envConfig;
 
   if (!projectId || !location || !cloudTaskServiceAccount) {
@@ -82,7 +82,7 @@ const createCloudTasks = async (params: CreateCloudTasksParams): Promise<Task | 
       return null;
     }
 
-    const cloudTask: Task = {
+    const cloudTask: CloudTask = {
       name: `${parent}/tasks/${taskId}`,
       httpRequest: {
         headers: {

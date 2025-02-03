@@ -1,9 +1,8 @@
-import Sequelize, { DataTypes } from 'sequelize';
+import { Sequelize } from 'sequelize';
 import { envConfig } from 'src/utils/envConfig';
 
-const databaseUrl = envConfig.databaseUrl;
+const databaseUrl = envConfig.databaseUrl!;
 
-// @ts-ignore
 const sequelize = new Sequelize(databaseUrl, {
   dialect: 'postgres',
 });
