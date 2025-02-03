@@ -9,7 +9,24 @@ vi.mock('sequelize', async importOriginal => {
         name: modelName,
         rawAttributes: attributes,
         options,
-        build: (data: any) => ({ ...data }),
+        build: (data: any) => {
+          // Create a new object with all defaults from the attributes
+          const defaults = Object.entries(attributes).reduce(
+            (acc, [key, value]: [string, any]) => {
+              if (value.defaultValue !== undefined) {
+                acc[key] = value.defaultValue;
+              }
+              return acc;
+            },
+            {} as Record<string, any>
+          );
+
+          // Return the merged object with defaults and provided data
+          return {
+            ...defaults,
+            ...data,
+          };
+        },
       };
     }),
   }));
