@@ -9,29 +9,6 @@ const sequelize = new Sequelize(databaseUrl, {
 });
 
 // TODO refactor this into separate module
-const User = sequelize.define(
-  'users',
-  {
-    id: {
-      type: DataTypes.UUID,
-      primaryKey: true,
-    },
-    email: {
-      type: DataTypes.STRING,
-    },
-    auth0Id: {
-      type: DataTypes.STRING,
-    },
-  },
-  {
-    underscored: true,
-    timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
-  }
-);
-
-// TODO refactor this into separate module
 const Video = sequelize.define(
   'videos',
   {
@@ -65,10 +42,6 @@ const initialize = async () => {
   await sequelize.sync();
 };
 
-const listUsers = async () => {
-  return await User.findAll();
-};
-
 const finalizeVideo = async (props: any) => {
   const { id, source, thumbnailUrl } = props;
 
@@ -82,4 +55,4 @@ const finalizeVideo = async (props: any) => {
   );
 };
 
-export { sequelize, initialize, listUsers, finalizeVideo };
+export { sequelize, initialize, finalizeVideo };
