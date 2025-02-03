@@ -1,9 +1,15 @@
 import { Video } from '../models/video';
 
+/**
+ * Properties required to finalize a video
+ */
 interface FinalizeVideoProps {
-  id: string;
-  source: string;
-  thumbnailUrl: string;
+  /** Unique identifier of the video */
+  id: string & { readonly brand: unique symbol }; // UUID type
+  /** Processed video source URL */
+  source: `https://${string}`; // Template literal type for URL
+  /** Generated thumbnail URL */
+  thumbnailUrl: `https://${string}`; // Template literal type for URL
 }
 
 const finalizeVideo = async (props: FinalizeVideoProps) => {
