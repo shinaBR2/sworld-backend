@@ -59,24 +59,14 @@ describe('Database Initialization', () => {
       const authenticateMock = vi.fn().mockRejectedValue(new Error('Authentication failed'));
       const syncMock = vi.fn();
 
-      // Temporarily replace the methods
-      const originalAuthenticate = sequelize.authenticate;
-      const originalSync = sequelize.sync;
-
       sequelize.authenticate = authenticateMock;
       sequelize.sync = syncMock;
 
-      try {
-        // Expect initialize to throw an error
-        await expect(initialize()).rejects.toThrow('Authentication failed');
+      // Expect initialize to throw an error
+      await expect(initialize()).rejects.toThrow('Authentication failed');
 
-        // Verify sync was not called
-        expect(syncMock).not.toHaveBeenCalled();
-      } finally {
-        // Restore original methods
-        sequelize.authenticate = originalAuthenticate;
-        sequelize.sync = originalSync;
-      }
+      // Verify sync was not called
+      expect(syncMock).not.toHaveBeenCalled();
     });
 
     it('should throw error if sync fails', async () => {
@@ -84,21 +74,11 @@ describe('Database Initialization', () => {
       const authenticateMock = vi.fn().mockResolvedValue(undefined);
       const syncMock = vi.fn().mockRejectedValue(new Error('Sync failed'));
 
-      // Temporarily replace the methods
-      const originalAuthenticate = sequelize.authenticate;
-      const originalSync = sequelize.sync;
-
       sequelize.authenticate = authenticateMock;
       sequelize.sync = syncMock;
 
-      try {
-        // Expect initialize to throw an error
-        await expect(initialize()).rejects.toThrow('Sync failed');
-      } finally {
-        // Restore original methods
-        sequelize.authenticate = originalAuthenticate;
-        sequelize.sync = originalSync;
-      }
+      // Expect initialize to throw an error
+      await expect(initialize()).rejects.toThrow('Sync failed');
     });
   });
 });
