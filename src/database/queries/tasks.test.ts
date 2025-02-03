@@ -43,8 +43,7 @@ describe('Task Queries', () => {
 
       expect(Task.findOrCreate).toHaveBeenCalledWith({
         where: {
-          entityId: mockTask.entityId,
-          entityType: mockTask.entityType,
+          taskId: mockTask.taskId,
         },
         defaults: {
           taskId: mockTask.taskId,
@@ -83,8 +82,7 @@ describe('Task Queries', () => {
 
       expect(Task.findOrCreate).toHaveBeenCalledWith({
         where: {
-          entityId: mockTask.entityId,
-          entityType: mockTask.entityType,
+          taskId: mockTask.taskId,
         },
         defaults: {
           taskId: mockTask.taskId,

@@ -12,7 +12,7 @@ interface CreateTaskParams {
 
 const createTask = async ({ taskId, type, metadata, entityType, entityId, transaction }: CreateTaskParams) => {
   const [task] = await Task.findOrCreate({
-    where: { entityId, entityType },
+    where: { taskId },
     defaults: {
       taskId,
       type,
