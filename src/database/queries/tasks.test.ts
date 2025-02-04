@@ -205,7 +205,7 @@ describe('Task Queries', () => {
       // Mock update to return update result
       (Task.update as Mock).mockResolvedValue([1]); // Simulate one row updated
 
-      const result = await completeTask(taskId);
+      const result = await completeTask({ taskId });
 
       expect(Task.update).toHaveBeenCalledWith(
         {
@@ -228,7 +228,7 @@ describe('Task Queries', () => {
       // Mock update to return update result
       (Task.update as Mock).mockResolvedValue([1]); // Simulate one row updated
 
-      const result = await completeTask(taskId, mockTransaction);
+      const result = await completeTask({ taskId, transaction: mockTransaction });
 
       expect(Task.update).toHaveBeenCalledWith(
         {

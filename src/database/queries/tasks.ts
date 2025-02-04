@@ -53,7 +53,12 @@ const updateTaskStatus = async ({ taskId, status, transaction }: UpdateTaskParam
   return updatedCount;
 };
 
-const completeTask = async (taskId: string, transaction?: Transaction) => {
+interface CompleteTaskParams {
+  taskId: string;
+  transaction?: Transaction;
+}
+
+const completeTask = async ({ taskId, transaction }: CompleteTaskParams) => {
   return await Task.update(
     {
       status: TaskStatus.COMPLETED,
