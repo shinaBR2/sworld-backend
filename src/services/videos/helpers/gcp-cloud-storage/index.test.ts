@@ -42,6 +42,19 @@ const storageMock = vi.fn();
 const mockTransferManager = {
   uploadManyFiles: vi.fn().mockResolvedValue(undefined),
 };
+const mockFile = {
+  delete: vi.fn(),
+  createWriteStream: vi.fn(() => {
+    const writeStream = new PassThrough();
+    const originalOn = writeStream.on.bind(writeStream);
+    writeStream.on = vi.fn((event, handler) => {
+      originalOn(event, handler);
+      return writeStream; // Return for chaining
+    });
+    return writeStream;
+  }),
+};
+
 vi.mock('@google-cloud/storage', () => {
   return {
     Storage: function () {
@@ -52,19 +65,7 @@ vi.mock('@google-cloud/storage', () => {
           return {
             name: 'test-bucket',
             upload: uploadMock,
-            file: vi.fn(() => ({
-              createWriteStream: vi.fn(() => {
-                const writeStream = new PassThrough();
-                // Add our own 'on' handler that returns the stream for chaining
-                const originalOn = writeStream.on.bind(writeStream);
-                writeStream.on = vi.fn((event, handler) => {
-                  originalOn(event, handler);
-                  return writeStream; // Return for chaining
-                });
-                return writeStream;
-              }),
-              delete: vi.fn(),
-            })),
+            file: vi.fn(() => mockFile),
           };
         },
       };

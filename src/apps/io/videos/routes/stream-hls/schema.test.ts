@@ -84,8 +84,6 @@ describe('StreamHandlerSchema', () => {
   it('should validate correct request structure', () => {
     const validRequest = createRequest();
     const result = StreamHandlerSchema.safeParse(validRequest);
-    console.log('Actual headers received:', validRequest.headers);
-    if (!result.success) console.log(result.error);
     expect(result.success).toBe(true);
   });
 });
