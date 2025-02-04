@@ -53,6 +53,9 @@ describe('streamHLSHandler', () => {
   let mockRequest: Request;
   let mockResponse: MockResponse;
 
+  const streamOptions = {
+    excludePattern: /\/adjump\//,
+  };
   const defaultData = {
     id: 'video123',
     videoUrl: 'https://example.com/video.mp4',
@@ -76,7 +79,11 @@ describe('streamHLSHandler', () => {
 
     await streamHLSHandler(mockRequest, mockResponse);
 
-    expect(streamM3U8).toHaveBeenCalledWith(defaultData.videoUrl, `videos/${defaultData.userId}/${defaultData.id}`);
+    expect(streamM3U8).toHaveBeenCalledWith(
+      defaultData.videoUrl,
+      `videos/${defaultData.userId}/${defaultData.id}`,
+      streamOptions
+    );
     expect(finalizeVideo).toHaveBeenCalledWith({
       id: defaultData.id,
       source: expectedPlayableUrl,
@@ -148,7 +155,11 @@ describe('streamHLSHandler', () => {
 
     await streamHLSHandler(customRequest, mockResponse);
 
-    expect(streamM3U8).toHaveBeenCalledWith(customData.videoUrl, `videos/${customData.userId}/${customData.id}`);
+    expect(streamM3U8).toHaveBeenCalledWith(
+      customData.videoUrl,
+      `videos/${customData.userId}/${customData.id}`,
+      streamOptions
+    );
   });
 });
 

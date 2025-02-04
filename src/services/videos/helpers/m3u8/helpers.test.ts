@@ -1,10 +1,5 @@
 import { describe, expect, vi, test, beforeEach } from 'vitest';
-import {
-  downloadSegments,
-  parseM3U8Content,
-  streamPlaylistFile,
-  streamSegmentFile,
-} from './helpers';
+import { downloadSegments, parseM3U8Content, streamPlaylistFile, streamSegmentFile } from './helpers';
 import { downloadFile, verifyFileSize } from '../file';
 import { logger } from 'src/utils/logger';
 import { Readable } from 'node:stream';
@@ -80,10 +75,7 @@ describe('M3U8 parser', () => {
       };
       (fetch as any).mockResolvedValue(mockResponse);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePattern
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePattern);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toHaveLength(2);
@@ -122,10 +114,7 @@ describe('M3U8 parser', () => {
       };
       (fetch as any).mockResolvedValue(mockResponse);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePattern
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePattern);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toHaveLength(2);
@@ -155,10 +144,7 @@ describe('M3U8 parser', () => {
       };
       (fetch as any).mockResolvedValue(mockResponse);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePattern
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePattern);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toHaveLength(3);
@@ -183,15 +169,9 @@ describe('M3U8 parser', () => {
       };
       (fetch as any).mockResolvedValue(mockResponse);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePattern
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePattern);
 
-      expect(segments.included).toEqual([
-        'https://example.com/segment1.ts',
-        'https://example.com/segment2.ts',
-      ]);
+      expect(segments.included).toEqual(['https://example.com/segment1.ts', 'https://example.com/segment2.ts']);
       expect(segments.excluded).toEqual(['https://example.com/adjump/ad1.ts']);
       const expectedContent = normalizeContent(`
         #EXTM3U
@@ -222,10 +202,7 @@ describe('downloadSegments', () => {
 
     // Check if downloadFile was called for each segment
     expect(downloadFile).toHaveBeenCalledTimes(3);
-    expect(downloadFile).toHaveBeenCalledWith(
-      'https://example.com/segment1.ts',
-      '/tmp/test/segment1.ts'
-    );
+    expect(downloadFile).toHaveBeenCalledWith('https://example.com/segment1.ts', '/tmp/test/segment1.ts');
     expect(logger.info).toHaveBeenCalledWith(
       {
         segmentName: 'segment1.ts',
@@ -240,10 +217,7 @@ describe('downloadSegments', () => {
     await downloadSegments(mockSegments, mockTempDir, maxSize);
 
     expect(verifyFileSize).toHaveBeenCalledTimes(3);
-    expect(verifyFileSize).toHaveBeenCalledWith(
-      '/tmp/test/segment1.ts',
-      maxSize
-    );
+    expect(verifyFileSize).toHaveBeenCalledWith('/tmp/test/segment1.ts', maxSize);
   });
 
   test('should process segments in batches of 5', async () => {
@@ -265,17 +239,13 @@ describe('downloadSegments', () => {
     ]);
     // Verify second batch (1 segment)
     const secondBatch = downloadCalls.slice(5);
-    expect(secondBatch.map(call => call[0])).toEqual([
-      'https://example.com/segment6.ts',
-    ]);
+    expect(secondBatch.map(call => call[0])).toEqual(['https://example.com/segment6.ts']);
   });
 
   test('when error with promise.all', async () => {
     vi.mocked(downloadFile).mockRejectedValueOnce(new Error('Download failed'));
 
-    await expect(downloadSegments(mockSegments, mockTempDir)).rejects.toThrow(
-      'Download failed'
-    );
+    await expect(downloadSegments(mockSegments, mockTempDir)).rejects.toThrow('Download failed');
 
     expect(downloadFile).toHaveBeenCalledTimes(3);
   });
@@ -301,10 +271,7 @@ describe('streamSegmentFile', () => {
     };
     (fetch as any).mockResolvedValue(mockResponse);
 
-    await streamSegmentFile(
-      'http://example.com/segment.ts',
-      'test-path/segment.ts'
-    );
+    await streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts');
 
     // Verify fetch was called with correct URL
     expect(fetch).toHaveBeenCalledWith('http://example.com/segment.ts', {
@@ -329,9 +296,9 @@ describe('streamSegmentFile', () => {
     };
     (fetch as any).mockResolvedValue(mockResponse);
 
-    await expect(
-      streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')
-    ).rejects.toThrow('Failed to fetch segment');
+    await expect(streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')).rejects.toThrow(
+      'Failed to fetch segment'
+    );
   });
 
   test('should throw error when response body is null', async () => {
@@ -341,9 +308,9 @@ describe('streamSegmentFile', () => {
     };
     (fetch as any).mockResolvedValue(mockResponse);
 
-    await expect(
-      streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')
-    ).rejects.toThrow('Failed to fetch segment');
+    await expect(streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')).rejects.toThrow(
+      'Failed to fetch segment'
+    );
   });
 });
 
@@ -393,8 +360,7 @@ describe('streamPlaylistFile', () => {
   });
 
   test('should stream playlist with special characters', async () => {
-    const content =
-      '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1280000,RESOLUTION=1280x720\npath/with/special-chars.ts';
+    const content = '#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1280000,RESOLUTION=1280x720\npath/with/special-chars.ts';
     const storagePath = 'test/complex-playlist.m3u8';
 
     await streamPlaylistFile(content, storagePath);
@@ -415,9 +381,7 @@ describe('streamPlaylistFile', () => {
     mockStreamFile.mockRejectedValueOnce(mockError);
 
     // Expect the error to be propagated
-    await expect(streamPlaylistFile(content, storagePath)).rejects.toThrow(
-      'Stream error'
-    );
+    await expect(streamPlaylistFile(content, storagePath)).rejects.toThrow('Stream error');
 
     expect(mockStreamFile).toHaveBeenCalledOnce();
   });
