@@ -509,15 +509,6 @@ describe('gcp-cloud-storage-helpers', () => {
     });
 
     it('should handle successful upload', async () => {
-      const mockFile = {
-        createWriteStream: vi.fn(() => {
-          const writeStream = new PassThrough();
-          setTimeout(() => writeStream.emit('finish'), 0);
-          return writeStream;
-        }),
-        delete: vi.fn(),
-      };
-
       await expect(streamFile(testParams)).resolves.toBeUndefined();
     });
 
