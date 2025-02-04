@@ -59,7 +59,7 @@ interface CompleteTaskParams {
 }
 
 const completeTask = async ({ taskId, transaction }: CompleteTaskParams) => {
-  return await Task.update(
+  const [updatedCount] = await Task.update(
     {
       status: TaskStatus.COMPLETED,
       completed: true,
@@ -69,6 +69,11 @@ const completeTask = async ({ taskId, transaction }: CompleteTaskParams) => {
       transaction,
     }
   );
+
+  if (updatedCount === 0) {
+    throw new Error(`Task with ID ${taskId} not found`);
+  }
+  return updatedCount;
 };
 
 export { createTask, updateTaskStatus, completeTask };

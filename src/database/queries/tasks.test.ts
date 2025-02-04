@@ -218,7 +218,7 @@ describe('Task Queries', () => {
         }
       );
 
-      expect(result).toEqual([1]);
+      expect(result).toEqual(1);
     });
 
     it('should mark task as completed with a transaction', async () => {
@@ -241,7 +241,24 @@ describe('Task Queries', () => {
         }
       );
 
-      expect(result).toEqual([1]);
+      expect(result).toEqual(1);
+    });
+
+    it('should throw error when task is not found', async () => {
+      const taskId = 'test-task-id';
+      (Task.update as Mock).mockResolvedValue([0]);
+
+      // const result = await completeTask({ taskId });
+
+      await expect(completeTask({ taskId })).rejects.toThrow(`Task with ID ${taskId} not found`);
+    });
+
+    it('should handle database errors', async () => {
+      const taskId = 'test-task-id';
+      const mockError = new Error('Database error');
+      (Task.update as Mock).mockRejectedValue(mockError);
+
+      await expect(completeTask({ taskId })).rejects.toThrow(`Database error`);
     });
   });
 });
