@@ -252,12 +252,11 @@ const streamSegments = async (params: StreamSegmentsParams) => {
           logger.error(
             {
               segmentUrl,
-              error: error instanceof Error ? error.message : String(error),
+              error,
             },
             'Failed to stream segment'
           );
-          // Optionally, you can choose to throw or continue
-          // throw error;
+          throw error;
         }
       })
     );

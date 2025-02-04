@@ -1,10 +1,11 @@
 import { describe, expect, vi, test, beforeEach } from 'vitest';
-import { downloadSegments, parseM3U8Content, streamPlaylistFile, streamSegmentFile } from './helpers';
+import { downloadSegments, parseM3U8Content, streamPlaylistFile, streamSegmentFile, streamSegments } from './helpers';
 import { downloadFile, verifyFileSize } from '../file';
 import { logger } from 'src/utils/logger';
 import { Readable } from 'node:stream';
 import fetch from 'node-fetch';
 import { streamFile } from '../gcp-cloud-storage';
+import type { Response } from 'node-fetch';
 
 vi.mock('node-fetch', () => ({
   default: vi.fn(),
@@ -526,5 +527,114 @@ describe('streamPlaylistFile', () => {
     await expect(streamPlaylistFile(content, storagePath)).rejects.toThrow('Stream error');
 
     expect(mockStreamFile).toHaveBeenCalledOnce();
+  });
+});
+
+describe('streamSegments', () => {
+  const mockFetch = vi.mocked(fetch);
+  const mockStreamFile = vi.mocked(streamFile);
+  const mockLogger = vi.mocked(logger);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  test('should process segments in batches based on concurrency limit', async () => {
+    const segmentUrls = [
+      'http://example.com/seg-1.ts',
+      'http://example.com/seg-2.ts',
+      'http://example.com/seg-3.ts',
+      'http://example.com/seg-4.ts',
+    ];
+    const baseStoragePath = 'videos/test';
+    const mockBody = new ReadableStream();
+
+    // Mock successful fetch responses
+    mockFetch.mockResolvedValue({
+      ok: true,
+      body: mockBody,
+      status: 200,
+      statusText: 'OK',
+    } as unknown as Response);
+
+    // Mock successful streamFile responses
+    mockStreamFile.mockResolvedValue(undefined);
+
+    await streamSegments({
+      segmentUrls,
+      baseStoragePath,
+      options: { concurrencyLimit: 2 },
+    });
+
+    // Verify fetch was called for each segment
+    expect(mockFetch).toHaveBeenCalledTimes(4);
+
+    // Verify streamFile was called for each segment
+    expect(mockStreamFile).toHaveBeenCalledTimes(4);
+  });
+
+  test('should use default concurrency limit when not specified', async () => {
+    const segmentUrls = Array.from({ length: 5 }, (_, i) => `http://example.com/seg-${i + 1}.ts`);
+    const mockBody = new ReadableStream();
+
+    mockFetch.mockResolvedValue({
+      ok: true,
+      body: mockBody,
+      status: 200,
+      statusText: 'OK',
+    } as unknown as Response);
+    mockStreamFile.mockResolvedValue(undefined);
+
+    await streamSegments({
+      segmentUrls,
+      baseStoragePath: 'videos/test',
+    });
+
+    expect(mockFetch).toHaveBeenCalledTimes(5);
+    expect(mockStreamFile).toHaveBeenCalledTimes(5);
+  });
+
+  test('should log error and throw when segment streaming fails', async () => {
+    const segmentUrls = ['http://example.com/seg-1.ts', 'http://example.com/seg-2.ts', 'http://example.com/seg-3.ts'];
+    const baseStoragePath = 'videos/test';
+    const mockBody = new ReadableStream();
+    const error = new Error('Network error');
+
+    // First segment succeeds, second fails
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        body: mockBody,
+        status: 200,
+        statusText: 'OK',
+      } as unknown as Response)
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        body: null,
+      } as unknown as Response);
+
+    mockStreamFile.mockResolvedValue(undefined);
+
+    await expect(
+      streamSegments({
+        segmentUrls,
+        baseStoragePath,
+        options: { concurrencyLimit: 1 },
+      })
+    ).rejects.toThrow('Failed to fetch segment: 404 Not Found');
+
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      {
+        segmentUrl: 'http://example.com/seg-2.ts',
+        error: new Error('Failed to fetch segment: 404 Not Found'),
+      },
+      'Failed to stream segment'
+    );
+
+    // Should have only processed up to the failing segment
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockStreamFile).toHaveBeenCalledTimes(1);
   });
 });
