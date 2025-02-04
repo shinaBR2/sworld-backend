@@ -37,7 +37,7 @@ describe('M3U8 parser', () => {
 
   describe('parseM3U8Content', () => {
     const baseUrl = 'https://example.com';
-    const excludePattern = /\/adjump\//;
+    const excludePatterns = [/\/adjump\//];
 
     test('should handle m3u8 with DISCONTINUITY markers', async () => {
       const content = `
@@ -75,7 +75,7 @@ describe('M3U8 parser', () => {
       };
       (fetch as any).mockResolvedValue(mockResponse);
 
-      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePattern);
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toHaveLength(2);
@@ -114,7 +114,7 @@ describe('M3U8 parser', () => {
       };
       (fetch as any).mockResolvedValue(mockResponse);
 
-      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePattern);
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toHaveLength(2);
@@ -144,7 +144,7 @@ describe('M3U8 parser', () => {
       };
       (fetch as any).mockResolvedValue(mockResponse);
 
-      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePattern);
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toHaveLength(3);
@@ -169,7 +169,7 @@ describe('M3U8 parser', () => {
       };
       (fetch as any).mockResolvedValue(mockResponse);
 
-      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePattern);
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(segments.included).toEqual(['https://example.com/segment1.ts', 'https://example.com/segment2.ts']);
       expect(segments.excluded).toEqual(['https://example.com/adjump/ad1.ts']);
