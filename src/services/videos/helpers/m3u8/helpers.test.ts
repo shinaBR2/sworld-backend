@@ -37,7 +37,101 @@ describe('M3U8 parser', () => {
 
   describe('parseM3U8Content', () => {
     const baseUrl = 'https://example.com';
-    const excludePatterns = [/\/adjump\//];
+    const excludePatterns = [/\/adjump\//, /\/ads\//, /\/commercial\//];
+
+    test('should handle m3u8 with multiple ad patterns', async () => {
+      const content = `
+        #EXTM3U
+        #EXT-X-VERSION:3
+        #EXT-X-TARGETDURATION:10
+        #EXTINF:3,
+        segment1.ts
+        #EXT-X-DISCONTINUITY
+        #EXTINF:5.96,
+        /adjump/ad1.ts
+        #EXTINF:1.96,
+        /ads/ad2.ts
+        #EXTINF:2.5,
+        /commercial/ad3.ts
+        #EXT-X-DISCONTINUITY
+        #EXTINF:3,
+        segment2.ts
+        #EXT-X-ENDLIST
+      `;
+
+      const expected = normalizeContent(`
+        #EXTM3U
+        #EXT-X-VERSION:3
+        #EXT-X-TARGETDURATION:10
+        #EXTINF:3,
+        segment1.ts
+        #EXTINF:3,
+        segment2.ts
+        #EXT-X-ENDLIST
+      `);
+
+      const mockResponse = {
+        ok: true,
+        statusText: 'OK',
+        text: () => Promise.resolve(content),
+      };
+      (fetch as any).mockResolvedValue(mockResponse);
+
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
+
+      expect(normalizeContent(modifiedContent)).toBe(expected);
+      expect(segments.included).toEqual(['https://example.com/segment1.ts', 'https://example.com/segment2.ts']);
+      expect(segments.excluded).toEqual([
+        'https://example.com/adjump/ad1.ts',
+        'https://example.com/ads/ad2.ts',
+        'https://example.com/commercial/ad3.ts',
+      ]);
+    });
+
+    test('should handle m3u8 with mixed ad patterns', async () => {
+      const content = `
+        #EXTM3U
+        #EXT-X-VERSION:3
+        #EXT-X-TARGETDURATION:10
+        #EXTINF:3,
+        segment1.ts
+        #EXTINF:5.96,
+        /ads/ad1.ts
+        #EXTINF:3,
+        segment2.ts
+        #EXTINF:2.5,
+        /commercial/ad2.ts
+        #EXTINF:3,
+        segment3.ts
+        #EXT-X-ENDLIST
+      `;
+
+      const expected = normalizeContent(`
+        #EXTM3U
+        #EXT-X-VERSION:3
+        #EXT-X-TARGETDURATION:10
+        #EXTINF:3,
+        segment1.ts
+        #EXTINF:3,
+        segment2.ts
+        #EXTINF:3,
+        segment3.ts
+        #EXT-X-ENDLIST
+      `);
+
+      const mockResponse = {
+        ok: true,
+        statusText: 'OK',
+        text: () => Promise.resolve(content),
+      };
+      (fetch as any).mockResolvedValue(mockResponse);
+
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
+
+      expect(normalizeContent(modifiedContent)).toBe(expected);
+      expect(segments.included).toHaveLength(3);
+      expect(segments.excluded).toHaveLength(2);
+    });
 
     test('should handle m3u8 with DISCONTINUITY markers', async () => {
       const content = `
