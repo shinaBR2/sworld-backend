@@ -49,4 +49,34 @@ describe('taskHandlerHeaderSchema', () => {
     const result = taskHandlerHeaderSchema.safeParse(invalidHeaders);
     expect(result.success).toBe(false);
   });
+
+  it('should reject empty string values', () => {
+    const invalidHeaders = {
+      'content-type': '',
+      'x-task-id': '',
+    };
+
+    const result = taskHandlerHeaderSchema.safeParse(invalidHeaders);
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject non-string values', () => {
+    const invalidHeaders = {
+      'content-type': 123,
+      'x-task-id': true,
+    };
+
+    const result = taskHandlerHeaderSchema.safeParse(invalidHeaders);
+    expect(result.success).toBe(false);
+  });
+
+  it('should reject multiple values for same header', () => {
+    const invalidHeaders = {
+      'content-type': ['application/json', 'text/plain'],
+      'x-task-id': ['123e4567-e89b-12d3-a456-426614174000'],
+    };
+
+    const result = taskHandlerHeaderSchema.safeParse(invalidHeaders);
+    expect(result.success).toBe(false);
+  });
 });
