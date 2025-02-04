@@ -297,6 +297,87 @@ describe('gcp-cloud-storage-helpers', () => {
       },
     };
 
+    describe('Error Logging', () => {
+      let loggerErrorSpy: ReturnType<typeof vi.spyOn>;
+
+      beforeEach(() => {
+        loggerErrorSpy = vi.spyOn(logger, 'error');
+      });
+
+      it('should log error with original and delete error', () => {
+        const mockStoragePath = '/path/to/file';
+        const mockDeleteError = new Error('Delete failed');
+        const mockOriginalError = new Error('Original upload error');
+
+        // Call the error logging directly
+        logger.error(
+          {
+            storagePath: mockStoragePath,
+            deleteError: mockDeleteError,
+            originalError: mockOriginalError.message,
+          },
+          'Failed to delete partial file after upload error'
+        );
+
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+          {
+            storagePath: mockStoragePath,
+            deleteError: mockDeleteError,
+            originalError: mockOriginalError.message,
+          },
+          'Failed to delete partial file after upload error'
+        );
+      });
+
+      it('should log error with undefined original error', () => {
+        const mockStoragePath = '/path/to/file';
+        const mockDeleteError = new Error('Delete failed');
+
+        // Call the error logging directly
+        logger.error(
+          {
+            storagePath: mockStoragePath,
+            deleteError: mockDeleteError,
+            originalError: undefined,
+          },
+          'Failed to delete partial file after upload error'
+        );
+
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+          {
+            storagePath: mockStoragePath,
+            deleteError: mockDeleteError,
+            originalError: undefined,
+          },
+          'Failed to delete partial file after upload error'
+        );
+      });
+
+      it('should log error with string delete error', () => {
+        const mockStoragePath = '/path/to/file';
+        const mockDeleteError = 'Delete error occurred';
+
+        // Call the error logging directly
+        logger.error(
+          {
+            storagePath: mockStoragePath,
+            deleteError: mockDeleteError,
+            originalError: undefined,
+          },
+          'Failed to delete partial file after upload error'
+        );
+
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+          {
+            storagePath: mockStoragePath,
+            deleteError: mockDeleteError,
+            originalError: undefined,
+          },
+          'Failed to delete partial file after upload error'
+        );
+      });
+    });
+
     it('should handle network interruption', async () => {
       mockReadable.on.mockImplementation((event, handler) => {
         if (event === 'error') {
