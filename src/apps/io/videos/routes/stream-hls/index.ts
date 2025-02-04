@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { finalizeVideo } from 'src/database/queries/videos';
+import { videoConfig } from 'src/services/videos/config';
 import { streamM3U8 } from 'src/services/videos/helpers/m3u8';
 import { logger } from 'src/utils/logger';
 import { AppError } from 'src/utils/schema';
@@ -11,7 +12,7 @@ const streamHLSHandler = async (req: Request, res: Response) => {
   try {
     logger.info(metadata, `[/videos/stream-hls-handler] start processing event "${metadata.id}", video "${id}"`);
     const playableVideoUrl = await streamM3U8(videoUrl, `videos/${userId}/${id}`, {
-      excludePattern: /\/adjump\//,
+      excludePatterns: videoConfig.excludePatterns,
     });
 
     await finalizeVideo({

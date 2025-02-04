@@ -20,6 +20,12 @@ vi.mock('src/utils/logger', () => ({
   },
 }));
 
+vi.mock('src/services/videos/config', () => ({
+  videoConfig: {
+    excludePatterns: [/\/adjump\//, /\/ads\//, /\/commercial\//],
+  },
+}));
+
 vi.mock('src/utils/schema', () => ({
   AppError: vi.fn((message: string, details: object) => ({
     message,
@@ -54,7 +60,7 @@ describe('streamHLSHandler', () => {
   let mockResponse: MockResponse;
 
   const streamOptions = {
-    excludePattern: /\/adjump\//,
+    excludePatterns: [/\/adjump\//, /\/ads\//, /\/commercial\//],
   };
   const defaultData = {
     id: 'video123',
