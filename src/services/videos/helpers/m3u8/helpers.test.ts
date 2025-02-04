@@ -129,8 +129,27 @@ describe('M3U8 parser', () => {
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
-      expect(segments.included).toHaveLength(3);
-      expect(segments.excluded).toHaveLength(2);
+      // Check included segments in order
+      expect(segments.included).toEqual([
+        'https://example.com/segment1.ts',
+        'https://example.com/segment2.ts',
+        'https://example.com/segment3.ts',
+      ]);
+
+      // Check excluded segments in order
+      expect(segments.excluded).toEqual(['https://example.com/ads/ad1.ts', 'https://example.com/commercial/ad2.ts']);
+
+      // Check content contains all required HLS tags
+      expect(modifiedContent).toContain('#EXTM3U');
+      expect(modifiedContent).toContain('#EXT-X-VERSION:3');
+      expect(modifiedContent).toContain('#EXT-X-TARGETDURATION:10');
+      expect(modifiedContent).toContain('#EXT-X-ENDLIST');
+
+      // Check content doesn't contain ad segments or their durations
+      expect(modifiedContent).not.toContain('5.96');
+      expect(modifiedContent).not.toContain('2.5');
+      expect(modifiedContent).not.toContain('/ads/');
+      expect(modifiedContent).not.toContain('/commercial/');
     });
 
     test('should handle m3u8 with DISCONTINUITY markers', async () => {
@@ -172,8 +191,23 @@ describe('M3U8 parser', () => {
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
-      expect(segments.included).toHaveLength(2);
-      expect(segments.excluded).toHaveLength(2);
+      // Check included segments in order
+      expect(segments.included).toEqual(['https://example.com/segment1.ts', 'https://example.com/segment2.ts']);
+
+      // Check excluded segments in order
+      expect(segments.excluded).toEqual(['https://example.com/adjump/ad1.ts', 'https://example.com/adjump/ad2.ts']);
+
+      // Check content contains all required HLS tags
+      expect(modifiedContent).toContain('#EXTM3U');
+      expect(modifiedContent).toContain('#EXT-X-VERSION:3');
+      expect(modifiedContent).toContain('#EXT-X-TARGETDURATION:10');
+      expect(modifiedContent).toContain('#EXT-X-ENDLIST');
+
+      // Check content doesn't contain ad segments or their durations
+      expect(modifiedContent).not.toContain('5.96');
+      expect(modifiedContent).not.toContain('2.5');
+      expect(modifiedContent).not.toContain('/ads/');
+      expect(modifiedContent).not.toContain('/commercial/');
     });
 
     test('should handle m3u8 without DISCONTINUITY markers', async () => {
@@ -211,7 +245,7 @@ describe('M3U8 parser', () => {
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
-      expect(segments.included).toHaveLength(2);
+      expect(segments.included).toEqual(['https://example.com/segment1.ts', 'https://example.com/segment2.ts']);
       expect(segments.excluded).toHaveLength(1);
     });
 
@@ -241,7 +275,11 @@ describe('M3U8 parser', () => {
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
-      expect(segments.included).toHaveLength(3);
+      expect(segments.included).toEqual([
+        'https://example.com/segment1.ts',
+        'https://example.com/segment2.ts',
+        'https://example.com/segment3.ts',
+      ]);
       expect(segments.excluded).toHaveLength(0);
     });
 
