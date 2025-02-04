@@ -322,9 +322,11 @@ describe('M3U8 parser', () => {
       };
       (fetch as any).mockResolvedValue(mockResponse);
 
-      const { modifiedContent } = await parseM3U8Content(baseUrl, excludePatterns);
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(modifiedContent).toContain('#EXT-X-PLAYLIST-TYPE:VOD');
+      expect(segments.included).toEqual(['https://example.com/segment1.ts']);
+      expect(segments.excluded).toHaveLength(0);
     });
 
     test('should handle malformed m3u8', async () => {
