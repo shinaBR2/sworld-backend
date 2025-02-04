@@ -203,10 +203,3 @@ describe('streamHLSHandler', () => {
     );
   });
 });
-
-interface TestHelpers {
-  createMockRequest: typeof createMockRequest;
-  createMockResponse: typeof createMockResponse;
-}
-
-export { TestHelpers };

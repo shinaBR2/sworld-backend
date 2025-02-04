@@ -180,10 +180,3 @@ describe('importPlatformHandler', () => {
     await testSuccessfulImport(customRequest);
   });
 });
-
-interface TestHelpers {
-  createMockRequest: typeof createMockRequest;
-  createMockResponse: typeof createMockResponse;
-}
-
-export { TestHelpers };
