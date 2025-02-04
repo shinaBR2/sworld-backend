@@ -39,6 +39,16 @@ describe('M3U8 parser', () => {
     const baseUrl = 'https://example.com';
     const excludePatterns = [/\/adjump\//, /\/ads\//, /\/commercial\//];
 
+    test('should throw error when fetch response is not ok', async () => {
+      const mockResponse = {
+        ok: false,
+        statusText: 'Not Found',
+      };
+      (fetch as any).mockResolvedValue(mockResponse);
+
+      await expect(parseM3U8Content(baseUrl, excludePatterns)).rejects.toThrow('Failed to fetch m3u8: Not Found');
+    });
+
     test('should handle m3u8 with multiple ad patterns', async () => {
       const content = `
         #EXTM3U

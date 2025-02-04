@@ -189,19 +189,13 @@ const downloadSegments = async (segments: string[], tempDir: string, maxSegmentS
 const streamPlaylistFile = async (content: string, storagePath: string) => {
   const playlistStream = Readable.from(content);
 
-  try {
-    return streamFile({
-      stream: playlistStream,
-      storagePath,
-      options: {
-        contentType: 'application/vnd.apple.mpegurl',
-      },
-    });
-  } catch (error) {
-    throw new Error(
-      `Failed to stream playlist to ${storagePath}: ${error instanceof Error ? error.message : String(error)}`
-    );
-  }
+  return streamFile({
+    stream: playlistStream,
+    storagePath,
+    options: {
+      contentType: 'application/vnd.apple.mpegurl',
+    },
+  });
 };
 
 /**
