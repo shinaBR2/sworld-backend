@@ -6,6 +6,7 @@ import { finalizeVideo } from 'src/database/queries/videos';
 import { logger } from 'src/utils/logger';
 import { completeTask } from 'src/database/queries/tasks';
 import { CustomError } from 'src/utils/custom-error';
+import { VIDEO_ERRORS } from 'src/utils/error-codes';
 
 // Mocks setup
 vi.mock('src/database/queries/videos', () => ({
@@ -104,7 +105,7 @@ describe('streamHLSHandler', () => {
       originalError: expect.objectContaining({
         message: errorMessage,
       }),
-      errorCode: 'VIDEO_CONVERSION_FAIED',
+      errorCode: VIDEO_ERRORS.CONVERSION_FAILED,
       context: {
         data: context.defaultData,
         metadata: context.defaultMetadata,

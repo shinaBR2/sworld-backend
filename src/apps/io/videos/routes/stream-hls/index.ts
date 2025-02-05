@@ -4,6 +4,7 @@ import { finalizeVideo } from 'src/database/queries/videos';
 import { videoConfig } from 'src/services/videos/config';
 import { streamM3U8 } from 'src/services/videos/helpers/m3u8';
 import { CustomError } from 'src/utils/custom-error';
+import { VIDEO_ERRORS } from 'src/utils/error-codes';
 import { logger } from 'src/utils/logger';
 
 const streamHLSHandler = async (req: Request, res: Response) => {
@@ -31,7 +32,7 @@ const streamHLSHandler = async (req: Request, res: Response) => {
   } catch (error) {
     throw CustomError.critical('Stream HLS failed', {
       originalError: error,
-      errorCode: 'VIDEO_CONVERSION_FAIED',
+      errorCode: VIDEO_ERRORS.CONVERSION_FAILED,
       context: {
         data,
         metadata,

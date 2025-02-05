@@ -3,6 +3,7 @@ import { convertVideo } from 'src/services/videos/convert/handler';
 import { Request, Response } from 'express';
 import { completeTask } from 'src/database/queries/tasks';
 import { CustomError } from 'src/utils/custom-error';
+import { VIDEO_ERRORS } from 'src/utils/error-codes';
 
 const convertHandler = async (req: Request, res: Response) => {
   const taskId = req.headers['x-task-id'] as string;
@@ -22,7 +23,7 @@ const convertHandler = async (req: Request, res: Response) => {
   } catch (error) {
     throw CustomError.critical('Video conversion failed', {
       originalError: error,
-      errorCode: 'VIDEO_CONVERSION_FAIED',
+      errorCode: VIDEO_ERRORS.CONVERSION_FAILED,
       context: {
         data,
         metadata,
