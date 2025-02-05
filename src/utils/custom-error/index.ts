@@ -1,4 +1,11 @@
-type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
+const ERROR_SEVERITY = {
+  LOW: 'low',
+  MEDIUM: 'medium',
+  HIGH: 'high',
+  CRITICAL: 'critical',
+} as const;
+
+type ErrorSeverity = (typeof ERROR_SEVERITY)[keyof typeof ERROR_SEVERITY];
 interface ErrorOptions {
   errorCode?: string;
   severity?: ErrorSeverity;
@@ -30,6 +37,26 @@ class CustomError extends Error {
     };
     this.originalError = originalError;
   }
+
+  static from(error: unknown, options: Omit<ErrorOptions, 'originalError'> & { message?: string } = {}): CustomError {
+    if (error instanceof CustomError) {
+      return error;
+    }
+
+    if (error instanceof Error) {
+      return new CustomError(options.message || error.message, {
+        ...options,
+        originalError: error,
+      });
+    }
+
+    // Handle everything else
+    const errorMessage = options.message || String(error);
+    return new CustomError(errorMessage, {
+      ...options,
+      originalError: new Error(errorMessage),
+    });
+  }
 }
 
-export { CustomError };
+export { ERROR_SEVERITY, CustomError };
