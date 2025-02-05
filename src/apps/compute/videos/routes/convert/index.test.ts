@@ -4,6 +4,7 @@ import { convertHandler } from './index';
 import { convertVideo } from 'src/services/videos/convert/handler';
 import { logger } from 'src/utils/logger';
 import { completeTask } from 'src/database/queries/tasks';
+import { CustomError } from 'src/utils/custom-error';
 
 interface MockResponse extends Response {
   json: Mock;
@@ -40,11 +41,10 @@ vi.mock('src/database/queries/tasks', () => ({
   completeTask: vi.fn(),
 }));
 
-vi.mock('src/utils/schema', () => ({
-  AppError: vi.fn((message: string, details: object) => ({
-    message,
-    details,
-  })),
+vi.mock('src/utils/custom-error', () => ({
+  CustomError: {
+    critical: vi.fn(),
+  },
 }));
 
 const createMockResponse = (): MockResponse =>
@@ -96,13 +96,22 @@ describe('convertHandler', () => {
   const testErrorScenario = async (setupMocks: () => void, errorMessage: string, checksAfterError?: () => void) => {
     setupMocks();
 
-    await expect(convertHandler(context.mockRequest, context.mockResponse)).rejects.toMatchObject({
-      message: 'Video conversion failed',
-      details: {
-        videoId: context.defaultData.id,
-        error: errorMessage,
-      },
-    });
+    await expect(convertHandler(context.mockRequest, context.mockResponse)).rejects.toThrow('Video conversion failed');
+    expect(CustomError.critical).toHaveBeenCalledWith(
+      'Video conversion failed',
+      expect.objectContaining({
+        originalError: expect.objectContaining({
+          message: errorMessage,
+        }),
+        errorCode: 'VIDEO_CONVERSION_FAIED',
+        context: {
+          data: context.defaultData,
+          metadata: context.defaultMetadata,
+          taskId: context.defaultTaskId,
+        },
+        source: 'apps/compute/videos/routes/convert/index.ts',
+      })
+    );
 
     expect(logger.info).toHaveBeenCalledWith(
       context.defaultMetadata,
