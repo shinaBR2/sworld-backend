@@ -95,6 +95,7 @@ describe('errorHandler', () => {
     // Check Sentry exception was captured
     expect(Sentry.captureException).toHaveBeenCalledWith(customError);
 
+    expect(mockResponse.status).toHaveBeenCalledWith(200);
     // Check response
     expect(mockResponse.json).toHaveBeenCalledWith({
       error: 'Custom test error',
@@ -121,6 +122,7 @@ describe('errorHandler', () => {
       stack: expect.stringContaining('Test error'),
     });
 
+    expect(mockResponse.status).toHaveBeenCalledWith(200);
     // Check response
     expect(mockResponse.json).toHaveBeenCalledWith({
       error: 'Test error',
@@ -143,6 +145,7 @@ describe('errorHandler', () => {
       stack: undefined,
     });
 
+    expect(mockResponse.status).toHaveBeenCalledWith(200);
     expect(mockResponse.json).toHaveBeenCalledWith({
       error: 'Internal Server Error',
     });
