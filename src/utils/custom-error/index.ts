@@ -6,13 +6,13 @@ const ERROR_SEVERITY = {
 } as const;
 
 type ErrorSeverity = (typeof ERROR_SEVERITY)[keyof typeof ERROR_SEVERITY];
+
 interface ErrorOptions {
   errorCode?: string;
   severity?: ErrorSeverity;
   context?: Record<string, unknown>;
   source?: string;
-  originalError?: Error;
-  contexts?: ErrorContext[];
+  originalError?: Error | CustomError;
 }
 
 interface ErrorContext {
@@ -20,35 +20,6 @@ interface ErrorContext {
   data: Record<string, unknown>;
   timestamp?: number;
 }
-
-const prepareContexts = (context: Record<string, unknown>, source: string, originalError?: Error) => {
-  const contexts: ErrorContext[] = [];
-
-  // Add current layer's context first
-  contexts.push({
-    source,
-    data: context,
-    timestamp: Date.now(),
-  });
-
-  // Add original error details if it's a native Error
-  if (!(originalError instanceof CustomError)) {
-    // Only add original error context for new errors
-    if (originalError) {
-      contexts.push({
-        source: 'OriginalError',
-        data: {
-          message: originalError.message,
-          name: originalError.name,
-          stack: originalError.stack,
-        },
-        timestamp: Date.now(),
-      });
-    }
-  }
-
-  return contexts;
-};
 
 class CustomError extends Error {
   public readonly timestamp: number;
@@ -62,36 +33,42 @@ class CustomError extends Error {
 
     const {
       errorCode = 'UNKNOWN_ERROR',
-      severity = 'medium',
+      severity = ERROR_SEVERITY.MEDIUM,
       context = {},
       source = 'Unknown',
       originalError,
-      contexts: existingContexts = [],
     } = options;
 
     this.name = 'CustomError';
     this.timestamp = Date.now();
     this.errorCode = errorCode;
     this.severity = severity;
+    this.contexts = [];
 
-    // Start with existing contexts
-    this.contexts = [...existingContexts];
-
-    // Add current context if source and context are provided
-    // if (Object.keys(context).length > 0) {
-    this.contexts.unshift({
-      source,
-      data: context,
-      timestamp: Date.now(),
-    });
-    // }
-
-    // Only add original error context if it's not a CustomError and hasn't been added yet
-    if (originalError && !(originalError instanceof CustomError)) {
-      const hasOriginalErrorContext = this.contexts.some(ctx => ctx.source === 'OriginalError');
-
-      if (!hasOriginalErrorContext) {
-        this.contexts.push({
+    // If wrapping a CustomError
+    if (originalError instanceof CustomError) {
+      this.contexts = [
+        {
+          source,
+          data: context,
+          timestamp: Date.now(),
+        },
+        ...originalError.contexts,
+      ];
+      this.originalError = originalError.originalError;
+      if (originalError.stack) {
+        this.stack = originalError.stack;
+      }
+    }
+    // If wrapping a regular Error
+    else if (originalError instanceof Error) {
+      this.contexts = [
+        {
+          source,
+          data: context,
+          timestamp: Date.now(),
+        },
+        {
           source: 'OriginalError',
           data: {
             message: originalError.message,
@@ -99,14 +76,22 @@ class CustomError extends Error {
             stack: originalError.stack,
           },
           timestamp: Date.now(),
-        });
+        },
+      ];
+      this.originalError = originalError;
+      if (originalError.stack) {
+        this.stack = originalError.stack;
       }
     }
-
-    this.originalError = originalError;
-
-    if (originalError) {
-      this.stack = originalError.stack;
+    // Basic error case
+    else {
+      this.contexts = [
+        {
+          source,
+          data: context,
+          timestamp: Date.now(),
+        },
+      ];
     }
   }
 
@@ -138,53 +123,14 @@ class CustomError extends Error {
     });
   }
 
-  // Method to flatten contexts for easy logging/debugging
   getFlattenedContext(): Record<string, unknown> {
-    return this.contexts.reduce((acc, context) => {
-      return {
+    return this.contexts.reduce(
+      (acc, context) => ({
         ...acc,
         [`${context.source}_${context.timestamp}`]: context.data,
-      };
-    }, {});
-  }
-
-  static from(error: unknown, options: Omit<ErrorOptions, 'originalError'> & { message?: string } = {}): CustomError {
-    if (error instanceof CustomError) {
-      return new CustomError(options.message || error.message, {
-        errorCode: options.errorCode || error.errorCode,
-        severity: options.severity || error.severity,
-        originalError: error.originalError,
-        source: options.source,
-        context: options.context || {},
-        contexts: error.contexts,
-      });
-    }
-
-    if (error instanceof Error) {
-      // const originalErrorContext = {
-      //   source: 'OriginalError',
-      //   data: {
-      //     message: error.message,
-      //     name: error.name,
-      //     stack: error.stack,
-      //   },
-      //   timestamp: Date.now(),
-      // };
-
-      return new CustomError(options.message || error.message, {
-        ...options,
-        originalError: error,
-        // context: originalErrorContext,
-        // contexts: [originalErrorContext], // Only add OriginalError context here
-      });
-    }
-
-    // Handle everything else
-    const errorMessage = options.message || String(error);
-    return new CustomError(errorMessage, {
-      ...options,
-      originalError: new Error(errorMessage),
-    });
+      }),
+      {}
+    );
   }
 }
 
