@@ -148,7 +148,7 @@ describe('importPlatformHandler', () => {
     expect(context.mockResponse.json).not.toHaveBeenCalled();
   };
 
-  it('should throw AppError when finalizeVideo fails', async () => {
+  it('should throw error when finalizeVideo fails', async () => {
     const errorMessage = 'Database error';
     await testErrorScenario(
       () => {
@@ -161,7 +161,7 @@ describe('importPlatformHandler', () => {
     );
   });
 
-  it('should throw AppError when completeTask fails', async () => {
+  it('should throw error when completeTask fails', async () => {
     const errorMessage = 'Failed to complete task';
     await testErrorScenario(() => {
       vi.mocked(finalizeVideo).mockResolvedValueOnce(undefined);

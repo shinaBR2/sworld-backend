@@ -141,7 +141,7 @@ describe('convertHandler', () => {
     await testSuccessfulConversion();
   });
 
-  it('should throw AppError when video conversion fails', async () => {
+  it('should throw error when video conversion fails', async () => {
     const errorMessage = 'Conversion failed';
     await testErrorScenario(
       () => {
@@ -154,7 +154,7 @@ describe('convertHandler', () => {
     );
   });
 
-  it('should throw AppError when task completion fails', async () => {
+  it('should throw error when task completion fails', async () => {
     const errorMessage = 'Failed to complete task';
     await testErrorScenario(() => {
       vi.mocked(convertVideo).mockResolvedValueOnce(context.mockPlayableUrl);
