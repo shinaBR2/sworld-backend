@@ -200,13 +200,10 @@ class CustomError extends Error {
    * @returns {Record<string, unknown>} The flattened error context object.
    */
   getFlattenedContext(): Record<string, unknown> {
-    return this.contexts.reduce(
-      (acc, context) => ({
-        ...acc,
-        [`${context.source}_${context.timestamp}`]: context.data,
-      }),
-      {}
-    );
+    return this.contexts.reduce((acc: Record<string, unknown>, context) => {
+      acc[`${context.source}_${context.timestamp ?? 'undefined'}`] = context.data;
+      return acc;
+    }, {});
   }
 }
 
