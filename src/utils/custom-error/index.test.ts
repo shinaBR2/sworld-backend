@@ -161,7 +161,6 @@ describe('CustomError', () => {
         expect(error.severity).toBe(ERROR_SEVERITY.CRITICAL);
 
         // Verify contexts
-        console.log(error.contexts);
         expect(error.contexts).toHaveLength(3); // High-level, Mid-level, Original error
 
         // Check context details

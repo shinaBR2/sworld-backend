@@ -7,6 +7,14 @@ const ERROR_SEVERITY = {
 
 type ErrorSeverity = (typeof ERROR_SEVERITY)[keyof typeof ERROR_SEVERITY];
 
+/**
+ * @typedef {Object} ErrorOptions
+ * @property {string} [errorCode] - Error code identifying the type of error.
+ * @property {ErrorSeverity} [severity] - Severity level of the error.
+ * @property {Record<string, unknown>} [context] - Additional context information for the error.
+ * @property {string} [source] - Source of the error.
+ * @property {Error | CustomError} [originalError] - Original error that was wrapped by this CustomError.
+ */
 interface ErrorOptions {
   errorCode?: string;
   severity?: ErrorSeverity;
@@ -15,19 +23,59 @@ interface ErrorOptions {
   originalError?: Error | CustomError;
 }
 
+/**
+ * @typedef {Object} ErrorContext
+ * @property {string} source - Source of the error context.
+ * @property {Record<string, unknown>} data - Additional data associated with the error context.
+ * @property {number} [timestamp] - Timestamp of when the error context was created.
+ */
 interface ErrorContext {
   source: string;
   data: Record<string, unknown>;
   timestamp?: number;
 }
 
+/**
+ * CustomError class extends the built-in Error class and provides additional functionality
+ * for handling and categorizing errors in a more structured way.
+ * @extends Error
+ */
 class CustomError extends Error {
+  /**
+   * Timestamp of when the error occurred.
+   * @type {number}
+   */
   public readonly timestamp: number;
+
+  /**
+   * Error code identifying the type of error.
+   * @type {string}
+   */
   public readonly errorCode: string;
+
+  /**
+   * Severity level of the error.
+   * @type {ErrorSeverity}
+   */
   public readonly severity: ErrorSeverity;
+
+  /**
+   * Array of error contexts providing additional information about the error.
+   * @type {ErrorContext[]}
+   */
   public readonly contexts: ErrorContext[];
+
+  /**
+   * Optional reference to the original error that was wrapped by this CustomError.
+   * @type {Error}
+   */
   public readonly originalError?: Error;
 
+  /**
+   * Constructs a new instance of CustomError.
+   * @param {string} message - The error message.
+   * @param {ErrorOptions} [options={}] - Additional options for the error.
+   */
   constructor(message: string, options: ErrorOptions = {}) {
     super(message);
 
@@ -95,6 +143,12 @@ class CustomError extends Error {
     }
   }
 
+  /**
+   * Creates a new CustomError instance with low severity.
+   * @param {string} message - The error message.
+   * @param {Omit<ErrorOptions, 'severity'>} [options={}] - Additional options for the error.
+   * @returns {CustomError} The created CustomError instance.
+   */
   static low(message: string, options: Omit<ErrorOptions, 'severity'> = {}): CustomError {
     return new CustomError(message, {
       ...options,
@@ -102,6 +156,12 @@ class CustomError extends Error {
     });
   }
 
+  /**
+   * Creates a new CustomError instance with medium severity.
+   * @param {string} message - The error message.
+   * @param {Omit<ErrorOptions, 'severity'>} [options={}] - Additional options for the error.
+   * @returns {CustomError} The created CustomError instance.
+   */
   static medium(message: string, options: Omit<ErrorOptions, 'severity'> = {}): CustomError {
     return new CustomError(message, {
       ...options,
@@ -109,6 +169,12 @@ class CustomError extends Error {
     });
   }
 
+  /**
+   * Creates a new CustomError instance with high severity.
+   * @param {string} message - The error message.
+   * @param {Omit<ErrorOptions, 'severity'>} [options={}] - Additional options for the error.
+   * @returns {CustomError} The created CustomError instance.
+   */
   static high(message: string, options: Omit<ErrorOptions, 'severity'> = {}): CustomError {
     return new CustomError(message, {
       ...options,
@@ -116,6 +182,12 @@ class CustomError extends Error {
     });
   }
 
+  /**
+   * Creates a new CustomError instance with critical severity.
+   * @param {string} message - The error message.
+   * @param {Omit<ErrorOptions, 'severity'>} [options={}] - Additional options for the error.
+   * @returns {CustomError} The created CustomError instance.
+   */
   static critical(message: string, options: Omit<ErrorOptions, 'severity'> = {}): CustomError {
     return new CustomError(message, {
       ...options,
@@ -123,6 +195,10 @@ class CustomError extends Error {
     });
   }
 
+  /**
+   * Returns a flattened object representation of the error contexts.
+   * @returns {Record<string, unknown>} The flattened error context object.
+   */
   getFlattenedContext(): Record<string, unknown> {
     return this.contexts.reduce(
       (acc, context) => ({
