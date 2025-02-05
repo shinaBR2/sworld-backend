@@ -23,17 +23,16 @@ describe('error-codes', () => {
   });
 
   it('should have matching key-value pairs', () => {
-    // Video and conversion errors should have VIDEO_ prefix
-    Object.entries(VIDEO_ERRORS).forEach(([key, value]) => {
-      if (key.startsWith('VIDEO') || key.startsWith('CONVERSION')) {
-        expect(value.startsWith('VIDEO_')).toBeTruthy();
-      }
-    });
+    const prefixMap = {
+      VIDEO: 'VIDEO_',
+      CONVERSION: 'VIDEO_',
+      STORAGE: 'STORAGE_',
+    };
 
-    // Storage errors should have STORAGE_ prefix
     Object.entries(VIDEO_ERRORS).forEach(([key, value]) => {
-      if (key.startsWith('STORAGE')) {
-        expect(value.startsWith('STORAGE_')).toBeTruthy();
+      const prefix = Object.keys(prefixMap).find(p => key.startsWith(p));
+      if (prefix) {
+        expect(value.startsWith(prefixMap[prefix])).toBeTruthy();
       }
     });
   });

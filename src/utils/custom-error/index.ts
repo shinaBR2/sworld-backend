@@ -20,7 +20,7 @@ interface ErrorOptions {
   severity?: ErrorSeverity;
   context?: Record<string, unknown>;
   source?: string;
-  originalError?: unknown;
+  originalError?: Error | CustomError;
 }
 
 /**
