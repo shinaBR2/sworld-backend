@@ -52,6 +52,9 @@ describe('videosRouter', () => {
     await import('./index');
     // Check validation middleware was called
     expect(validateRequest).toHaveBeenCalledTimes(2);
+    const calls = (validateRequest as any).mock.calls;
+    expect(calls[0][0]).toBeDefined(); // Check convert route schema
+    expect(calls[1][0]).toBeDefined(); // Check fix-videos-duration route schema
   });
 
   it('should set up /convert route with correct middleware and handler', async () => {
