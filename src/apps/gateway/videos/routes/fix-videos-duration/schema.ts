@@ -14,5 +14,5 @@ const transformer = (req: any) => ({
 
 const fixVideosDurationSchema = z.object(schema).transform(transformer);
 
-export type ConvertHandlerRequest = z.infer<typeof fixVideosDurationSchema>;
+export type FixVideosDurationRequest = z.infer<typeof fixVideosDurationSchema>;
 export { fixVideosDurationSchema };
