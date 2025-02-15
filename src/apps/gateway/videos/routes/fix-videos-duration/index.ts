@@ -32,7 +32,9 @@ const fixVideosDuration = async (req: Request, res: Response) => {
         const taskConfig: CreateCloudTasksParams = {
           audience: ioServiceUrl,
           queue: streamVideoQueue,
-          payload: {},
+          payload: {
+            id: video.id,
+          },
           url: `${ioServiceUrl}/fix-duration`,
           entityId: video.id,
           entityType: TaskEntityType.VIDEO,
