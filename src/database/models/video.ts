@@ -20,6 +20,11 @@ const Video = sequelize.define(
     status: {
       type: DataTypes.STRING,
     },
+    duration: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: null,
+    },
   },
   {
     underscored: true,
