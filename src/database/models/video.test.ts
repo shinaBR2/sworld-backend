@@ -44,6 +44,8 @@ describe('Video Model', () => {
     it('should configure duration correctly', () => {
       const field = attributes.duration;
       expect(field.type).toBe(DataTypes.INTEGER);
+      expect(field.allowNull).toBe(true);
+      expect(field.defaultValue).toBe(null);
     });
   });
 
