@@ -1,5 +1,5 @@
 import { Op } from 'sequelize';
-import { Video } from '../models/video';
+import { Video, VideoTS } from '../models/video';
 
 /**
  * Properties required to finalize a video
@@ -45,7 +45,7 @@ const getVideoMissingDuration = async () => {
 
   const videosWithoutDuration = await Video.findAll(query);
 
-  return videosWithoutDuration;
+  return videosWithoutDuration as unknown as VideoTS[];
 };
 
 export { finalizeVideo, getVideoMissingDuration };

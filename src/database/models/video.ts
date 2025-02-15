@@ -1,6 +1,10 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../index';
 
+interface VideoTS {
+  id: string;
+}
+
 const Video = sequelize.define(
   'videos',
   {
@@ -34,4 +38,4 @@ const Video = sequelize.define(
   }
 );
 
-export { Video };
+export { Video, type VideoTS };
