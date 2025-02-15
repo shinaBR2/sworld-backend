@@ -4,6 +4,7 @@ import { sequelize } from '../index';
 interface VideoTS extends Model {
   id: string;
   source: string;
+  duration: number | null;
 }
 
 const Video = sequelize.define<VideoTS>(

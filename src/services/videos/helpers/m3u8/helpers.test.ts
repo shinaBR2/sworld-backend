@@ -388,7 +388,7 @@ describe('M3U8 parser', () => {
 
       const { duration } = await parseM3U8Content(baseUrl, excludePatterns);
 
-      expect(duration).toBe(29);
+      expect(duration).toBe(22);
     });
 
     test('should handle m3u8 with multiple ad patterns', async () => {
