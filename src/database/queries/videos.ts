@@ -18,8 +18,6 @@ interface FinalizeVideoProps {
 const finalizeVideo = async (props: FinalizeVideoProps) => {
   const { id, source, thumbnailUrl, duration = null } = props;
 
-  // TODO
-  // Handle duration
   const [updatedCount] = await Video.update(
     { source, status: 'ready', thumbnail_url: thumbnailUrl, duration },
     {
