@@ -127,7 +127,9 @@ describe('streamHLSHandler', () => {
 
   it('should successfully process video and finalize it', async () => {
     const expectedPlayableUrl = 'https://example.com/video.m3u8';
-    vi.mocked(streamM3U8).mockResolvedValueOnce(expectedPlayableUrl);
+    vi.mocked(streamM3U8).mockResolvedValueOnce({
+      playlistUrl: expectedPlayableUrl,
+    } as any);
     vi.mocked(finalizeVideo).mockResolvedValueOnce(1);
 
     await streamHLSHandler(context.mockRequest, context.mockResponse);
@@ -169,7 +171,9 @@ describe('streamHLSHandler', () => {
     await testErrorScenario(
       () => {
         const expectedPlayableUrl = 'https://example.com/video.m3u8';
-        vi.mocked(streamM3U8).mockResolvedValueOnce(expectedPlayableUrl);
+        vi.mocked(streamM3U8).mockResolvedValueOnce({
+          playlistUrl: expectedPlayableUrl,
+        } as any);
         vi.mocked(finalizeVideo).mockRejectedValueOnce(new Error(errorMessage));
       },
       errorMessage,
@@ -183,7 +187,9 @@ describe('streamHLSHandler', () => {
     const errorMessage = 'Failed to complete task';
     await testErrorScenario(() => {
       const expectedPlayableUrl = 'https://example.com/video.m3u8';
-      vi.mocked(streamM3U8).mockResolvedValueOnce(expectedPlayableUrl);
+      vi.mocked(streamM3U8).mockResolvedValueOnce({
+        playlistUrl: expectedPlayableUrl,
+      } as any);
       vi.mocked(finalizeVideo).mockResolvedValueOnce(1);
       vi.mocked(completeTask).mockRejectedValueOnce(new Error(errorMessage));
     }, errorMessage);
@@ -197,7 +203,9 @@ describe('streamHLSHandler', () => {
     };
     const customRequest = createMockRequest(customData, context.defaultMetadata);
 
-    vi.mocked(streamM3U8).mockResolvedValueOnce('some-url');
+    vi.mocked(streamM3U8).mockResolvedValueOnce({
+      playlistUrl: 'some-url',
+    } as any);
     vi.mocked(finalizeVideo).mockResolvedValueOnce(1);
 
     await streamHLSHandler(customRequest, context.mockResponse);

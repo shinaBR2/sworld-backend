@@ -34,12 +34,12 @@ interface ProcessOptions {
  * @throws {Error} Propagates any errors encountered during streaming process
  * - Logs detailed error information before throwing
  */
-const streamM3U8 = async (m3u8Url: string, storagePath: string, options: ProcessOptions = {}): Promise<string> => {
+const streamM3U8 = async (m3u8Url: string, storagePath: string, options: ProcessOptions = {}) => {
   try {
     logger.info({ m3u8Url, storagePath }, 'Starting M3U8 streaming');
 
     // Parse m3u8 and get segments
-    const { modifiedContent, segments } = await parseM3U8Content(m3u8Url, options.excludePatterns);
+    const { modifiedContent, segments, duration } = await parseM3U8Content(m3u8Url, options.excludePatterns);
 
     logger.info(
       {
@@ -63,10 +63,11 @@ const streamM3U8 = async (m3u8Url: string, storagePath: string, options: Process
     const result = {
       playlistUrl: getDownloadUrl(playlistStoragePath),
       segments,
+      duration,
     };
 
     logger.info({ playlistUrl: result.playlistUrl }, 'M3U8 streaming completed');
-    return result.playlistUrl;
+    return result;
   } catch (error) {
     logger.error(
       {
