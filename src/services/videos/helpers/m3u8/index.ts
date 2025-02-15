@@ -15,7 +15,10 @@ interface ProcessOptions {
  * @param m3u8Url - The URL of the source M3U8 playlist
  * @param storagePath - The base path in cloud storage where files will be uploaded
  * @param options - Optional configuration for streaming process
- * @returns A promise resolving to the cloud storage URL of the streamed playlist
+ * @returns A promise resolving to an object containing:
+ *   - playlistUrl: The cloud storage URL of the streamed playlist
+ *   - segments: Information about included and excluded segments
+ *   - duration: The total duration of the video
  *
  * @remarks
  * - Parses the M3U8 playlist to extract video segments
