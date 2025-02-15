@@ -117,7 +117,6 @@ describe('errorHandler', () => {
       req: {
         method: 'POST',
         url: '/webhook',
-        // eventType: 'hasura:event',
       },
       stack: expect.stringContaining('Test error'),
     });
@@ -140,7 +139,6 @@ describe('errorHandler', () => {
       req: {
         method: 'POST',
         url: '/webhook',
-        // eventType: 'hasura:event',
       },
       stack: undefined,
     });
