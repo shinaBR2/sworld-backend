@@ -1,4 +1,4 @@
-import { Op } from 'sequelize';
+import { Op, Transaction } from 'sequelize';
 import { Video, VideoTS } from '../models/video';
 
 /**
@@ -48,4 +48,34 @@ const getVideoMissingDuration = async () => {
   return videosWithoutDuration as unknown as VideoTS[];
 };
 
-export { finalizeVideo, getVideoMissingDuration };
+const getVideoById = async (id: string) => {
+  const record = await Video.findByPk(id);
+  return record;
+};
+
+interface UpdateVideoDurationProps {
+  id: string;
+  duration: number;
+  transaction?: Transaction;
+}
+
+const updateVideoDuration = async (props: UpdateVideoDurationProps) => {
+  const { id, duration, transaction } = props;
+  const [updatedCount] = await Video.update(
+    { duration },
+    {
+      where: {
+        id,
+      },
+      transaction,
+    }
+  );
+
+  if (updatedCount === 0) {
+    throw new Error(`Video with ID ${id} not found`);
+  }
+
+  return updatedCount;
+};
+
+export { finalizeVideo, getVideoMissingDuration, getVideoById, updateVideoDuration };

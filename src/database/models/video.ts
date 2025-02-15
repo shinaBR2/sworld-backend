@@ -1,11 +1,12 @@
-import { DataTypes } from 'sequelize';
+import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../index';
 
-interface VideoTS {
+interface VideoTS extends Model {
   id: string;
+  source: string;
 }
 
-const Video = sequelize.define(
+const Video = sequelize.define<VideoTS>(
   'videos',
   {
     id: {

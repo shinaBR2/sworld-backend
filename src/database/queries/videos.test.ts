@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { Video } from '../models/video';
-import { finalizeVideo, getVideoMissingDuration } from './videos';
-import { Op } from 'sequelize';
+import { finalizeVideo, getVideoById, getVideoMissingDuration, updateVideoDuration } from './videos';
+import { Op, Transaction } from 'sequelize';
 
 // Mock the Video model
 vi.mock('../models/video', () => ({
   Video: {
+    findByPk: vi.fn(),
     update: vi.fn(),
     findAll: vi.fn(),
   },
@@ -143,5 +144,81 @@ describe('getVideoMissingDuration', () => {
 
     // Expect the error to be thrown
     await expect(getVideoMissingDuration()).rejects.toThrow('Database connection failed');
+  });
+});
+
+describe('getVideoById', () => {
+  it('should return a video when found', async () => {
+    const mockVideo = {
+      id: '123',
+      title: 'Test Video',
+      duration: 100,
+    };
+
+    (Video.findByPk as Mock).mockResolvedValue(mockVideo);
+
+    const result = await getVideoById('123');
+    expect(result).toEqual(mockVideo);
+    expect(Video.findByPk).toHaveBeenCalledWith('123');
+  });
+
+  it('should return null when video is not found', async () => {
+    (Video.findByPk as Mock).mockResolvedValue(null);
+
+    const result = await getVideoById('nonexistent');
+    expect(result).toBeNull();
+    expect(Video.findByPk).toHaveBeenCalledWith('nonexistent');
+  });
+});
+
+describe('updateVideoDuration', () => {
+  it('should update video duration successfully', async () => {
+    const mockTransaction = {} as Transaction;
+    (Video.update as Mock).mockResolvedValue([1]);
+
+    const result = await updateVideoDuration({
+      id: '123',
+      duration: 120,
+    });
+
+    expect(result).toBe(1);
+    expect(Video.update).toHaveBeenCalledWith(
+      { duration: 120 },
+      {
+        where: { id: '123' },
+        transaction: undefined,
+      }
+    );
+  });
+
+  it('should update video duration with transaction', async () => {
+    const mockTransaction = {} as Transaction;
+    (Video.update as Mock).mockResolvedValue([1]);
+
+    const result = await updateVideoDuration({
+      id: '123',
+      duration: 120,
+      transaction: mockTransaction,
+    });
+
+    expect(result).toBe(1);
+    expect(Video.update).toHaveBeenCalledWith(
+      { duration: 120 },
+      {
+        where: { id: '123' },
+        transaction: mockTransaction,
+      }
+    );
+  });
+
+  it('should throw error when no video is updated', async () => {
+    (Video.update as Mock).mockResolvedValue([0]);
+
+    await expect(
+      updateVideoDuration({
+        id: 'nonexistent',
+        duration: 120,
+      })
+    ).rejects.toThrow('Video with ID nonexistent not found');
   });
 });
