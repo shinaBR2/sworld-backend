@@ -54,7 +54,7 @@ export const errorHandler = (logger: Logger): ErrorRequestHandler => {
       req: {
         method: req.method,
         url: req.url,
-        eventType: req.headers['ce-type'],
+        // eventType: req.headers['ce-type'],
       },
       // Include stack in non-production
       stack: isProduction ? undefined : cleanStack(err.stack),
