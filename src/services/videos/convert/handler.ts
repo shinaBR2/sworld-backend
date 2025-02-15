@@ -73,6 +73,7 @@ export const convertVideo = async (data: ConversionVideo) => {
       id,
       source: playlistUrl,
       thumbnailUrl,
+      duration: videoDuration,
     });
     return playlistUrl;
   } catch (error) {

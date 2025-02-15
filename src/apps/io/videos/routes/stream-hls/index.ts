@@ -22,6 +22,7 @@ const streamHLSHandler = async (req: Request, res: Response) => {
       id,
       source: playableVideoUrl,
       thumbnailUrl: '',
+      duration,
     });
 
     await completeTask({

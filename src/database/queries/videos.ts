@@ -11,11 +11,11 @@ interface FinalizeVideoProps {
   /** Generated thumbnail URL */
   thumbnailUrl: string;
   /** Calculated video duration */
-  duration: number;
+  duration?: number;
 }
 
 const finalizeVideo = async (props: FinalizeVideoProps) => {
-  const { id, source, thumbnailUrl, duration } = props;
+  const { id, source, thumbnailUrl, duration = null } = props;
 
   // TODO
   // Handle duration

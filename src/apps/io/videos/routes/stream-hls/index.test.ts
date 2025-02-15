@@ -129,6 +129,7 @@ describe('streamHLSHandler', () => {
     const expectedPlayableUrl = 'https://example.com/video.m3u8';
     vi.mocked(streamM3U8).mockResolvedValueOnce({
       playlistUrl: expectedPlayableUrl,
+      duration: 100,
     } as any);
     vi.mocked(finalizeVideo).mockResolvedValueOnce(1);
 
@@ -143,6 +144,7 @@ describe('streamHLSHandler', () => {
       id: context.defaultData.id,
       source: expectedPlayableUrl,
       thumbnailUrl: '',
+      duration: 100,
     });
     expect(completeTask).toHaveBeenCalledWith({
       taskId: context.defaultTaskId,

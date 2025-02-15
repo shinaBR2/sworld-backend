@@ -111,6 +111,7 @@ describe('convertVideo', () => {
       id: mockData.id,
       source: 'https://storage.googleapis.com/playlist.m3u8',
       thumbnailUrl: 'https://cloudinary.com/thumbnail.jpg',
+      duration: mockVideoDuration,
     });
 
     // Verify cleanup
