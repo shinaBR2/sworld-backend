@@ -1,11 +1,13 @@
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { Video } from '../models/video';
-import { finalizeVideo } from './videos';
+import { finalizeVideo, getVideoMissingDuration } from './videos';
+import { Op } from 'sequelize';
 
 // Mock the Video model
 vi.mock('../models/video', () => ({
   Video: {
     update: vi.fn(),
+    findAll: vi.fn(),
   },
 }));
 
@@ -61,5 +63,85 @@ describe('finalizeVideo', () => {
     // Execute and verify
     await expect(finalizeVideo(mockProps)).rejects.toThrow('Database error');
     expect(Video.update).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('getVideoMissingDuration', () => {
+  beforeEach(() => {
+    // Clear any previous mocks
+    vi.clearAllMocks();
+  });
+
+  it('should query videos with null duration', async () => {
+    // Mock the findAll method
+    const mockVideos = [
+      { id: '1', videoUrl: 'url1', duration: null },
+      { id: '2', videoUrl: 'url2', duration: null },
+    ];
+
+    vi.spyOn(Video, 'findAll').mockResolvedValue(mockVideos);
+
+    const result = await getVideoMissingDuration();
+
+    // Verify findAll was called with correct query
+    expect(Video.findAll).toHaveBeenCalledWith({
+      where: {
+        [Op.or]: [{ duration: null }, { duration: 0 }],
+      },
+    });
+
+    // Verify returned videos
+    expect(result).toEqual(mockVideos);
+    expect(result.length).toBe(2);
+  });
+
+  it('should query videos with zero duration', async () => {
+    // Mock the findAll method
+    const mockVideos = [
+      { id: '3', videoUrl: 'url3', duration: 0 },
+      { id: '4', videoUrl: 'url4', duration: 0 },
+    ];
+
+    vi.spyOn(Video, 'findAll').mockResolvedValue(mockVideos);
+
+    const result = await getVideoMissingDuration();
+
+    // Verify findAll was called with correct query
+    expect(Video.findAll).toHaveBeenCalledWith({
+      where: {
+        [Op.or]: [{ duration: null }, { duration: 0 }],
+      },
+    });
+
+    // Verify returned videos
+    expect(result).toEqual(mockVideos);
+    expect(result.length).toBe(2);
+  });
+
+  it('should return an empty array when no videos without duration exist', async () => {
+    // Mock the findAll method to return an empty array
+    vi.spyOn(Video, 'findAll').mockResolvedValue([]);
+
+    const result = await getVideoMissingDuration();
+
+    // Verify findAll was called with correct query
+    expect(Video.findAll).toHaveBeenCalledWith({
+      where: {
+        [Op.or]: [{ duration: null }, { duration: 0 }],
+      },
+    });
+
+    // Verify empty result
+    expect(result).toEqual([]);
+    expect(result.length).toBe(0);
+  });
+
+  it('should handle database query errors', async () => {
+    // Mock the findAll method to throw an error
+    const mockError = new Error('Database connection failed');
+    vi.spyOn(Video, 'findAll').mockRejectedValue(mockError);
+
+    // Expect the error to be thrown
+    await expect(getVideoMissingDuration()).rejects.toThrow('Database connection failed');
   });
 });

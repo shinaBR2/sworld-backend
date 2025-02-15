@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { Video } from '../models/video';
 
 /**
@@ -35,4 +36,16 @@ const finalizeVideo = async (props: FinalizeVideoProps) => {
   return updatedCount;
 };
 
-export { finalizeVideo };
+const getVideoMissingDuration = async () => {
+  const query = {
+    where: {
+      [Op.or]: [{ duration: null }, { duration: 0 }],
+    },
+  };
+
+  const videosWithoutDuration = await Video.findAll(query);
+
+  return videosWithoutDuration;
+};
+
+export { finalizeVideo, getVideoMissingDuration };
