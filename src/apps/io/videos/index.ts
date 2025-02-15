@@ -5,6 +5,7 @@ import { validateRequest } from 'src/utils/validator';
 import { StreamHandlerRequest, StreamHandlerSchema } from './routes/stream-hls/schema';
 import { ImportHandlerRequest, ImportHandlerSchema } from './routes/import-platform/schema';
 import { FixDurationHandlerRequest, FixDurationHandlerSchema } from './routes/fix-duration/schema';
+import { fixDurationHandler } from './routes/fix-duration';
 
 const videosRouter: Router = express.Router();
 
@@ -17,7 +18,7 @@ videosRouter.post(
 videosRouter.post(
   '/fix-duration',
   validateRequest<FixDurationHandlerRequest>(FixDurationHandlerSchema),
-  importPlatformHandler
+  fixDurationHandler
 );
 
 export { videosRouter };
