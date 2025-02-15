@@ -10,15 +10,17 @@ interface FinalizeVideoProps {
   source: string;
   /** Generated thumbnail URL */
   thumbnailUrl: string;
+  /** Calculated video duration */
+  duration: number;
 }
 
 const finalizeVideo = async (props: FinalizeVideoProps) => {
-  const { id, source, thumbnailUrl } = props;
+  const { id, source, thumbnailUrl, duration } = props;
 
   // TODO
   // Handle duration
   const [updatedCount] = await Video.update(
-    { source, status: 'ready', thumbnail_url: thumbnailUrl },
+    { source, status: 'ready', thumbnail_url: thumbnailUrl, duration },
     {
       where: {
         id,

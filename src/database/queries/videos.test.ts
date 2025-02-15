@@ -14,6 +14,7 @@ describe('finalizeVideo', () => {
     id: '123',
     source: 'https://example.com/video.mp4',
     thumbnailUrl: 'https://example.com/thumbnail.jpg',
+    duration: 100,
   };
 
   beforeEach(() => {
@@ -35,6 +36,7 @@ describe('finalizeVideo', () => {
         source: mockProps.source,
         status: 'ready',
         thumbnail_url: mockProps.thumbnailUrl,
+        duration: mockProps.duration,
       },
       {
         where: {
