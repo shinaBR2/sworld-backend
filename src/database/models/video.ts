@@ -6,6 +6,7 @@ interface VideoTS extends Model {
   source: string;
   duration: number | null;
   thumbnail_url?: string;
+  user_id: string;
 }
 
 const Video = sequelize.define<VideoTS>(
@@ -31,6 +32,9 @@ const Video = sequelize.define<VideoTS>(
       type: DataTypes.INTEGER,
       allowNull: true,
       defaultValue: null,
+    },
+    user_id: {
+      type: DataTypes.STRING,
     },
   },
   {
