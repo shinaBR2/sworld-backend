@@ -129,9 +129,9 @@ describe('videosRouter', () => {
   });
 
   it('should have validation middleware and handler for fix-thumbnail', () => {
-    const fixDurationHandlerRoute = videosRouter.stack.find(layer => layer.route?.path === '/fix-thumbnail');
+    const fixThumbnailHandlerRoute = videosRouter.stack.find(layer => layer.route?.path === '/fix-thumbnail');
 
-    const middlewares = fixDurationHandlerRoute?.route.stack || [];
+    const middlewares = fixThumbnailHandlerRoute?.route.stack || [];
 
     expect(middlewares).toHaveLength(2);
     expect(middlewares[0].name).toBe('middleware');
