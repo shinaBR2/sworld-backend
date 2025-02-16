@@ -12,7 +12,7 @@ const cleanStack = (stack?: string) => {
     .join('\n');
 };
 
-const handleError = (err: unknown) => {
+const reportError = (err: unknown) => {
   if (err instanceof CustomError) {
     Sentry.withScope(scope => {
       scope.setTags({
@@ -51,20 +51,17 @@ const handleError = (err: unknown) => {
 export const errorHandler = (logger: Logger): ErrorRequestHandler => {
   // next is required for nextjs
   return (err, req, res, next) => {
-    handleError(err);
+    reportError(err);
 
     logger.error({
       req: {
         method: req.method,
         url: req.url,
       },
-      // Include stack in non-production
       stack: cleanStack(err.stack),
     });
     const statusCode = err instanceof CustomError && err.shouldRetry ? 500 : 200;
 
-    // TODO
-    // Handle retry from error
     return res.status(statusCode).json({
       error: 'Internal Server Error',
     });
