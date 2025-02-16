@@ -3,6 +3,9 @@ import { streamM3U8 } from './index';
 import { parseM3U8Content, streamPlaylistFile, streamSegments } from './helpers';
 import { getDownloadUrl } from '../gcp-cloud-storage';
 import { logger } from 'src/utils/logger';
+import { CustomError } from 'src/utils/custom-error';
+import { VIDEO_ERRORS } from 'src/utils/error-codes';
+import { processThumbnail } from '../thumbnail';
 
 // Mock dependencies
 vi.mock('./helpers');
@@ -15,6 +18,9 @@ vi.mock('path', async () => {
     },
   };
 });
+vi.mock('../thumbnail', () => ({
+  processThumbnail: vi.fn().mockResolvedValue(undefined),
+}));
 
 describe('streamM3U8', () => {
   const mockM3u8Url = 'https://example.com/video.m3u8';
@@ -31,6 +37,7 @@ describe('streamM3U8', () => {
     },
     duration: 300,
   };
+  const mockProcessThumbnail = vi.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -112,5 +119,52 @@ describe('streamM3U8', () => {
       },
       'M3U8 streaming failed'
     );
+  });
+
+  it('should throw error when segments are empty', async () => {
+    vi.mocked(parseM3U8Content).mockResolvedValue({
+      modifiedContent: '#EXTM3U\n#EXT-X-VERSION:3',
+      segments: { included: [], excluded: [] },
+      duration: 0,
+    });
+
+    await expect(streamM3U8(mockM3u8Url, mockStoragePath)).rejects.toThrow(
+      new CustomError('Empty HLS content', {
+        errorCode: VIDEO_ERRORS.INVALID_LENGTH,
+        context: { m3u8Url: mockM3u8Url },
+        source: 'services/videos/helpers/m3u8/index.ts',
+      })
+    );
+  });
+
+  it('should process thumbnail from first segment successfully', async () => {
+    const result = await streamM3U8(mockM3u8Url, mockStoragePath);
+
+    expect(result).toEqual(expectedResult);
+    expect(processThumbnail).toHaveBeenCalledWith({
+      url: 'segment1.ts',
+      duration: 3,
+      storagePath: mockStoragePath,
+    });
+  });
+
+  it('should continue streaming when thumbnail processing fails', async () => {
+    const screenshotError = new Error('Screenshot failed');
+    vi.mocked(processThumbnail).mockRejectedValue(screenshotError);
+
+    const result = await streamM3U8(mockM3u8Url, mockStoragePath);
+
+    expect(result).toEqual(expectedResult);
+    expect(logger.error).toHaveBeenCalledWith(
+      {
+        error: screenshotError.message,
+        segmentUrl: 'segment1.ts',
+      },
+      'Failed to take screenshot but continuing with streaming'
+    );
+
+    // Verify streaming still completed
+    expect(streamPlaylistFile).toHaveBeenCalled();
+    expect(streamSegments).toHaveBeenCalled();
   });
 });

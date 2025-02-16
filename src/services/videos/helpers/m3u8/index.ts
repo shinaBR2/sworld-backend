@@ -2,6 +2,9 @@ import path from 'path';
 import { getDownloadUrl } from '../gcp-cloud-storage';
 import { logger } from 'src/utils/logger';
 import { parseM3U8Content, streamPlaylistFile, streamSegments } from './helpers';
+import { CustomError } from 'src/utils/custom-error';
+import { VIDEO_ERRORS } from 'src/utils/error-codes';
+import { processThumbnail } from '../thumbnail';
 
 interface ProcessOptions {
   excludePatterns?: RegExp[];
@@ -51,6 +54,35 @@ const streamM3U8 = async (m3u8Url: string, storagePath: string, options: Process
       },
       'Parsed M3U8 content'
     );
+
+    if (!segments.included.length) {
+      throw CustomError.medium('Empty HLS content', {
+        errorCode: VIDEO_ERRORS.INVALID_LENGTH,
+        context: {
+          m3u8Url,
+        },
+        source: 'services/videos/helpers/m3u8/index.ts',
+      });
+    }
+
+    try {
+      const firstSegment = segments.included[0];
+      await processThumbnail({
+        url: firstSegment.url,
+        duration: firstSegment.duration as number,
+        storagePath,
+      });
+      // logger.info('Screenshot taken from first segment');
+    } catch (screenshotError) {
+      // Non-blocking error - log but continue with streaming
+      logger.error(
+        {
+          error: screenshotError instanceof Error ? screenshotError.message : String(screenshotError),
+          segmentUrl: segments.included[0]?.url,
+        },
+        'Failed to take screenshot but continuing with streaming'
+      );
+    }
 
     // Stream playlist file
     const playlistStoragePath = path.join(storagePath, 'playlist.m3u8');
