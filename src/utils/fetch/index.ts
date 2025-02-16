@@ -1,9 +1,11 @@
+import fetch, { Response } from 'node-fetch';
+import type { RequestInit } from 'node-fetch';
 import { CustomError } from '../custom-error';
 import { HTTP_ERRORS } from '../error-codes';
 
-interface FetchWrapperOptions extends RequestInit {
+type FetchWrapperOptions = RequestInit & {
   timeout?: number;
-}
+};
 
 const fetchWithError = async (url: string, options?: FetchWrapperOptions): Promise<Response> => {
   const context = {
@@ -52,4 +54,4 @@ const fetchWithError = async (url: string, options?: FetchWrapperOptions): Promi
   }
 };
 
-export { fetchWithError, type FetchWrapperOptions };
+export { fetchWithError };
