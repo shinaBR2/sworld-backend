@@ -46,6 +46,18 @@ const getVideoMissingDuration = async () => {
   return videosWithoutDuration as unknown as VideoTS[];
 };
 
+const getVideoMissingThumbnail = async () => {
+  const query = {
+    where: {
+      [Op.and]: [{ status: 'ready' }, { [Op.or]: [{ thumbnail_url: null }, { thumbnail_url: '' }] }],
+    },
+  };
+
+  const videos = await Video.findAll(query);
+
+  return videos as unknown as VideoTS[];
+};
+
 const getVideoById = async (id: string) => {
   const record = await Video.findByPk(id);
   return record;
@@ -76,4 +88,4 @@ const updateVideoDuration = async (props: UpdateVideoDurationProps) => {
   return updatedCount;
 };
 
-export { finalizeVideo, getVideoMissingDuration, getVideoById, updateVideoDuration };
+export { finalizeVideo, getVideoMissingDuration, getVideoMissingThumbnail, getVideoById, updateVideoDuration };
