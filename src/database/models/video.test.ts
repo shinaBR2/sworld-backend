@@ -35,6 +35,7 @@ describe('Video Model', () => {
     it('should configure thumbnail_url correctly', () => {
       const field = attributes.thumbnail_url;
       expect(field.type).toBe(DataTypes.STRING);
+      expect(field.allowNull).toBe(true);
     });
 
     it('should configure status correctly', () => {

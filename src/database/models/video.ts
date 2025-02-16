@@ -24,6 +24,7 @@ const Video = sequelize.define<VideoTS>(
     },
     thumbnail_url: {
       type: DataTypes.STRING,
+      allowNull: true,
     },
     status: {
       type: DataTypes.STRING,
