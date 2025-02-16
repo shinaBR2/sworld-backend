@@ -258,18 +258,7 @@ const streamSegments = async (params: StreamSegmentsParams) => {
         const segmentFileName = segmentUrl.split('/').pop();
         const segmentStoragePath = path.join(baseStoragePath, segmentFileName as string);
 
-        try {
-          await streamSegmentFile(segmentUrl, segmentStoragePath);
-        } catch (error) {
-          logger.error(
-            {
-              segmentUrl,
-              error,
-            },
-            'Failed to stream segment'
-          );
-          throw error;
-        }
+        await streamSegmentFile(segmentUrl, segmentStoragePath);
       })
     );
   }

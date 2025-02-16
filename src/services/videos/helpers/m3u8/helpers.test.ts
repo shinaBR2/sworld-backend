@@ -818,14 +818,6 @@ describe('streamSegments', () => {
       })
     ).rejects.toThrow('Failed to fetch segment: 404 Not Found');
 
-    expect(mockLogger.error).toHaveBeenCalledWith(
-      {
-        segmentUrl: 'http://example.com/seg-2.ts',
-        error: new Error('Failed to fetch segment: 404 Not Found'),
-      },
-      'Failed to stream segment'
-    );
-
     // Should have only processed up to the failing segment
     expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(mockStreamFile).toHaveBeenCalledTimes(1);
