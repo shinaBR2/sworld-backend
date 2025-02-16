@@ -106,13 +106,13 @@ const parseM3U8Content = async (m3u8Url: string, excludePatterns: RegExp[] = [])
       if (segment.duration) {
         modifiedContent += `#EXTINF:${segment.duration},\n`;
         totalDuration += segment.duration;
-      }
 
-      modifiedContent += `${segment.uri}\n`;
-      segments.included.push({
-        url: segmentUrl,
-        duration: segment.duration,
-      });
+        modifiedContent += `${segment.uri}\n`;
+        segments.included.push({
+          url: segmentUrl,
+          duration: segment.duration,
+        });
+      }
     }
   });
 

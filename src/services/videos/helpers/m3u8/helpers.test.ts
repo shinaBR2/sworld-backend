@@ -417,9 +417,6 @@ describe('M3U8 parser', () => {
           url: 'https://example.com/segment1.ts',
           duration: 3,
         },
-        {
-          url: 'https://example.com/segment2.ts',
-        },
       ]);
       expect(segments.excluded).toEqual([
         {
@@ -431,7 +428,6 @@ describe('M3U8 parser', () => {
         #EXT-X-VERSION:3
         #EXTINF:3,
         segment1.ts
-        segment2.ts
       `);
       expect(normalizeContent(modifiedContent)).toBe(expectedContent);
     });
