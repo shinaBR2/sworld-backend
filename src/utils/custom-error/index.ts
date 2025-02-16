@@ -116,6 +116,10 @@ class CustomError extends Error {
       if (originalError.stack) {
         this.stack = originalError.stack;
       }
+
+      if (originalError.shouldRetry) {
+        this.shouldRetry = originalError.shouldRetry;
+      }
     }
     // If wrapping a regular Error
     else if (originalError instanceof Error) {
