@@ -105,4 +105,18 @@ describe('fetchWithError', () => {
       expect((error as CustomError).shouldRetry).toBe(true);
     }
   });
+
+  it('should handle Error objects thrown by fetch', async () => {
+    const mockError = new Error('string error');
+    vi.mocked(global.fetch).mockRejectedValue(mockError);
+
+    try {
+      await fetchWithError(mockUrl);
+    } catch (error) {
+      expect(error instanceof CustomError).toBe(true);
+      expect((error as CustomError).errorCode).toBe(HTTP_ERRORS.NETWORK_ERROR);
+      expect((error as CustomError).shouldRetry).toBe(true);
+      expect((error as CustomError).originalError).toBe(mockError);
+    }
+  });
 });
