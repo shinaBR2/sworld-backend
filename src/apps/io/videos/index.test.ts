@@ -62,7 +62,6 @@ vi.mock('src/utils/validator', () => ({
   validateRequest: () => vi.fn(),
 }));
 
-// TODO verify this test again
 describe('videosRouter', () => {
   it('should register all POST routes', () => {
     const routes = videosRouter.stack
