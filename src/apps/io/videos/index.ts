@@ -23,7 +23,7 @@ videosRouter.post(
   fixDurationHandler
 );
 videosRouter.post(
-  '/fix-duration',
+  '/fix-thumbnail',
   validateRequest<FixThumbnailHandlerRequest>(FixThumbnailHandlerSchema),
   fixThumbnailHandler
 );
