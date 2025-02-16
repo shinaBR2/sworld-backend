@@ -4,6 +4,10 @@ const HTTP_ERRORS = {
   CLIENT_ERROR: 'CLIENT_ERROR',
 };
 
+const DATABASE_ERRORS = {
+  DB_ERROR: 'DB_ERROR',
+};
+
 const VIDEO_ERRORS = {
   // Video upload/processing errors
   INVALID_VIDEO_FORMAT: 'VIDEO_INVALID_FORMAT',
@@ -27,7 +31,9 @@ const VIDEO_ERRORS = {
 } as const;
 
 type HttpErrorCode = (typeof HTTP_ERRORS)[keyof typeof HTTP_ERRORS];
+type DbErrorCode = (typeof DATABASE_ERRORS)[keyof typeof DATABASE_ERRORS];
 type VideoErrorCode = (typeof VIDEO_ERRORS)[keyof typeof VIDEO_ERRORS];
-type ErrorCode = HttpErrorCode | VideoErrorCode;
 
-export { HTTP_ERRORS, VIDEO_ERRORS, HttpErrorCode, VideoErrorCode, ErrorCode };
+type ErrorCode = HttpErrorCode | DbErrorCode | VideoErrorCode;
+
+export { HTTP_ERRORS, DATABASE_ERRORS, VIDEO_ERRORS, HttpErrorCode, DbErrorCode, VideoErrorCode, ErrorCode };
