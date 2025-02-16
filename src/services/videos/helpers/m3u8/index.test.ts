@@ -23,8 +23,11 @@ describe('streamM3U8', () => {
   const expectedResult = {
     playlistUrl: mockPlaylistUrl,
     segments: {
-      included: ['segment1.ts', 'segment2.ts'],
-      excluded: ['segment3.ts'],
+      included: [
+        { url: 'segment1.ts', duration: 3 },
+        { url: 'segment2.ts', duration: 3 },
+      ],
+      excluded: [{ url: 'segment3.ts' }],
     },
     duration: 300,
   };

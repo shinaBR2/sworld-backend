@@ -58,7 +58,7 @@ const streamM3U8 = async (m3u8Url: string, storagePath: string, options: Process
 
     // Stream segments in parallel
     await streamSegments({
-      segmentUrls: segments.included,
+      segmentUrls: segments.included.map(s => s.url),
       baseStoragePath: storagePath,
       options,
     });
