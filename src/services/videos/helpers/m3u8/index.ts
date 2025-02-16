@@ -76,6 +76,7 @@ const streamM3U8 = async (m3u8Url: string, storagePath: string, options: Process
     thumbnailUrl = getDownloadUrl(thumbnailPath);
   } catch (screenshotError) {
     throw CustomError.medium('Failed to generate screenshot', {
+      originalError: screenshotError,
       errorCode: VIDEO_ERRORS.VIDEO_TAKE_SCREENSHOT_FAILED,
       shouldRetry: true,
       context,
@@ -106,6 +107,7 @@ const streamM3U8 = async (m3u8Url: string, storagePath: string, options: Process
     return result;
   } catch (error) {
     throw CustomError.medium('Failed to stream file to storage', {
+      originalError: error,
       errorCode: VIDEO_ERRORS.STORAGE_UPLOAD_FAILED,
       shouldRetry: true,
       context,

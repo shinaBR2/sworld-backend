@@ -138,15 +138,16 @@ describe('streamM3U8', () => {
   });
 
   it('should throw error when failed to take screenshot and NOT retry', async () => {
-    const screenshotError = new Error('Screenshot failed');
-    vi.mocked(processThumbnail).mockRejectedValue(screenshotError);
-
     // Reset the getDownloadUrl from the beforeEach
     vi.mocked(getDownloadUrl).mockReset();
     vi.mocked(getDownloadUrl).mockReturnValue(mockPlaylistUrl); // Only return playlist URL
 
+    const screenshotError = new Error('Screenshot failed');
+    vi.mocked(processThumbnail).mockRejectedValue(screenshotError);
+
     await expect(streamM3U8(mockM3u8Url, mockStoragePath)).rejects.toThrow(
       new CustomError('Failed to generate screenshot', {
+        originalError: screenshotError,
         errorCode: VIDEO_ERRORS.VIDEO_TAKE_SCREENSHOT_FAILED,
         shouldRetry: true,
         context: expectedContext,
@@ -164,6 +165,7 @@ describe('streamM3U8', () => {
 
     await expect(streamM3U8(mockM3u8Url, mockStoragePath)).rejects.toThrow(
       new CustomError('Failed to stream file to storage', {
+        originalError: playlistStreamError,
         errorCode: VIDEO_ERRORS.STORAGE_UPLOAD_FAILED,
         shouldRetry: true,
         context: expectedContext,
@@ -183,6 +185,7 @@ describe('streamM3U8', () => {
 
     await expect(streamM3U8(mockM3u8Url, mockStoragePath)).rejects.toThrow(
       new CustomError('Failed to stream file to storage', {
+        originalError: segmentsStreamError,
         errorCode: VIDEO_ERRORS.STORAGE_UPLOAD_FAILED,
         shouldRetry: true,
         context: expectedContext,
