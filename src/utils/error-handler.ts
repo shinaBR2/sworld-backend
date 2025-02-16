@@ -49,8 +49,6 @@ const handleError = (err: unknown) => {
 };
 
 export const errorHandler = (logger: Logger): ErrorRequestHandler => {
-  const isProduction = process.env.NODE_ENV === 'production';
-
   // next is required for nextjs
   return (err, req, res, next) => {
     handleError(err);
@@ -63,11 +61,12 @@ export const errorHandler = (logger: Logger): ErrorRequestHandler => {
       // Include stack in non-production
       stack: cleanStack(err.stack),
     });
+    const statusCode = err instanceof CustomError && err.shouldRetry ? 500 : 200;
 
     // TODO
     // Handle retry from error
-    return res.status(200).json({
-      error: isProduction ? 'Internal Server Error' : err.message,
+    return res.status(statusCode).json({
+      error: 'Internal Server Error',
     });
   };
 };
