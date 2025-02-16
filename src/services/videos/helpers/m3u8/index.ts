@@ -65,13 +65,15 @@ const streamM3U8 = async (m3u8Url: string, storagePath: string, options: Process
       });
     }
 
+    let thumbnailUrl;
     try {
       const firstSegment = segments.included[0];
-      await processThumbnail({
+      const thumbnailPath = await processThumbnail({
         url: firstSegment.url,
         duration: firstSegment.duration as number,
         storagePath,
       });
+      thumbnailUrl = getDownloadUrl(thumbnailPath);
       // logger.info('Screenshot taken from first segment');
     } catch (screenshotError) {
       // Non-blocking error - log but continue with streaming
@@ -99,6 +101,7 @@ const streamM3U8 = async (m3u8Url: string, storagePath: string, options: Process
       playlistUrl: getDownloadUrl(playlistStoragePath),
       segments,
       duration,
+      thumbnailUrl,
     };
 
     logger.info({ playlistUrl: result.playlistUrl }, 'M3U8 streaming completed');

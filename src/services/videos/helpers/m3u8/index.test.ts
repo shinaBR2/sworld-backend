@@ -26,8 +26,11 @@ describe('streamM3U8', () => {
   const mockM3u8Url = 'https://example.com/video.m3u8';
   const mockStoragePath = 'videos/test-video';
   const mockPlaylistUrl = 'https://storage.googleapis.com/bucket/videos/test-video/playlist.m3u8';
+  const mockThumbnailPath = 'videos/test-video/thumbnail.jpg';
+  const mockThumbnailUrl = `https://storage.googleapis.com/bucket/${mockThumbnailPath}`;
   const expectedResult = {
     playlistUrl: mockPlaylistUrl,
+    thumbnailUrl: mockThumbnailUrl,
     segments: {
       included: [
         { url: 'segment1.ts', duration: 3 },
@@ -37,7 +40,6 @@ describe('streamM3U8', () => {
     },
     duration: 300,
   };
-  const mockProcessThumbnail = vi.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -51,7 +53,10 @@ describe('streamM3U8', () => {
 
     vi.mocked(streamPlaylistFile).mockResolvedValue(undefined);
     vi.mocked(streamSegments).mockResolvedValue();
-    vi.mocked(getDownloadUrl).mockReturnValue(mockPlaylistUrl);
+    vi.mocked(processThumbnail).mockResolvedValue(mockThumbnailPath);
+    vi.mocked(getDownloadUrl)
+      .mockReturnValueOnce(mockThumbnailUrl) // First call for thumbnail URL
+      .mockReturnValueOnce(mockPlaylistUrl); // Second call for playlist URL
   });
 
   it('should successfully stream M3U8 content', async () => {
@@ -146,15 +151,21 @@ describe('streamM3U8', () => {
       duration: 3,
       storagePath: mockStoragePath,
     });
+    expect(getDownloadUrl).toHaveBeenCalledWith(mockThumbnailPath);
   });
 
   it('should continue streaming when thumbnail processing fails', async () => {
     const screenshotError = new Error('Screenshot failed');
     vi.mocked(processThumbnail).mockRejectedValue(screenshotError);
 
-    const result = await streamM3U8(mockM3u8Url, mockStoragePath);
+    // Reset the getDownloadUrl from the beforeEach
+    vi.mocked(getDownloadUrl).mockReset();
+    vi.mocked(getDownloadUrl).mockReturnValue(mockPlaylistUrl); // Only return playlist URL
 
-    expect(result).toEqual(expectedResult);
+    const result = await streamM3U8(mockM3u8Url, mockStoragePath);
+    const { thumbnailUrl, ...expectedWithoutThumbnail } = expectedResult;
+
+    expect(result).toEqual(expectedWithoutThumbnail);
     expect(logger.error).toHaveBeenCalledWith(
       {
         error: screenshotError.message,
