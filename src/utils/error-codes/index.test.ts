@@ -15,6 +15,7 @@ describe('error-codes', () => {
       'STORAGE_UPLOAD_FAILED',
       'STORAGE_DOWNLOAD_FAILED',
       'FIX_DURATION_ERROR',
+      'FIX_THUMBNAIL_ERROR',
     ];
 
     const actualCodes = Object.values(VIDEO_ERRORS);
