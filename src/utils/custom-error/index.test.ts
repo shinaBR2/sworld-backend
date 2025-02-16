@@ -9,6 +9,7 @@ describe('CustomError', () => {
     expect(error.name).toBe('CustomError');
     expect(error.errorCode).toBe('UNKNOWN_ERROR');
     expect(error.severity).toBe('medium');
+    expect(error.shouldRetry).toBe(false);
     expect(error.contexts).toHaveLength(1);
     expect(error.contexts[0].source).toBe('Unknown');
     expect(error.timestamp).toBeDefined();
@@ -26,11 +27,13 @@ describe('CustomError', () => {
       context,
       source: 'UserService',
       originalError,
+      shouldRetry: true,
     });
 
     expect(error.message).toBe('Specific error');
     expect(error.errorCode).toBe('USER_ERROR');
     expect(error.severity).toBe('high');
+    expect(error.shouldRetry).toBe(true);
     expect(error.contexts).toHaveLength(2);
     expect(error.contexts[0].source).toBe('UserService');
     expect(error.contexts[0].data).toEqual({ userId: 123 });
