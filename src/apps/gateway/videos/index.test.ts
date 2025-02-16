@@ -51,7 +51,7 @@ describe('videosRouter', () => {
   it('should validate all requests', async () => {
     await import('./index');
     // Check validation middleware was called
-    expect(validateRequest).toHaveBeenCalledTimes(2);
+    expect(validateRequest).toHaveBeenCalledTimes(3);
     const calls = (validateRequest as any).mock.calls;
     expect(calls[0][0]).toBeDefined(); // Check convert route schema
     expect(calls[1][0]).toBeDefined(); // Check fix-videos-duration route schema
