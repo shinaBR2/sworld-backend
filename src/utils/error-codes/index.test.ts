@@ -1,7 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import { VIDEO_ERRORS, type VideoErrorCode, type ErrorCode } from './index';
+import { VIDEO_ERRORS, type VideoErrorCode, type ErrorCode, HTTP_ERRORS } from './index';
 
 describe('error-codes', () => {
+  it('should contain all expected http error codes', () => {
+    const expectedCodes = ['NETWORK_ERROR', 'SERVER_ERROR', 'CLIENT_ERROR'];
+
+    const actualCodes = Object.values(HTTP_ERRORS);
+    expect(actualCodes).toHaveLength(expectedCodes.length);
+    expectedCodes.forEach(code => {
+      expect(actualCodes).toContain(code);
+    });
+  });
+
   it('should contain all expected video error codes', () => {
     const expectedCodes = [
       'VIDEO_INVALID_FORMAT',
@@ -51,8 +61,6 @@ describe('error-codes', () => {
 
     // @ts-expect-error - Invalid error code
     testVideoErrorCode('INVALID_CODE');
-
-    // @ts-expect-error - Invalid error code
     testErrorCode('RANDOM_ERROR');
   });
 });

@@ -1,3 +1,9 @@
+const HTTP_ERRORS = {
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  SERVER_ERROR: 'SERVER_ERROR',
+  CLIENT_ERROR: 'CLIENT_ERROR',
+};
+
 const VIDEO_ERRORS = {
   // Video upload/processing errors
   INVALID_VIDEO_FORMAT: 'VIDEO_INVALID_FORMAT',
@@ -19,7 +25,8 @@ const VIDEO_ERRORS = {
   FIX_THUMBNAIL_ERROR: 'FIX_THUMBNAIL_ERROR',
 } as const;
 
+type HttpErrorCode = (typeof HTTP_ERRORS)[keyof typeof HTTP_ERRORS];
 type VideoErrorCode = (typeof VIDEO_ERRORS)[keyof typeof VIDEO_ERRORS];
-type ErrorCode = VideoErrorCode;
+type ErrorCode = HttpErrorCode | VideoErrorCode;
 
-export { VIDEO_ERRORS, VideoErrorCode, ErrorCode };
+export { HTTP_ERRORS, VIDEO_ERRORS, HttpErrorCode, VideoErrorCode, ErrorCode };
