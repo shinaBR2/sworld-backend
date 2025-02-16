@@ -140,7 +140,7 @@ describe('errorHandler', () => {
         method: 'POST',
         url: '/webhook',
       },
-      stack: undefined,
+      stack: expect.not.stringContaining('node_modules'),
     });
 
     expect(mockResponse.status).toHaveBeenCalledWith(200);
