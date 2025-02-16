@@ -23,11 +23,6 @@ vi.mock('../thumbnail', () => ({
 }));
 vi.mock('src/utils/custom-error', () => ({
   CustomError: {
-    critical: vi.fn((message, details) => {
-      const error = new Error(message);
-      Object.assign(error, details);
-      return error;
-    }),
     medium: vi.fn((message, details) => {
       const error = new Error(message);
       Object.assign(error, details);
