@@ -6,9 +6,14 @@ import { Readable } from 'node:stream';
 import fetch from 'node-fetch';
 import { streamFile } from '../gcp-cloud-storage';
 import type { Response } from 'node-fetch';
+import { fetchWithError } from 'src/utils/fetch';
 
 vi.mock('node-fetch', () => ({
   default: vi.fn(),
+}));
+
+vi.mock('src/utils/fetch', () => ({
+  fetchWithError: vi.fn(),
 }));
 
 vi.mock('../gcp-cloud-storage', () => ({
@@ -40,12 +45,12 @@ describe('M3U8 parser', () => {
     const baseUrl = 'https://example.com';
     const excludePatterns = [/\/adjump\//, /\/ads\//, /\/commercial\//];
 
-    test('should throw error when fetch response is not ok', async () => {
-      const mockResponse = {
-        ok: false,
-        statusText: 'Not Found',
-      };
-      (fetch as any).mockResolvedValue(mockResponse);
+    test('should throw error when fetch fails', async () => {
+      vi.mocked(fetchWithError).mockResolvedValue({
+        text: async () => {
+          throw new Error('Failed to fetch m3u8: Not Found');
+        },
+      } as any);
 
       await expect(parseM3U8Content(baseUrl, excludePatterns)).rejects.toThrow('Failed to fetch m3u8: Not Found');
     });
@@ -82,13 +87,14 @@ describe('M3U8 parser', () => {
       `);
 
       const mockResponse = {
-        ok: true,
-        statusText: 'OK',
         text: () => Promise.resolve(content),
       };
-      (fetch as any).mockResolvedValue(mockResponse);
+      vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
+
+      console.log('Actual modified content:', modifiedContent);
+      console.log('Expected content:', expected);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toEqual([
@@ -146,11 +152,9 @@ describe('M3U8 parser', () => {
       `);
 
       const mockResponse = {
-        ok: true,
-        statusText: 'OK',
         text: () => Promise.resolve(content),
       };
-      (fetch as any).mockResolvedValue(mockResponse);
+      vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
@@ -224,11 +228,9 @@ describe('M3U8 parser', () => {
       `);
 
       const mockResponse = {
-        ok: true,
-        statusText: 'OK',
         text: () => Promise.resolve(content),
       };
-      (fetch as any).mockResolvedValue(mockResponse);
+      vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
@@ -292,11 +294,9 @@ describe('M3U8 parser', () => {
       `);
 
       const mockResponse = {
-        ok: true,
-        statusText: 'OK',
         text: () => Promise.resolve(content),
       };
-      (fetch as any).mockResolvedValue(mockResponse);
+      vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
@@ -331,11 +331,9 @@ describe('M3U8 parser', () => {
       const expected = normalizeContent(content);
 
       const mockResponse = {
-        ok: true,
-        statusText: 'OK',
         text: () => Promise.resolve(content),
       };
-      (fetch as any).mockResolvedValue(mockResponse);
+      vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
@@ -379,11 +377,9 @@ describe('M3U8 parser', () => {
       `);
 
       const mockResponse = {
-        ok: true,
-        statusText: 'OK',
         text: () => Promise.resolve(content),
       };
-      (fetch as any).mockResolvedValue(mockResponse);
+      vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
       expect(normalizeContent(modifiedContent)).toBe(expected);
@@ -404,11 +400,9 @@ describe('M3U8 parser', () => {
       `;
 
       const mockResponse = {
-        ok: true,
-        statusText: 'OK',
         text: () => Promise.resolve(content),
       };
-      (fetch as any).mockResolvedValue(mockResponse);
+      vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
@@ -451,11 +445,9 @@ describe('M3U8 parser', () => {
       `;
 
       const mockResponse = {
-        ok: true,
-        statusText: 'OK',
         text: () => Promise.resolve(content),
       };
-      (fetch as any).mockResolvedValue(mockResponse);
+      vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
       const { duration } = await parseM3U8Content(baseUrl, excludePatterns);
 
@@ -494,11 +486,9 @@ describe('M3U8 parser', () => {
       `);
 
       const mockResponse = {
-        ok: true,
-        statusText: 'OK',
         text: () => Promise.resolve(content),
       };
-      (fetch as any).mockResolvedValue(mockResponse);
+      vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
       const { modifiedContent, segments, duration } = await parseM3U8Content(baseUrl, excludePatterns);
 
@@ -522,11 +512,9 @@ describe('M3U8 parser', () => {
       `;
 
       const mockResponse = {
-        ok: true,
-        statusText: 'OK',
         text: () => Promise.resolve(content),
       };
-      (fetch as any).mockResolvedValue(mockResponse);
+      vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
       const { duration } = await parseM3U8Content(baseUrl, excludePatterns);
 

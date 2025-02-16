@@ -7,6 +7,7 @@ import { Readable } from 'node:stream';
 import { videoConfig } from '../../config';
 import { systemConfig } from 'src/utils/systemConfig';
 import { Parser } from 'm3u8-parser';
+import { fetchWithError } from 'src/utils/fetch';
 
 interface HLSSegment {
   url: string;
@@ -58,11 +59,7 @@ const isAds = (segmentUrl: string, excludePatterns: RegExp[]) => {
  * segment2.ts
  */
 const parseM3U8Content = async (m3u8Url: string, excludePatterns: RegExp[] = []): Promise<ParsedResult> => {
-  const response = await fetch(m3u8Url);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch m3u8: ${response.statusText}`);
-  }
-
+  const response = await fetchWithError(m3u8Url);
   const content = await response.text();
   const parser = new Parser();
   parser.push(content);
