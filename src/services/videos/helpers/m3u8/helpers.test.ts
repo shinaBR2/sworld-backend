@@ -93,9 +93,6 @@ describe('M3U8 parser', () => {
 
       const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
-      console.log('Actual modified content:', modifiedContent);
-      console.log('Expected content:', expected);
-
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toEqual([
         {
