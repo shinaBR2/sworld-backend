@@ -61,7 +61,7 @@ class CustomError extends Error {
   public readonly severity: ErrorSeverity;
 
   /**
-   * Severity level of the error.
+   * Determine the ability to retry the request or not
    * @type {boolean}
    */
   public readonly shouldRetry: boolean;
