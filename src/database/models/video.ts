@@ -5,6 +5,7 @@ interface VideoTS extends Model {
   id: string;
   source: string;
   duration: number | null;
+  thumbnail_url?: string;
 }
 
 const Video = sequelize.define<VideoTS>(

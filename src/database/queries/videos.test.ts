@@ -6,6 +6,7 @@ import {
   getVideoMissingDuration,
   getVideoMissingThumbnail,
   updateVideoDuration,
+  updateVideoThumbnail,
 } from './videos';
 import { Op, Transaction } from 'sequelize';
 
@@ -304,6 +305,58 @@ describe('updateVideoDuration', () => {
       updateVideoDuration({
         id: 'nonexistent',
         duration: 120,
+      })
+    ).rejects.toThrow('Video with ID nonexistent not found');
+  });
+});
+
+describe('updateVideoThumbnail', () => {
+  it('should update video thumbnailUrl successfully', async () => {
+    const mockTransaction = {} as Transaction;
+    (Video.update as Mock).mockResolvedValue([1]);
+
+    const result = await updateVideoThumbnail({
+      id: '123',
+      thumbnailUrl: 'thumbnail-url',
+    });
+
+    expect(result).toBe(1);
+    expect(Video.update).toHaveBeenCalledWith(
+      { thumbnail_url: 'thumbnail-url' },
+      {
+        where: { id: '123' },
+        transaction: undefined,
+      }
+    );
+  });
+
+  it('should update video thumbnailUrl with transaction', async () => {
+    const mockTransaction = {} as Transaction;
+    (Video.update as Mock).mockResolvedValue([1]);
+
+    const result = await updateVideoThumbnail({
+      id: '123',
+      thumbnailUrl: 'thumbnail-url',
+      transaction: mockTransaction,
+    });
+
+    expect(result).toBe(1);
+    expect(Video.update).toHaveBeenCalledWith(
+      { thumbnail_url: 'thumbnail-url' },
+      {
+        where: { id: '123' },
+        transaction: mockTransaction,
+      }
+    );
+  });
+
+  it('should throw error when no video is updated', async () => {
+    (Video.update as Mock).mockResolvedValue([0]);
+
+    await expect(
+      updateVideoThumbnail({
+        id: 'nonexistent',
+        thumbnailUrl: 'thumbnail-url',
       })
     ).rejects.toThrow('Video with ID nonexistent not found');
   });
