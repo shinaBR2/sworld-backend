@@ -6,12 +6,12 @@ import { CreateCloudTasksParams, createCloudTasks } from 'src/utils/cloud-task';
 import { envConfig } from 'src/utils/envConfig';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
-import { FixVideosDurationRequest } from './schema';
 import { ValidatedRequest } from 'src/utils/validator';
+import { WebhookRequest } from '../../schema';
 
 const fixVideosDuration = async (req: Request, res: Response) => {
   const { ioServiceUrl } = envConfig;
-  const { validatedData } = req as ValidatedRequest<FixVideosDurationRequest>;
+  const { validatedData } = req as ValidatedRequest<WebhookRequest>;
   const { signatureHeader } = validatedData;
 
   if (!verifySignature(signatureHeader)) {

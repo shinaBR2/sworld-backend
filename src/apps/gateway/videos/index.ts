@@ -3,7 +3,6 @@ import { validateRequest } from 'src/utils/validator';
 import { ConvertRequest, ConvertSchema } from '../../../services/videos/convert/schema';
 import { streamToStorage } from './routes/stream-to-storage';
 import { fixVideosDuration } from './routes/fix-videos-duration';
-import { FixVideosDurationRequest, fixVideosDurationSchema } from './routes/fix-videos-duration/schema';
 import { WebhookRequest, webhookSchema } from './schema';
 
 const videosRouter: Router = express.Router();
