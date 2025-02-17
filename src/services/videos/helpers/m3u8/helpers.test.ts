@@ -3,14 +3,8 @@ import { downloadSegments, parseM3U8Content, streamPlaylistFile, streamSegmentFi
 import { downloadFile, verifyFileSize } from '../file';
 import { logger } from 'src/utils/logger';
 import { Readable } from 'node:stream';
-// import fetch from 'node-fetch';
 import { streamFile } from '../gcp-cloud-storage';
-// import type { Response } from 'node-fetch';
 import { fetchWithError } from 'src/utils/fetch';
-
-// vi.mock('node-fetch', () => ({
-//   default: vi.fn(),
-// }));
 
 vi.mock('src/utils/fetch', () => ({
   fetchWithError: vi.fn(),
