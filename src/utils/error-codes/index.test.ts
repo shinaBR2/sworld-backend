@@ -3,7 +3,7 @@ import { VIDEO_ERRORS, type VideoErrorCode, type ErrorCode, HTTP_ERRORS, DATABAS
 
 describe('error-codes', () => {
   it('should contain all expected http error codes', () => {
-    const expectedCodes = ['NETWORK_ERROR', 'SERVER_ERROR', 'CLIENT_ERROR'];
+    const expectedCodes = ['NETWORK_ERROR', 'NETWORK_TIMEOUT', 'SERVER_ERROR', 'CLIENT_ERROR'];
 
     const actualCodes = Object.values(HTTP_ERRORS);
     expect(actualCodes).toHaveLength(expectedCodes.length);
