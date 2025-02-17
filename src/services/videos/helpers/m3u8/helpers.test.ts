@@ -587,7 +587,7 @@ describe('downloadSegments', () => {
   });
 });
 
-describe.only('streamSegmentFile', () => {
+describe('streamSegmentFile', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -714,10 +714,6 @@ describe('streamPlaylistFile', () => {
 });
 
 describe('streamSegments', () => {
-  const mockFetch = vi.mocked(fetch);
-  const mockStreamFile = vi.mocked(streamFile);
-  const mockLogger = vi.mocked(logger);
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -730,18 +726,17 @@ describe('streamSegments', () => {
       'http://example.com/seg-4.ts',
     ];
     const baseStoragePath = 'videos/test';
-    const mockBody = new ReadableStream();
 
-    // Mock successful fetch responses
-    mockFetch.mockResolvedValue({
-      ok: true,
-      body: mockBody,
-      status: 200,
-      statusText: 'OK',
-    } as unknown as Response);
+    // Mock successful fetch responses - create new stream each time
+    (fetchWithError as Mock).mockImplementation(() =>
+      Promise.resolve({
+        body: new ReadableStream(),
+        statusText: 'OK',
+      } as Response)
+    );
 
     // Mock successful streamFile responses
-    mockStreamFile.mockResolvedValue(undefined);
+    (streamFile as Mock).mockResolvedValue(undefined);
 
     await streamSegments({
       segmentUrls,
@@ -750,55 +745,55 @@ describe('streamSegments', () => {
     });
 
     // Verify fetch was called for each segment
-    expect(mockFetch).toHaveBeenCalledTimes(4);
+    expect(fetchWithError).toHaveBeenCalledTimes(4);
 
-    // Verify streamFile was called for each segment
-    expect(mockStreamFile).toHaveBeenCalledTimes(4);
+    // Verify streamFile was called for each segment with correct args
+    expect(streamFile).toHaveBeenCalledTimes(4);
+    const streamFileCalls = (streamFile as Mock).mock.calls;
+    streamFileCalls.forEach((call, index) => {
+      expect(call[0].stream).toBeInstanceOf(Readable);
+      expect(call[0].storagePath).toBe(`videos/test/seg-${index + 1}.ts`);
+      expect(call[0].options.contentType).toBe('video/MP2T');
+    });
   });
 
   test('should use default concurrency limit when not specified', async () => {
     const segmentUrls = Array.from({ length: 5 }, (_, i) => `http://example.com/seg-${i + 1}.ts`);
-    const mockBody = new ReadableStream();
 
-    mockFetch.mockResolvedValue({
-      ok: true,
-      body: mockBody,
-      status: 200,
-      statusText: 'OK',
-    } as unknown as Response);
-    mockStreamFile.mockResolvedValue(undefined);
+    (fetchWithError as Mock).mockImplementation(() =>
+      Promise.resolve({
+        body: new ReadableStream(),
+        statusText: 'OK',
+      } as Response)
+    );
+    (streamFile as Mock).mockResolvedValue(undefined);
 
     await streamSegments({
       segmentUrls,
       baseStoragePath: 'videos/test',
     });
 
-    expect(mockFetch).toHaveBeenCalledTimes(5);
-    expect(mockStreamFile).toHaveBeenCalledTimes(5);
+    expect(fetchWithError).toHaveBeenCalledTimes(5);
+    expect(streamFile).toHaveBeenCalledTimes(5);
   });
 
   test('should log error and throw when segment streaming fails', async () => {
     const segmentUrls = ['http://example.com/seg-1.ts', 'http://example.com/seg-2.ts', 'http://example.com/seg-3.ts'];
     const baseStoragePath = 'videos/test';
     const mockBody = new ReadableStream();
-    const error = new Error('Network error');
 
     // First segment succeeds, second fails
-    mockFetch
+    (fetchWithError as Mock)
       .mockResolvedValueOnce({
-        ok: true,
         body: mockBody,
-        status: 200,
         statusText: 'OK',
-      } as unknown as Response)
+      } as Response)
       .mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-        statusText: 'Not Found',
         body: null,
-      } as unknown as Response);
+        statusText: 'Not Found',
+      } as Response);
 
-    mockStreamFile.mockResolvedValue(undefined);
+    (streamFile as Mock).mockResolvedValue(undefined);
 
     await expect(
       streamSegments({
@@ -809,7 +804,7 @@ describe('streamSegments', () => {
     ).rejects.toThrow('Failed to fetch segment');
 
     // Should have only processed up to the failing segment
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-    expect(mockStreamFile).toHaveBeenCalledTimes(1);
+    expect(fetchWithError).toHaveBeenCalledTimes(2);
+    expect(streamFile).toHaveBeenCalledTimes(1);
   });
 });
