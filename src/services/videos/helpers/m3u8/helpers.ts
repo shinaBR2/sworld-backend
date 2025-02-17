@@ -1,5 +1,4 @@
 import path from 'path';
-import fetch from 'node-fetch';
 import { logger } from 'src/utils/logger';
 import { downloadFile, verifyFileSize } from '../file';
 import { streamFile } from '../gcp-cloud-storage';
