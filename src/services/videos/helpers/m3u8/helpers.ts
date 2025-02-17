@@ -8,6 +8,8 @@ import { videoConfig } from '../../config';
 import { systemConfig } from 'src/utils/systemConfig';
 import { Parser } from 'm3u8-parser';
 import { fetchWithError } from 'src/utils/fetch';
+import { CustomError } from 'src/utils/custom-error';
+import { HTTP_ERRORS } from 'src/utils/error-codes';
 
 interface HLSSegment {
   url: string;
@@ -217,16 +219,19 @@ const streamPlaylistFile = async (content: string, storagePath: string) => {
  * @returns Promise that resolves when upload is complete
  */
 const streamSegmentFile = async (segmentUrl: string, storagePath: string) => {
-  const response = await fetch(segmentUrl, {
+  const response = await fetchWithError(segmentUrl, {
     timeout: systemConfig.defaultExternalRequestTimeout,
-    size: 32 * 1024 * 1024, // 32MB as safe maximum for high quality segments
   });
-  if (!response.ok || !response.body) {
-    throw new Error(`Failed to fetch segment: ${response.status} ${response.statusText}`);
+  if (!response.body) {
+    throw new CustomError('Failed to fetch segment', {
+      errorCode: HTTP_ERRORS.EMPTY_RESPONSE,
+      shouldRetry: false,
+      context: { segmentUrl, storagePath, responseStatus: response.statusText },
+    });
   }
 
   return streamFile({
-    stream: response.body,
+    stream: Readable.fromWeb(response.body as any),
     storagePath,
     options: {
       contentType: 'video/MP2T', // Standard MIME type for .ts segment files

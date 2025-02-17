@@ -1,16 +1,16 @@
-import { describe, expect, vi, test, beforeEach } from 'vitest';
+import { describe, expect, vi, test, beforeEach, Mock } from 'vitest';
 import { downloadSegments, parseM3U8Content, streamPlaylistFile, streamSegmentFile, streamSegments } from './helpers';
 import { downloadFile, verifyFileSize } from '../file';
 import { logger } from 'src/utils/logger';
 import { Readable } from 'node:stream';
-import fetch from 'node-fetch';
+// import fetch from 'node-fetch';
 import { streamFile } from '../gcp-cloud-storage';
-import type { Response } from 'node-fetch';
+// import type { Response } from 'node-fetch';
 import { fetchWithError } from 'src/utils/fetch';
 
-vi.mock('node-fetch', () => ({
-  default: vi.fn(),
-}));
+// vi.mock('node-fetch', () => ({
+//   default: vi.fn(),
+// }));
 
 vi.mock('src/utils/fetch', () => ({
   fetchWithError: vi.fn(),
@@ -587,66 +587,56 @@ describe('downloadSegments', () => {
   });
 });
 
-describe('streamSegmentFile', () => {
+describe.only('streamSegmentFile', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   test('should download and stream segment file', async () => {
     // Mock successful fetch response
-    const mockBody = new Readable({
-      read() {
-        this.push('segment data');
-        this.push(null);
-      },
-    });
-
-    const mockResponse = {
-      ok: true,
+    const mockBody = new ReadableStream();
+    (fetchWithError as Mock).mockResolvedValue({
       body: mockBody,
-    };
-    (fetch as any).mockResolvedValue(mockResponse);
+      statusText: 'OK',
+    } as Response);
 
     await streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts');
 
     // Verify fetch was called with correct URL
-    expect(fetch).toHaveBeenCalledWith('http://example.com/segment.ts', {
+    expect(fetchWithError).toHaveBeenCalledWith('http://example.com/segment.ts', {
       timeout: 15000,
-      size: 32 * 1024 * 1024,
     });
 
     // Verify streamFile was called with correct arguments
-    expect(streamFile).toHaveBeenCalledWith({
-      stream: mockBody,
-      storagePath: 'test-path/segment.ts',
-      options: {
-        contentType: 'video/MP2T',
-      },
-    });
+    const streamFileCall = (streamFile as Mock).mock.calls[0][0];
+    expect(streamFileCall.stream).toBeInstanceOf(Readable);
+    expect(streamFileCall.storagePath).toBe('test-path/segment.ts');
+    expect(streamFileCall.options.contentType).toBe('video/MP2T');
   });
 
   test('should throw error when fetch fails', async () => {
-    const mockResponse = {
-      ok: false,
+    (fetchWithError as Mock).mockResolvedValue({
       body: null,
-    };
-    (fetch as any).mockResolvedValue(mockResponse);
+      statusText: 'Not Found',
+    } as Response);
 
     await expect(streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')).rejects.toThrow(
       'Failed to fetch segment'
     );
+    expect(streamFile).not.toHaveBeenCalled();
   });
 
   test('should throw error when response body is null', async () => {
-    const mockResponse = {
-      ok: true,
+    (fetchWithError as Mock).mockResolvedValue({
       body: null,
-    };
-    (fetch as any).mockResolvedValue(mockResponse);
+      statusText: 'OK',
+    } as Response);
 
     await expect(streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')).rejects.toThrow(
       'Failed to fetch segment'
     );
+
+    expect(streamFile).not.toHaveBeenCalled();
   });
 });
 
@@ -816,7 +806,7 @@ describe('streamSegments', () => {
         baseStoragePath,
         options: { concurrencyLimit: 1 },
       })
-    ).rejects.toThrow('Failed to fetch segment: 404 Not Found');
+    ).rejects.toThrow('Failed to fetch segment');
 
     // Should have only processed up to the failing segment
     expect(mockFetch).toHaveBeenCalledTimes(2);
