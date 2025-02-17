@@ -135,7 +135,7 @@ describe('fetchWithError', () => {
     await expect(fetchWithError(mockUrl, { timeout: 1000 })).rejects.toThrow(CustomError);
     try {
       await fetchWithError(mockUrl, { timeout: 1000 });
-      expect.fail('Should have thrown an error');
+      expect.fail('Expected timeout to trigger a CustomError');
     } catch (error) {
       expect(error).toBeInstanceOf(CustomError);
       expect((error as CustomError).errorCode).toBe(HTTP_ERRORS.NETWORK_ERROR);
