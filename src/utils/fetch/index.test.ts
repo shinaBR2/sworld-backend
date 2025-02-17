@@ -1,37 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import fetch, { Response } from 'node-fetch';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { fetchWithError } from './index';
 import { CustomError } from '../custom-error';
 import { HTTP_ERRORS } from '../error-codes';
-
-vi.mock('node-fetch', () => ({
-  default: vi.fn(),
-  Response: vi.fn().mockImplementation((body, init) => ({
-    status: init?.status ?? 200,
-    statusText: init?.statusText ?? 'OK',
-    ok: init?.status ? init.status >= 200 && init.status < 300 : true,
-  })),
-}));
 
 describe('fetchWithError', () => {
   const mockUrl = 'https://api.example.com/data';
 
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it('should return response when fetch is successful', async () => {
-    const mockResponse = new Response('ok', { status: 200 });
-    vi.mocked(fetch).mockResolvedValue(mockResponse);
-
-    const response = await fetchWithError(mockUrl);
-    expect(response).toBe(mockResponse);
-    expect(fetch).toHaveBeenCalledWith(mockUrl, undefined);
+    global.fetch = vi.fn();
+    global.AbortSignal = {
+      timeout: vi.fn().mockReturnValue(new AbortController().signal),
+    } as any;
   });
 
   it('should pass through fetch options', async () => {
     const mockResponse = new Response('ok', { status: 200 });
-    vi.mocked(fetch).mockResolvedValue(mockResponse);
+    (fetch as Mock).mockResolvedValue(mockResponse);
 
     const options = {
       method: 'POST',
@@ -40,12 +25,28 @@ describe('fetchWithError', () => {
     };
 
     await fetchWithError(mockUrl, options);
-    expect(fetch).toHaveBeenCalledWith(mockUrl, options);
+    expect(fetch).toHaveBeenCalledWith(
+      mockUrl,
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: expect.any(Object),
+      })
+    );
+  });
+
+  it('should return response when fetch is successful', async () => {
+    const mockResponse = new Response('ok', { status: 200 });
+    (fetch as Mock).mockResolvedValue(mockResponse);
+
+    const response = await fetchWithError(mockUrl);
+    expect(response).toBe(mockResponse);
+    expect(fetch).toHaveBeenCalledWith(mockUrl, expect.objectContaining({ signal: expect.any(Object) }));
   });
 
   it('should throw retryable error for network failures', async () => {
     const networkError = new TypeError('Failed to fetch');
-    vi.mocked(fetch).mockRejectedValue(networkError);
+    (fetch as Mock).mockRejectedValue(networkError);
 
     await expect(fetchWithError(mockUrl)).rejects.toThrow(CustomError);
     try {
@@ -63,7 +64,7 @@ describe('fetchWithError', () => {
       status: 503,
       statusText: 'Service Unavailable',
     });
-    vi.mocked(fetch).mockResolvedValue(mockResponse);
+    (fetch as Mock).mockResolvedValue(mockResponse);
 
     await expect(fetchWithError(mockUrl)).rejects.toThrow(CustomError);
     try {
@@ -81,7 +82,7 @@ describe('fetchWithError', () => {
       status: 404,
       statusText: 'Not Found',
     });
-    vi.mocked(fetch).mockResolvedValue(mockResponse);
+    (fetch as Mock).mockResolvedValue(mockResponse);
 
     await expect(fetchWithError(mockUrl)).rejects.toThrow(CustomError);
     try {
@@ -99,7 +100,7 @@ describe('fetchWithError', () => {
       errorCode: HTTP_ERRORS.SERVER_ERROR,
       shouldRetry: true,
     });
-    vi.mocked(fetch).mockRejectedValue(customError);
+    (fetch as Mock).mockRejectedValue(customError);
 
     await expect(fetchWithError(mockUrl)).rejects.toThrow(CustomError);
     try {
@@ -113,7 +114,7 @@ describe('fetchWithError', () => {
   });
 
   it('should handle non-Error objects thrown by fetch', async () => {
-    vi.mocked(fetch).mockRejectedValue('string error');
+    (fetch as Mock).mockRejectedValue('string error');
 
     await expect(fetchWithError(mockUrl)).rejects.toThrow(CustomError);
     try {
@@ -123,6 +124,23 @@ describe('fetchWithError', () => {
       expect(error).toBeInstanceOf(CustomError);
       expect((error as CustomError).errorCode).toBe(HTTP_ERRORS.NETWORK_ERROR);
       expect((error as CustomError).shouldRetry).toBe(true);
+    }
+  });
+
+  it('should throw retryable error for request timeout', async () => {
+    const abortError = new Error('The operation was aborted');
+    abortError.name = 'AbortError';
+    (fetch as Mock).mockRejectedValue(abortError);
+
+    await expect(fetchWithError(mockUrl, { timeout: 1000 })).rejects.toThrow(CustomError);
+    try {
+      await fetchWithError(mockUrl, { timeout: 1000 });
+      expect.fail('Should have thrown an error');
+    } catch (error) {
+      expect(error).toBeInstanceOf(CustomError);
+      expect((error as CustomError).errorCode).toBe(HTTP_ERRORS.NETWORK_ERROR);
+      expect((error as CustomError).shouldRetry).toBe(true);
+      expect(error.message).toBe('Request timed out');
     }
   });
 });
