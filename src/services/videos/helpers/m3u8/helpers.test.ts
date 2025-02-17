@@ -5,6 +5,9 @@ import { logger } from 'src/utils/logger';
 import { Readable } from 'node:stream';
 import { streamFile } from '../gcp-cloud-storage';
 import { fetchWithError } from 'src/utils/fetch';
+import { systemConfig } from 'src/utils/systemConfig';
+import { HTTP_ERRORS } from 'src/utils/error-codes';
+import { CustomError } from 'src/utils/custom-error';
 
 vi.mock('src/utils/fetch', () => ({
   fetchWithError: vi.fn(),
@@ -12,6 +15,14 @@ vi.mock('src/utils/fetch', () => ({
 
 vi.mock('../gcp-cloud-storage', () => ({
   streamFile: vi.fn(),
+}));
+
+vi.mock('src/utils/custom-error', () => ({
+  CustomError: vi.fn().mockImplementation((message, options) => {
+    const error = new Error(message);
+    Object.assign(error, { message, ...options });
+    throw error; // Need to throw the error
+  }),
 }));
 
 vi.mock('../file', () => ({
@@ -586,6 +597,9 @@ describe('streamSegmentFile', () => {
     vi.clearAllMocks();
   });
 
+  const testUrl = 'http://example.com/segment.ts';
+  const testPath = 'test-path/segment.ts';
+
   test('should download and stream segment file', async () => {
     // Mock successful fetch response
     const mockBody = new ReadableStream();
@@ -598,7 +612,7 @@ describe('streamSegmentFile', () => {
 
     // Verify fetch was called with correct URL
     expect(fetchWithError).toHaveBeenCalledWith('http://example.com/segment.ts', {
-      timeout: 15000,
+      timeout: systemConfig.defaultExternalRequestTimeout,
     });
 
     // Verify streamFile was called with correct arguments
@@ -609,26 +623,46 @@ describe('streamSegmentFile', () => {
   });
 
   test('should throw error when fetch fails', async () => {
-    (fetchWithError as Mock).mockResolvedValue({
+    const mockResponse = {
       body: null,
       statusText: 'Not Found',
-    } as Response);
+      status: 404,
+    } as Response;
+    (fetchWithError as Mock).mockResolvedValue(mockResponse);
+    await expect(streamSegmentFile(testUrl, testPath)).rejects.toThrow();
 
-    await expect(streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')).rejects.toThrow(
-      'Failed to fetch segment'
-    );
+    expect(CustomError).toHaveBeenCalledWith('Failed to fetch segment', {
+      errorCode: HTTP_ERRORS.EMPTY_RESPONSE,
+      shouldRetry: false,
+      context: {
+        segmentUrl: testUrl,
+        storagePath: testPath,
+        responseStatus: mockResponse.statusText,
+        statusCode: mockResponse.status,
+      },
+    });
     expect(streamFile).not.toHaveBeenCalled();
   });
 
   test('should throw error when response body is null', async () => {
-    (fetchWithError as Mock).mockResolvedValue({
+    const mockResponse = {
       body: null,
-      statusText: 'OK',
-    } as Response);
+      statusText: 'Internal Server Error',
+      status: 500,
+    } as Response;
+    (fetchWithError as Mock).mockResolvedValue(mockResponse);
+    await expect(streamSegmentFile(testUrl, testPath)).rejects.toThrow();
 
-    await expect(streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts')).rejects.toThrow(
-      'Failed to fetch segment'
-    );
+    expect(CustomError).toHaveBeenCalledWith('Failed to fetch segment', {
+      errorCode: HTTP_ERRORS.EMPTY_RESPONSE,
+      shouldRetry: false,
+      context: {
+        segmentUrl: testUrl,
+        storagePath: testPath,
+        responseStatus: mockResponse.statusText,
+        statusCode: mockResponse.status,
+      },
+    });
 
     expect(streamFile).not.toHaveBeenCalled();
   });
