@@ -51,7 +51,7 @@ describe('fetchWithError', () => {
     await expect(fetchWithError(mockUrl)).rejects.toThrow(CustomError);
     try {
       await fetchWithError(mockUrl);
-      expect(true).toBeFalsy(); // Should not reach here
+      throw new Error('Expected function to throw an error');
     } catch (error) {
       expect(error).toBeInstanceOf(CustomError);
       expect((error as CustomError).errorCode).toBe(HTTP_ERRORS.NETWORK_ERROR);
@@ -69,7 +69,7 @@ describe('fetchWithError', () => {
     await expect(fetchWithError(mockUrl)).rejects.toThrow(CustomError);
     try {
       await fetchWithError(mockUrl);
-      expect(true).toBeFalsy(); // Should not reach here
+      throw new Error('Expected function to throw an error'); // Should not reach here
     } catch (error) {
       expect(error).toBeInstanceOf(CustomError);
       expect((error as CustomError).errorCode).toBe(HTTP_ERRORS.SERVER_ERROR);
@@ -87,7 +87,7 @@ describe('fetchWithError', () => {
     await expect(fetchWithError(mockUrl)).rejects.toThrow(CustomError);
     try {
       await fetchWithError(mockUrl);
-      expect(true).toBeFalsy(); // Should not reach here
+      throw new Error('Expected function to throw an error'); // Should not reach here
     } catch (error) {
       expect(error).toBeInstanceOf(CustomError);
       expect((error as CustomError).errorCode).toBe(HTTP_ERRORS.CLIENT_ERROR);
@@ -105,7 +105,7 @@ describe('fetchWithError', () => {
     await expect(fetchWithError(mockUrl)).rejects.toThrow(CustomError);
     try {
       await fetchWithError(mockUrl);
-      expect(true).toBeFalsy(); // Should not reach here
+      throw new Error('Expected function to throw an error'); // Should not reach here
     } catch (error) {
       expect(error).toBe(customError); // Should be the exact same error instance
       expect((error as CustomError).errorCode).toBe(HTTP_ERRORS.SERVER_ERROR);
@@ -119,7 +119,7 @@ describe('fetchWithError', () => {
     await expect(fetchWithError(mockUrl)).rejects.toThrow(CustomError);
     try {
       await fetchWithError(mockUrl);
-      expect(true).toBeFalsy(); // Should not reach here
+      throw new Error('Expected function to throw an error'); // Should not reach here
     } catch (error) {
       expect(error).toBeInstanceOf(CustomError);
       expect((error as CustomError).errorCode).toBe(HTTP_ERRORS.NETWORK_ERROR);
