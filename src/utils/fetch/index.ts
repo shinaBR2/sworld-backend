@@ -1,6 +1,18 @@
 import { CustomError } from '../custom-error';
 import { HTTP_ERRORS } from '../error-codes';
 
+/**
+ * Fetches a resource with enhanced error handling and timeout support.
+ *
+ * @param url - The URL to fetch
+ * @param options - Fetch options with optional timeout
+ * @param options.timeout - Timeout in milliseconds (default: 5000)
+ * @returns Promise resolving to the fetch Response
+ * @throws {CustomError} with appropriate error codes:
+ *  - HTTP_ERRORS.SERVER_ERROR for 5xx responses (retryable)
+ *  - HTTP_ERRORS.CLIENT_ERROR for 4xx responses (non-retryable)
+ *  - HTTP_ERRORS.NETWORK_ERROR for network failures (retryable)
+ */
 const fetchWithError = async (url: string, options?: RequestInit & { timeout?: number }): Promise<Response> => {
   const { timeout = 5000, ...fetchOptions } = options || {};
 
