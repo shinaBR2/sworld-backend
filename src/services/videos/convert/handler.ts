@@ -38,7 +38,7 @@ export const convertVideo = async (data: ConversionVideo) => {
 
     // Step 2: Download and verify source video
     await downloadFile(videoUrl, inputPath);
-    await verifyFileSize(inputPath, videoConfig.maxFileSize); // 400MB limit
+    await verifyFileSize(inputPath, videoConfig.maxFileSize);
     logger.debug(`Downloaded and verified source video: ${inputPath}`);
 
     // Step 3: Convert video to HLS format
