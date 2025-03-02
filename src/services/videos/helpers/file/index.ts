@@ -5,6 +5,7 @@ import * as crypto from 'crypto';
 import { mkdir, rm } from 'fs/promises';
 import { logger } from 'src/utils/logger';
 import path from 'path';
+import { videoConfig } from '../../config';
 
 // Helper to generate unique temporary directory names
 const generateTempDir = () => {
@@ -36,8 +37,8 @@ const downloadFile = async (url: string, localPath: string) => {
   if (contentLength) {
     const size = parseInt(contentLength);
     // Check if we have enough space (leaving some buffer)
-    if (size > 400 * 1024 * 1024) {
-      // 400MB limit
+    if (size > videoConfig.maxFileSize) {
+      // 4GB limit
       throw new Error('File too large for temporary storage');
     }
   }
