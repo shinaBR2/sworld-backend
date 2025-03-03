@@ -108,6 +108,24 @@ const uploadDirectory = async (
   }
 };
 
+/**
+ * Upload all files from a local directory to GCP Cloud Storage using parallel transfers.
+ * Uses TransferManager for optimized concurrent uploads with automatic retry mechanisms.
+ *
+ * @param localDir - Local directory path. If relative, it's relative to current working directory
+ * @param storagePath - Base destination path in storage bucket (e.g., 'videos/123').
+ *                      Must be a relative path, should NOT start with '/'
+ *
+ * @example
+ * // Upload local directory contents to GCS
+ * await uploadFolderParallel('./videos/123', 'processed/videos/123');
+ *
+ * // Results in GCS:
+ * // - processed/videos/123/file1.ts
+ * // - processed/videos/123/subdir/file2.ts
+ *
+ * @throws {Error} If the local directory doesn't exist or upload fails
+ */
 const uploadFolderParallel = async (localDir: string, storagePath: string) => {
   const bucket = getDefaultBucket();
   const transferManager = new TransferManager(bucket);
