@@ -58,57 +58,6 @@ const uploadFile = async (localPath: string, storagePath: string, options: Uploa
 };
 
 /**
- * Upload all files from a local directory to GCP Cloud Storage.
- * Processes files in batches to prevent memory issues.
- *
- * @param localDir - Local directory path. If relative, it's relative to current working directory
- * @param storagePath - Base destination path in storage bucket (e.g., 'videos/123').
- *                      Must be a relative path, should NOT start with '/'
- * @param options - Upload options including batch size for concurrent uploads
- *
- * Example:
- * Local directory: /tmp/videos/123/ or ./videos/123/
- * Files: [1.ts, 2.ts, playlist.m3u8]
- * storagePath: 'videos/abc' (NOT '/videos/abc')
- * Result in GCS:
- * - videos/abc/1.ts
- * - videos/abc/2.ts
- * - videos/abc/playlist.m3u8
- *
- * Note: Google Cloud Storage doesn't use absolute paths - all paths are relative
- * to the bucket root. Any leading slashes will be removed.
- */
-const uploadDirectory = async (
-  localDir: string,
-  storagePath: string,
-  options: UploadOptions = DEFAULT_UPLOAD_OPTIONS
-) => {
-  if (!existsSync(localDir)) {
-    throw new Error('Local directory does not exist');
-  }
-
-  const files = await readdir(localDir);
-  const batchSize = (options.batchSize || DEFAULT_UPLOAD_OPTIONS.batchSize) as number;
-
-  // Process files in batches to prevent memory issues
-  for (let i = 0; i < files.length; i += batchSize) {
-    const batch = files.slice(i, i + batchSize);
-    await Promise.all(
-      batch.map(async (file: string) => {
-        const localFilePath = path.join(localDir, file);
-        const storageFilePath = path.join(storagePath, file);
-        try {
-          await uploadFile(localFilePath, storageFilePath, options);
-        } catch (error) {
-          logger.error(`Failed to upload ${file}:`, error);
-          throw error;
-        }
-      })
-    );
-  }
-};
-
-/**
  * Upload all files from a local directory to GCP Cloud Storage using parallel transfers.
  * Uses TransferManager for optimized concurrent uploads with automatic retry mechanisms.
  *
@@ -241,4 +190,4 @@ const streamFile = async (params: StreamFileParams) => {
   });
 };
 
-export { DEFAULT_UPLOAD_OPTIONS, getDownloadUrl, uploadFile, uploadDirectory, uploadFolderParallel, streamFile };
+export { DEFAULT_UPLOAD_OPTIONS, getDownloadUrl, uploadFile, uploadFolderParallel, streamFile };
