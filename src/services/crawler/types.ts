@@ -1,4 +1,4 @@
-import { RequestHandler } from 'crawlee';
+import { PlaywrightRequestHandler, RequestHandler } from 'crawlee';
 
 interface HandlerOptions {
   selector?: string;
@@ -11,7 +11,7 @@ interface HandlerState<T> {
 }
 
 interface RequestHandlerWithState<T> {
-  handler: RequestHandler;
+  handler: PlaywrightRequestHandler;
   initialState: HandlerState<T>;
 }
 

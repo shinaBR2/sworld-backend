@@ -1,63 +1,5 @@
-import { RequestHandler } from 'crawlee';
+import { PlaywrightRequestHandler } from 'crawlee';
 import { HandlerOptions, HandlerState, RequestHandlerWithState } from '../types';
-
-// const hh3dHandler: PlaywrightRequestHandler = async props => {
-//   const { page, request, enqueueLinks } = props;
-//   const videoDataMap: VideoData[] = [];
-//   const targetUrl = 'wp-content/themes/halimmovies/player.php';
-
-//   const currentPageUrl = request.url;
-//   let videoUrl: string | null = null;
-
-//   const videoUrlPromise = new Promise<string | null>(resolve => {
-//     page.route('**/*', async route => {
-//       const req = route.request();
-
-//       if (req.url().includes(targetUrl)) {
-//         try {
-//           const response = await route.fetch();
-//           const responseText = await response.text();
-
-//           try {
-//             const data = JSON.parse(responseText);
-//             if (data && data.file) {
-//               videoUrl = data.file;
-//               resolve(data.file);
-//             }
-//           } catch (parseError) {
-//             console.error('Error parsing JSON response:', parseError);
-//           }
-//         } catch (error) {
-//           console.error('Error intercepting request', error);
-//         }
-//       }
-
-//       await route.continue();
-//     });
-//   });
-
-//   console.log(`Processing ${request.url}...`);
-//   await page.goto(currentPageUrl);
-
-//   const timeoutPromise = new Promise<null>(resolve => setTimeout(() => resolve(null), waitForSelectorTimeout));
-
-//   await Promise.race([videoUrlPromise, timeoutPromise]);
-
-//   videoDataMap.push({
-//     url: currentPageUrl,
-//     videoUrl: videoUrl,
-//   });
-
-//   // Wait for selector and enqueue links only if selector is provided
-//   if (selector) {
-//     try {
-//       await page.waitForSelector(selector, { timeout: waitForSelectorTimeout });
-//       await enqueueLinks({ selector });
-//     } catch (error) {
-//       console.log(`No elements found for selector: ${selector}`);
-//     }
-//   }
-// };
 
 /**
  * Creates a request handler for Halim movie sites
@@ -74,7 +16,7 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
   };
 
   // Create the request handler
-  const handler: RequestHandler = async ({ page, request, enqueueLinks }) => {
+  const handler: PlaywrightRequestHandler = async ({ page, request, enqueueLinks }) => {
     const currentPageUrl = request.url;
     let videoUrl: string | null = null;
     const targetUrl = 'wp-content/themes/halimmovies/player.php';

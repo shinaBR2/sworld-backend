@@ -1,4 +1,4 @@
-import { PlaywrightCrawler, PlaywrightCrawlerOptions } from 'crawlee';
+import { PlaywrightCrawler, PlaywrightCrawlerOptions, PlaywrightRequestHandler } from 'crawlee';
 import { createRequestHandler, getHandlerType } from './utils';
 import { crawlConfig } from 'src/utils/systemConfig';
 
@@ -32,7 +32,7 @@ const crawl = async <T>(startUrls: string[], options: BaseCrawlOptions): Promise
 
   const crawler = new PlaywrightCrawler({
     ...crawlerOptions,
-    requestHandler: handler,
+    requestHandler: handler as unknown as PlaywrightRequestHandler,
   });
 
   await crawler.run(startUrls);
