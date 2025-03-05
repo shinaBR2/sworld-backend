@@ -1,7 +1,14 @@
 import { PlaywrightRequestHandler, RequestHandler } from 'crawlee';
 
+interface SelectorConfig {
+  selector: string;
+  name: string;
+  waitForSelectorTimeout?: number;
+  required: boolean;
+}
+
 interface HandlerOptions {
-  selector?: string;
+  selectors: SelectorConfig[];
   waitForSelectorTimeout?: number;
 }
 
@@ -15,4 +22,4 @@ interface RequestHandlerWithState<T> {
   initialState: HandlerState<T>;
 }
 
-export type { HandlerOptions, HandlerState, RequestHandlerWithState };
+export type { SelectorConfig, HandlerOptions, HandlerState, RequestHandlerWithState };

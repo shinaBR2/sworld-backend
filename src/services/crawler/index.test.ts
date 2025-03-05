@@ -3,6 +3,7 @@ import { PlaywrightCrawler } from 'crawlee';
 import { crawl } from './index';
 import { createRequestHandler, getHandlerType } from './utils';
 import { crawlConfig } from 'src/utils/systemConfig';
+import { SelectorConfig } from './types';
 
 // Mock dependencies
 vi.mock('crawlee', () => ({
@@ -41,12 +42,45 @@ describe('crawl', () => {
     vi.mocked(getHandlerType).mockReturnValue('default');
   });
 
+  it('should throw error for missing selectors', async () => {
+    const startUrls = ['URL_ADDRESS'];
+    const options = {
+      handlerType: 'invalid',
+    };
+
+    await expect(crawl(startUrls, options)).rejects.toThrowError('Invalid handler type or selectors provided');
+
+    // Verify getHandlerType was called with startUrls
+    expect(getHandlerType).not.toHaveBeenCalledWith(startUrls);
+    expect(createRequestHandler).not.toHaveBeenCalled();
+  });
+  it('should throw error for invalid handler type', async () => {
+    const startUrls = ['URL_ADDRESS'];
+    const selectors: SelectorConfig[] = [
+      { selector: 'h1', name: 'title', required: true, waitForSelectorTimeout: 3000 },
+      { selector: '.description', name: 'description', required: false, waitForSelectorTimeout: 3000 },
+      { selector: '.thumbnail img', name: 'thumbnailUrl', required: true, waitForSelectorTimeout: 3000 },
+    ];
+    const options = {
+      selectors,
+    };
+    vi.mocked(getHandlerType).mockReturnValue('');
+
+    await expect(crawl(startUrls, options)).rejects.toThrowError('Invalid handler type or selectors provided');
+
+    expect(createRequestHandler).not.toHaveBeenCalled();
+  });
+
   it('should create a crawler with correct configuration', async () => {
     const startUrls = ['https://example.com'];
+    const selectors: SelectorConfig[] = [
+      { selector: 'h1', name: 'title', required: true, waitForSelectorTimeout: 3000 },
+      { selector: '.description', name: 'description', required: false, waitForSelectorTimeout: 3000 },
+      { selector: '.thumbnail img', name: 'thumbnailUrl', required: true, waitForSelectorTimeout: 3000 },
+    ];
     const options = {
       maxRequestsPerCrawl: 10,
-      selector: '.item',
-      waitForSelectorTimeout: 5000,
+      selectors,
     };
 
     await crawl(startUrls, options);
@@ -56,8 +90,7 @@ describe('crawl', () => {
 
     // Verify createRequestHandler was called with correct parameters
     expect(createRequestHandler).toHaveBeenCalledWith('default', {
-      selector: '.item',
-      waitForSelectorTimeout: 5000,
+      selectors,
     });
 
     // Verify crawler was initialized correctly
@@ -73,8 +106,14 @@ describe('crawl', () => {
 
   it('should use provided handlerType instead of determining it', async () => {
     const startUrls = ['https://example.com'];
+    const selectors: SelectorConfig[] = [
+      { selector: 'h1', name: 'title', required: true, waitForSelectorTimeout: 3000 },
+      { selector: '.description', name: 'description', required: false, waitForSelectorTimeout: 3000 },
+      { selector: '.thumbnail img', name: 'thumbnailUrl', required: true, waitForSelectorTimeout: 3000 },
+    ];
     const options = {
       handlerType: 'custom',
+      selectors,
     };
 
     await crawl(startUrls, options);
@@ -84,29 +123,49 @@ describe('crawl', () => {
 
     // Verify createRequestHandler was called with custom handler type
     expect(createRequestHandler).toHaveBeenCalledWith('custom', {
-      selector: undefined,
-      waitForSelectorTimeout: crawlConfig.defaultWaitForSelectorTimeout,
+      selectors,
     });
   });
 
   it('should use default timeout when not specified', async () => {
     const startUrls = ['https://example.com'];
+    const selectors: SelectorConfig[] = [
+      { selector: 'h1', name: 'title', required: true },
+      { selector: '.description', name: 'description', required: false },
+    ];
     const options = {
-      selector: '.item',
+      selectors,
     };
 
     await crawl(startUrls, options);
 
     // Verify default timeout was used
     expect(createRequestHandler).toHaveBeenCalledWith('default', {
-      selector: '.item',
-      waitForSelectorTimeout: crawlConfig.defaultWaitForSelectorTimeout,
+      selectors: [
+        {
+          selector: 'h1',
+          name: 'title',
+          required: true,
+          waitForSelectorTimeout: crawlConfig.defaultWaitForSelectorTimeout,
+        },
+        {
+          selector: '.description',
+          name: 'description',
+          required: false,
+          waitForSelectorTimeout: crawlConfig.defaultWaitForSelectorTimeout,
+        },
+      ],
     });
   });
 
   it('should return data and processed URLs from the handler state', async () => {
     const startUrls = ['https://example.com'];
-    const result = await crawl(startUrls, {});
+    const result = await crawl(startUrls, {
+      selectors: [
+        { selector: 'h1', name: 'title', required: true, waitForSelectorTimeout: 3000 },
+        { selector: '.description', name: 'description', required: false, waitForSelectorTimeout: 3000 },
+      ],
+    });
 
     expect(result).toEqual({
       data: mockInitialState.data,
