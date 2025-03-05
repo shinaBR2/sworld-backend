@@ -1,5 +1,6 @@
 import { PlaywrightCrawler, PlaywrightCrawlerOptions } from 'crawlee';
 import { createRequestHandler, getHandlerType } from './utils';
+import { crawlConfig } from 'src/utils/systemConfig';
 
 interface BaseCrawlOptions extends Omit<PlaywrightCrawlerOptions, 'requestHandler'> {
   selector?: string;
@@ -21,7 +22,7 @@ interface CrawlResult<T> {
 const crawl = async <T>(startUrls: string[], options: BaseCrawlOptions): Promise<CrawlResult<T>> => {
   // If handlerType is not specified, determine it based on startUrls
   const handlerType = options.handlerType || getHandlerType(startUrls);
-  const { waitForSelectorTimeout = 30000, selector, ...crawlerOptions } = options;
+  const { waitForSelectorTimeout = crawlConfig.defaultWaitForSelectorTimeout, selector, ...crawlerOptions } = options;
 
   // Create request handler specific to the determined type
   const { handler, initialState } = createRequestHandler<T>(handlerType, {
