@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { systemConfig, uuidNamespaces, queues } from './systemConfig';
+import { systemConfig, uuidNamespaces, queues, crawlConfig } from './systemConfig';
 
 describe('systemConfig', () => {
   it('has correct default external request timeout', () => {
@@ -17,5 +17,11 @@ describe('queues', () => {
   it('has correct queue names defined', () => {
     expect(queues.streamVideoQueue).toBe('stream-video');
     expect(queues.convertVideoQueue).toBe('convert-video');
+  });
+});
+
+describe('crawlConfig', () => {
+  it('has correct queue names defined', () => {
+    expect(crawlConfig.defaultWaitForSelectorTimeout).toBe(10000);
   });
 });
