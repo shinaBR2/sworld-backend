@@ -5,10 +5,8 @@ import { CRAWL_ERRORS } from 'src/utils/error-codes';
 const scrapeUrl = async (response: APIResponse): Promise<string | null> => {
   let videoUrl: string | null = null;
 
-  const responseText = await response.text();
-
   try {
-    const data = JSON.parse(responseText);
+    const data = await response.json();
     if (data && data['file']) {
       videoUrl = data['file'];
     }
@@ -18,7 +16,7 @@ const scrapeUrl = async (response: APIResponse): Promise<string | null> => {
       shouldRetry: false,
       errorCode: CRAWL_ERRORS.INVALID_JSON,
       context: {
-        responseText,
+        response,
       },
       source: 'services/crawler/hh3d/scrapers.ts',
     });

@@ -12,7 +12,7 @@ import { videoUrlXHRMatcher } from './utils';
  * @returns Object containing the handler function and its initial state
  */
 const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => {
-  const { selectors, getSingleVideo, title, slugPrefix } = options;
+  const { selectors, getSingleVideo } = options;
 
   // Initialize state that will be shared across all handler calls
   const initialState: HandlerState<T> = {
@@ -64,6 +64,7 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
           }
 
           videoUrl = await scrapeUrl(response);
+          resolve(videoUrl);
         }
 
         await route.continue();
