@@ -37,7 +37,7 @@ const crawlHandler = async (req: Request, res: Response) => {
     },
     {
       maxRequestsPerCrawl: 100,
-      waitForSelectorTimeout: 10000,
+      // waitForSelectorTimeout: 10000,
       maxConcurrency: 5,
       maxRequestsPerMinute: 20,
     }

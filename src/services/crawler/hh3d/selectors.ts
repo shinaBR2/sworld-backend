@@ -16,7 +16,7 @@ const slectors: SelectorConfig[] = [
   },
   {
     name: SelectorName.URL,
-    selector: '#main-contents #content #ajax-episode #halim-list-server #listsv-1 a',
+    selector: '#main-contents #content #ajax-episode #halim-list-server .halim-list-eps a',
     waitForSelectorTimeout: 10000,
     required: true,
   },
