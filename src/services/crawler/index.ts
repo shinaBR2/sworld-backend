@@ -1,7 +1,7 @@
 import { PlaywrightCrawler, PlaywrightCrawlerOptions, PlaywrightRequestHandler } from 'crawlee';
-import { createRequestHandler, getHandlerType } from './utils';
-import { crawlConfig } from 'src/utils/systemConfig';
 import { SelectorConfig } from './types';
+import { createRequestHandler } from './utils';
+import { validateUrlInput } from './validator';
 
 interface BaseCrawlOptions extends Omit<PlaywrightCrawlerOptions, 'requestHandler'> {
   selectors?: SelectorConfig[];
@@ -20,26 +20,16 @@ interface CrawlResult<T> {
  * @param options Configuration options for the crawler
  * @returns Promise resolving to a CrawlResult object with the collected data
  */
-const crawl = async <T>(startUrls: string[], options: BaseCrawlOptions): Promise<CrawlResult<T>> => {
-  // If handlerType is not specified, determine it based on startUrls
-  const handlerType = options.handlerType || getHandlerType(startUrls);
-  const { defaultWaitForSelectorTimeout } = crawlConfig;
-  const { selectors = [], ...crawlerOptions } = options;
-
-  if (!handlerType || !selectors.length) {
-    // TODO use CustomError?
-    throw new Error('Invalid handler type or selectors provided');
-  }
-
-  // Process selectors to ensure they all have a timeout value
-  const processedSelectors = selectors.map(selector => ({
-    ...selector,
-    waitForSelectorTimeout: selector.waitForSelectorTimeout || defaultWaitForSelectorTimeout,
-  }));
+const crawl = async <T>(props: any, crawlerOptions: BaseCrawlOptions): Promise<CrawlResult<T>> => {
+  const { getSingleVideo, url, title, slugPrefix } = props;
+  const { handlerType, selectors } = validateUrlInput(url);
 
   // Create request handler specific to the determined type
   const { handler, initialState } = createRequestHandler<T>(handlerType, {
-    selectors: processedSelectors,
+    selectors,
+    getSingleVideo,
+    title,
+    slugPrefix,
   });
 
   const crawler = new PlaywrightCrawler({
@@ -47,7 +37,7 @@ const crawl = async <T>(startUrls: string[], options: BaseCrawlOptions): Promise
     requestHandler: handler as unknown as PlaywrightRequestHandler,
   });
 
-  await crawler.run(startUrls);
+  await crawler.run([url]);
 
   return {
     data: initialState.data,

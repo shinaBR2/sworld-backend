@@ -1,4 +1,4 @@
-import { PlaywrightRequestHandler, RequestHandler } from 'crawlee';
+import { PlaywrightRequestHandler } from 'crawlee';
 
 interface SelectorConfig {
   selector: string;
@@ -7,9 +7,15 @@ interface SelectorConfig {
   required: boolean;
 }
 
-interface HandlerOptions {
+interface CrawlInputs {
+  getSingleVideo: boolean;
+  url: string;
+  title: string;
+  slugPrefix?: string;
+}
+
+interface HandlerOptions extends Omit<CrawlInputs, 'url'> {
   selectors: SelectorConfig[];
-  waitForSelectorTimeout?: number;
 }
 
 interface HandlerState<T> {
@@ -22,4 +28,10 @@ interface RequestHandlerWithState<T> {
   initialState: HandlerState<T>;
 }
 
-export type { SelectorConfig, HandlerOptions, HandlerState, RequestHandlerWithState };
+enum SelectorName {
+  TITLE = 'title',
+  URL = 'videoUrl',
+}
+
+export { SelectorName };
+export type { SelectorConfig, CrawlInputs, HandlerOptions, HandlerState, RequestHandlerWithState };

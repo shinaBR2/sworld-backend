@@ -1,5 +1,10 @@
 import { PlaywrightRequestHandler } from 'crawlee';
-import { HandlerOptions, HandlerState, RequestHandlerWithState } from '../types';
+import { CustomError } from 'src/utils/custom-error';
+import { CRAWL_ERRORS, HTTP_ERRORS } from 'src/utils/error-codes';
+import { logger } from 'src/utils/logger';
+import { HandlerOptions, HandlerState, RequestHandlerWithState, SelectorName } from '../types';
+import { scrapeUrl } from './scrapers';
+import { videoUrlXHRMatcher } from './utils';
 
 /**
  * Creates a request handler for Halim movie sites
@@ -7,7 +12,7 @@ import { HandlerOptions, HandlerState, RequestHandlerWithState } from '../types'
  * @returns Object containing the handler function and its initial state
  */
 const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => {
-  const { selector, waitForSelectorTimeout = 30000 } = options;
+  const { selectors, getSingleVideo, title, slugPrefix } = options;
 
   // Initialize state that will be shared across all handler calls
   const initialState: HandlerState<T> = {
@@ -15,43 +20,60 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
     processedUrls: [],
   };
 
+  /**
+   * For now url is ALL what we need
+   */
+  const urlSelector = selectors.find(selector => selector.name === SelectorName.URL);
+
+  if (!urlSelector) {
+    throw CustomError.high('Missing url selector', {
+      shouldRetry: false,
+      errorCode: CRAWL_ERRORS.MISSING_URL_SELECTOR,
+      context: {
+        selectors,
+      },
+      source: 'services/crawler/hh3d/index.ts',
+    });
+  }
+
+  const { selector, waitForSelectorTimeout: timeout } = urlSelector;
+
   // Create the request handler
   const handler: PlaywrightRequestHandler = async ({ page, request, enqueueLinks }) => {
     const currentPageUrl = request.url;
     let videoUrl: string | null = null;
-    const targetUrl = 'wp-content/themes/halimmovies/player.php';
 
     const videoUrlPromise = new Promise<string | null>(resolve => {
       page.route('**/*', async route => {
         const req = route.request();
 
-        if (req.url().includes(targetUrl)) {
+        if (videoUrlXHRMatcher(req.url())) {
+          let response;
           try {
-            const response = await route.fetch();
-            const responseText = await response.text();
-
-            try {
-              const data = JSON.parse(responseText);
-              if (data && data.file) {
-                videoUrl = data.file;
-                resolve(data.file);
-              }
-            } catch (parseError) {
-              console.error('Error parsing JSON response:', parseError);
-            }
+            response = await route.fetch();
           } catch (error) {
-            console.error('Error intercepting request', error);
+            throw CustomError.high('Request failed', {
+              originalError: error,
+              shouldRetry: true,
+              errorCode: HTTP_ERRORS.NETWORK_ERROR,
+              context: {
+                selectors,
+              },
+              source: 'services/crawler/hh3d/index.ts',
+            });
           }
+
+          videoUrl = await scrapeUrl(response);
         }
 
         await route.continue();
       });
     });
 
-    // console.log(`Processing ${request.url}...`);
+    logger.info(`Processing ${request.url}...`);
     await page.goto(currentPageUrl);
 
-    const timeoutPromise = new Promise<null>(resolve => setTimeout(() => resolve(null), waitForSelectorTimeout));
+    const timeoutPromise = new Promise<null>(resolve => setTimeout(() => resolve(null), timeout));
 
     await Promise.race([videoUrlPromise, timeoutPromise]);
 
@@ -63,14 +85,24 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
 
     initialState.processedUrls.push(currentPageUrl);
 
+    if (getSingleVideo) {
+      return;
+    }
+
     // Wait for selector and enqueue links only if selector is provided
-    if (selector) {
-      try {
-        await page.waitForSelector(selector, { timeout: waitForSelectorTimeout });
-        await enqueueLinks({ selector });
-      } catch (error) {
-        console.log(`No elements found for selector: ${selector}`);
-      }
+    try {
+      await page.waitForSelector(selector, { timeout });
+      await enqueueLinks({ selector });
+    } catch (error) {
+      throw CustomError.high('Enqueue links failed', {
+        originalError: error,
+        shouldRetry: false,
+        errorCode: HTTP_ERRORS.NETWORK_ERROR,
+        context: {
+          selectors,
+        },
+        source: 'services/crawler/hh3d/index.ts',
+      });
     }
   };
 

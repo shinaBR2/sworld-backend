@@ -32,10 +32,25 @@ const VIDEO_ERRORS = {
   FIX_THUMBNAIL_ERROR: 'FIX_THUMBNAIL_ERROR',
 } as const;
 
+const CRAWL_ERRORS = {
+  UNSUPPORTED_SITE: 'UNSUPPORTED_SITE',
+  MISSING_URL_SELECTOR: 'MISSING_URL_SELECTOR',
+  INVALID_JSON: 'INVALID_JSON',
+};
+
 type HttpErrorCode = (typeof HTTP_ERRORS)[keyof typeof HTTP_ERRORS];
 type DbErrorCode = (typeof DATABASE_ERRORS)[keyof typeof DATABASE_ERRORS];
 type VideoErrorCode = (typeof VIDEO_ERRORS)[keyof typeof VIDEO_ERRORS];
 
 type ErrorCode = HttpErrorCode | DbErrorCode | VideoErrorCode;
 
-export { HTTP_ERRORS, DATABASE_ERRORS, VIDEO_ERRORS, HttpErrorCode, DbErrorCode, VideoErrorCode, ErrorCode };
+export {
+  HTTP_ERRORS,
+  DATABASE_ERRORS,
+  VIDEO_ERRORS,
+  CRAWL_ERRORS,
+  HttpErrorCode,
+  DbErrorCode,
+  VideoErrorCode,
+  ErrorCode,
+};
