@@ -41,16 +41,17 @@ const CRAWL_ERRORS = {
 type HttpErrorCode = (typeof HTTP_ERRORS)[keyof typeof HTTP_ERRORS];
 type DbErrorCode = (typeof DATABASE_ERRORS)[keyof typeof DATABASE_ERRORS];
 type VideoErrorCode = (typeof VIDEO_ERRORS)[keyof typeof VIDEO_ERRORS];
+type CrawlErrorCode = (typeof CRAWL_ERRORS)[keyof typeof CRAWL_ERRORS];
 
-type ErrorCode = HttpErrorCode | DbErrorCode | VideoErrorCode;
+type ErrorCode = HttpErrorCode | DbErrorCode | VideoErrorCode | CrawlErrorCode;
 
 export {
-  HTTP_ERRORS,
-  DATABASE_ERRORS,
-  VIDEO_ERRORS,
   CRAWL_ERRORS,
-  HttpErrorCode,
+  DATABASE_ERRORS,
   DbErrorCode,
-  VideoErrorCode,
   ErrorCode,
+  HTTP_ERRORS,
+  HttpErrorCode,
+  VIDEO_ERRORS,
+  VideoErrorCode,
 };
