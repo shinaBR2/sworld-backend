@@ -1,5 +1,5 @@
 import { PlaywrightCrawler, PlaywrightCrawlerOptions, PlaywrightRequestHandler } from 'crawlee';
-import { SelectorConfig } from './types';
+import { CrawlInputs, SelectorConfig } from './types';
 import { createRequestHandler } from './utils';
 import { validateUrlInput } from './validator';
 
@@ -20,7 +20,7 @@ interface CrawlResult<T> {
  * @param options Configuration options for the crawler
  * @returns Promise resolving to a CrawlResult object with the collected data
  */
-const crawl = async <T>(props: any, crawlerOptions: BaseCrawlOptions): Promise<CrawlResult<T>> => {
+const crawl = async <T>(props: CrawlInputs, crawlerOptions: BaseCrawlOptions): Promise<CrawlResult<T>> => {
   const { getSingleVideo, url, title, slugPrefix } = props;
   const { handlerType, selectors } = validateUrlInput(url);
 
