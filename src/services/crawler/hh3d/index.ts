@@ -59,6 +59,7 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
               errorCode: HTTP_ERRORS.NETWORK_ERROR,
               context: {
                 selectors,
+                url: currentPageUrl,
               },
               source: 'services/crawler/hh3d/index.ts',
             });
@@ -89,7 +90,7 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
     await Promise.race([videoUrlPromise, timeoutPromise]);
 
     if (videoUrl === null) {
-      logger.warn(`Timeout reached for ${currentPageUrl}`);
+      logger.warn(`No video URL found for ${currentPageUrl} (timeout: ${timeout}ms)`);
     }
 
     // Add data to the shared state
@@ -115,6 +116,7 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
         errorCode: HTTP_ERRORS.NETWORK_ERROR,
         context: {
           selectors,
+          url: currentPageUrl,
         },
         source: 'services/crawler/hh3d/index.ts',
       });

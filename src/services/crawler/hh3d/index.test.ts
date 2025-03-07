@@ -100,13 +100,14 @@ describe('hh3dHandler', () => {
       // @ts-expect-error
       expect(() => hh3dHandler(invalidOptions)).toThrow('Missing url selector');
 
-      expect(CustomError.high).toHaveBeenCalledWith(
-        'Missing url selector',
-        expect.objectContaining({
-          errorCode: CRAWL_ERRORS.MISSING_URL_SELECTOR,
-          shouldRetry: false,
-        })
-      );
+      expect(CustomError.high).toHaveBeenCalledWith('Missing url selector', {
+        errorCode: CRAWL_ERRORS.MISSING_URL_SELECTOR,
+        shouldRetry: false,
+        context: {
+          selectors: [],
+        },
+        source: 'services/crawler/hh3d/index.ts',
+      });
     });
   });
 
@@ -227,14 +228,16 @@ describe('hh3dHandler', () => {
       }
 
       // Verify CustomError.high was called with correct parameters
-      expect(CustomError.high).toHaveBeenCalledWith(
-        'Request failed',
-        expect.objectContaining({
-          originalError: networkError,
-          errorCode: HTTP_ERRORS.NETWORK_ERROR,
-          shouldRetry: true,
-        })
-      );
+      expect(CustomError.high).toHaveBeenCalledWith('Request failed', {
+        originalError: networkError,
+        errorCode: HTTP_ERRORS.NETWORK_ERROR,
+        shouldRetry: true,
+        context: {
+          selectors: defaultOptions.selectors,
+          url: 'https://example.com/video',
+        },
+        source: 'services/crawler/hh3d/index.ts',
+      });
       // Verify route was unregistered
       expect(mockPage.unroute).toHaveBeenCalledWith('**/*');
 
@@ -263,14 +266,16 @@ describe('hh3dHandler', () => {
         })
       ).rejects.toThrow();
 
-      expect(CustomError.high).toHaveBeenCalledWith(
-        'Enqueue links failed',
-        expect.objectContaining({
-          originalError: selectorError,
-          errorCode: HTTP_ERRORS.NETWORK_ERROR,
-          shouldRetry: false,
-        })
-      );
+      expect(CustomError.high).toHaveBeenCalledWith('Enqueue links failed', {
+        context: {
+          selectors: defaultOptions.selectors,
+          url: 'https://example.com/video',
+        },
+        originalError: selectorError,
+        errorCode: HTTP_ERRORS.NETWORK_ERROR,
+        shouldRetry: false,
+        source: 'services/crawler/hh3d/index.ts',
+      });
     });
 
     it('should handle case when no video URL is found', async () => {
