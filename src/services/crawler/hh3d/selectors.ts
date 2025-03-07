@@ -7,7 +7,7 @@ import { SelectorConfig, SelectorName } from '../types';
  * - videoUrl
  */
 
-const slectors: SelectorConfig[] = [
+const selectors: SelectorConfig[] = [
   {
     name: SelectorName.TITLE,
     selector: '.product-item-info > .product-item-name > a',
@@ -24,4 +24,4 @@ const slectors: SelectorConfig[] = [
 
 const videoUrlXHRUrl = 'wp-content/themes/halimmovies/player.php';
 
-export { slectors, videoUrlXHRUrl };
+export { selectors, videoUrlXHRUrl };

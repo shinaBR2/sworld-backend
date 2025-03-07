@@ -45,6 +45,13 @@ describe('crawl', () => {
       {}
     );
 
+    expect(createRequestHandler).toHaveBeenCalledWith('test', {
+      selectors: [],
+      getSingleVideo: false,
+      title: 'Test',
+      slugPrefix: 'test',
+    });
+
     expect(result).toEqual({
       data: mockState.data,
       urls: mockState.processedUrls,

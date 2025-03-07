@@ -7,7 +7,7 @@ const scrapeUrl = async (response: APIResponse): Promise<string | null> => {
 
   try {
     const data = await response.json();
-    if (data && data['file']) {
+    if (data?.file) {
       videoUrl = data['file'];
     }
   } catch (parseError) {

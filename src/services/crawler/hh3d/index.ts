@@ -64,7 +64,11 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
           }
 
           videoUrl = await scrapeUrl(response);
-          resolve(videoUrl);
+          if (videoUrl) {
+            // Only unroute if we got a valid video URL
+            await page.unroute('**/*');
+            resolve(videoUrl);
+          }
         }
 
         await route.continue();

@@ -1,7 +1,7 @@
 import { Page } from 'playwright';
 import { hh3dHandler } from './hh3d';
+import { selectors } from './hh3d/selectors';
 import { HandlerOptions, RequestHandlerWithState, SelectorConfig } from './types';
-import { slectors } from './hh3d/selectors';
 
 /**
  * Determines the appropriate handler based on the start URLs
@@ -19,7 +19,7 @@ const getHandlerType = (startUrls: string[]): string => {
 const getSelectors = (handlerType: string) => {
   switch (handlerType) {
     case 'hh3d': {
-      return slectors;
+      return selectors;
     }
     default: {
       throw new Error(`Unsupported handler type: ${handlerType}`);
@@ -46,7 +46,7 @@ const createRequestHandler = <T>(handlerType: string, options: HandlerOptions): 
 
 const simpleScraper = async (page: Page, selector: SelectorConfig) => {
   const text = await page.locator(selector.selector).textContent();
-  return text;
+  return text ?? '';
 };
 
-export { getHandlerType, getSelectors, createRequestHandler, simpleScraper };
+export { createRequestHandler, getHandlerType, getSelectors, simpleScraper };

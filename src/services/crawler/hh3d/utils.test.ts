@@ -6,8 +6,6 @@ vi.mock('./selectors', () => ({
   videoUrlXHRUrl: 'api/videos',
 }));
 
-// Import the mocked value so we can change it during tests
-
 describe('videoUrlXHRMatcher', () => {
   it('should return true when URL includes the pattern', () => {
     const testUrls = [

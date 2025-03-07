@@ -107,6 +107,7 @@ describe('hh3dHandler', () => {
           setTimeout(() => handler(mockRoute), 0);
         }),
         waitForSelector: vi.fn().mockResolvedValue(undefined),
+        unroute: vi.fn().mockResolvedValue(undefined),
       } as unknown as Page;
 
       const mockRequest = { url: 'https://example.com/video' };
@@ -142,6 +143,7 @@ describe('hh3dHandler', () => {
           videoUrl: 'http://video.url',
         },
       ]);
+      expect(mockPage.unroute).toHaveBeenCalledWith('**/*');
     });
 
     it('should skip enqueue links when getSingleVideo is true', async () => {
@@ -166,6 +168,7 @@ describe('hh3dHandler', () => {
           setTimeout(() => handler(mockRoute), 0);
         }),
         waitForSelector: vi.fn().mockResolvedValue(undefined),
+        unroute: vi.fn().mockResolvedValue(undefined),
       } as unknown as Page;
 
       const mockRequest = { url: 'https://example.com/video' };
@@ -190,6 +193,7 @@ describe('hh3dHandler', () => {
           videoUrl: 'http://video.url',
         },
       ]);
+      expect(mockPage.unroute).toHaveBeenCalledWith('**/*');
     });
 
     it('should handle network error during fetch', async () => {
@@ -219,6 +223,7 @@ describe('hh3dHandler', () => {
         }),
         waitForSelector: vi.fn(),
         routeHandler: null,
+        unroute: vi.fn().mockResolvedValue(undefined),
       } as unknown as Page;
 
       const mockRequest = { url: 'https://example.com/video' };
@@ -277,6 +282,7 @@ describe('hh3dHandler', () => {
           setTimeout(() => handler(mockRoute), 0);
         }),
         waitForSelector: vi.fn().mockRejectedValue(selectorError),
+        unroute: vi.fn().mockResolvedValue(undefined),
       };
 
       const mockRequest = { url: 'https://example.com/video' };
