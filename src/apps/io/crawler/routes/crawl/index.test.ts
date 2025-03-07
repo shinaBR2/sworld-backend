@@ -131,7 +131,11 @@ describe('crawlHandler', () => {
         title: 'Test Title',
         slugPrefix: '',
       },
-      expect.any(Object)
+      {
+        maxRequestsPerCrawl: 100,
+        maxConcurrency: 5,
+        maxRequestsPerMinute: 20,
+      }
     );
   });
 
