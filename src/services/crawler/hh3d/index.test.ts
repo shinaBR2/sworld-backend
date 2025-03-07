@@ -235,6 +235,8 @@ describe('hh3dHandler', () => {
           shouldRetry: true,
         })
       );
+      // Verify route was unregistered
+      expect(mockPage.unroute).toHaveBeenCalledWith('**/*');
 
       // Now that we've verified the parameters, we don't need to
       // test the full handler flow - we know it should fail if

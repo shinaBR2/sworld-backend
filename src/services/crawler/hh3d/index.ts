@@ -52,6 +52,7 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
           try {
             response = await route.fetch();
           } catch (error) {
+            page.unroute('**/*');
             throw CustomError.high('Request failed', {
               originalError: error,
               shouldRetry: true,
@@ -78,9 +79,18 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
     logger.info(`Processing ${request.url}...`);
     await page.goto(currentPageUrl);
 
-    const timeoutPromise = new Promise<null>(resolve => setTimeout(() => resolve(null), timeout));
+    const timeoutPromise = new Promise<null>(resolve =>
+      setTimeout(async () => {
+        await page.unroute('**/*');
+        resolve(null);
+      }, timeout)
+    );
 
     await Promise.race([videoUrlPromise, timeoutPromise]);
+
+    if (videoUrl === null) {
+      logger.warn(`Timeout reached for ${currentPageUrl}`);
+    }
 
     // Add data to the shared state
     initialState.data.push({
