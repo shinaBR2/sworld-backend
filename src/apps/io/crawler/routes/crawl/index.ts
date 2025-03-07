@@ -37,13 +37,11 @@ const crawlHandler = async (req: Request, res: Response) => {
     },
     {
       maxRequestsPerCrawl: 100,
-      // waitForSelectorTimeout: 10000,
       maxConcurrency: 5,
       maxRequestsPerMinute: 20,
     }
   );
   logger.info(result, 'after crawl');
-  // return result;
 
   res.json({ result });
 };

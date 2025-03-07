@@ -32,6 +32,33 @@ import { Page } from 'playwright';
 import { CustomError } from 'src/utils/custom-error';
 import { scrapeUrl } from './scrapers';
 
+// Helper function to create common mocks
+const createMocks = (options = {}) => {
+  const mockRoute = {
+    request: vi.fn().mockReturnValue({
+      url: () => 'https://example.com/player.php',
+    }),
+    fetch: vi.fn().mockResolvedValue({}),
+    continue: vi.fn().mockResolvedValue(undefined),
+    ...options.route,
+  };
+
+  const mockPage = {
+    goto: vi.fn().mockResolvedValue(undefined),
+    route: vi.fn().mockImplementation((pattern, handler) => {
+      setTimeout(() => handler(mockRoute), 0);
+    }),
+    waitForSelector: vi.fn().mockResolvedValue(undefined),
+    unroute: vi.fn().mockResolvedValue(undefined),
+    ...options.page,
+  } as unknown as Page;
+
+  const mockRequest = { url: 'https://example.com/video', ...options.request };
+  const mockEnqueueLinks = vi.fn().mockResolvedValue(undefined);
+
+  return { mockRoute, mockPage, mockRequest, mockEnqueueLinks };
+};
+
 describe('hh3dHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -89,29 +116,7 @@ describe('hh3dHandler', () => {
       vi.mocked(scrapeUrl).mockResolvedValue('http://video.url');
 
       const { handler, initialState } = hh3dHandler(defaultOptions);
-
-      // Create the mock route
-      const mockRoute = {
-        request: vi.fn().mockReturnValue({
-          url: () => 'https://example.com/player.php',
-        }),
-        fetch: vi.fn().mockResolvedValue({}),
-        continue: vi.fn().mockResolvedValue(undefined),
-      };
-
-      // Create custom page mock
-      const mockPage = {
-        goto: vi.fn().mockResolvedValue(undefined),
-        route: vi.fn().mockImplementation((pattern, handler) => {
-          // Execute route handler immediately
-          setTimeout(() => handler(mockRoute), 0);
-        }),
-        waitForSelector: vi.fn().mockResolvedValue(undefined),
-        unroute: vi.fn().mockResolvedValue(undefined),
-      } as unknown as Page;
-
-      const mockRequest = { url: 'https://example.com/video' };
-      const mockEnqueueLinks = vi.fn().mockResolvedValue(undefined);
+      const { mockPage, mockRequest, mockEnqueueLinks } = createMocks();
 
       // Execute the handler
       await handler({
@@ -154,25 +159,7 @@ describe('hh3dHandler', () => {
         getSingleVideo: true,
       });
 
-      const mockRoute = {
-        request: vi.fn().mockReturnValue({
-          url: () => 'https://example.com/player.php',
-        }),
-        fetch: vi.fn().mockResolvedValue({}),
-        continue: vi.fn().mockResolvedValue(undefined),
-      };
-
-      const mockPage = {
-        goto: vi.fn().mockResolvedValue(undefined),
-        route: vi.fn().mockImplementation((pattern, handler) => {
-          setTimeout(() => handler(mockRoute), 0);
-        }),
-        waitForSelector: vi.fn().mockResolvedValue(undefined),
-        unroute: vi.fn().mockResolvedValue(undefined),
-      } as unknown as Page;
-
-      const mockRequest = { url: 'https://example.com/video' };
-      const mockEnqueueLinks = vi.fn().mockResolvedValue(undefined);
+      const { mockPage, mockRequest, mockEnqueueLinks } = createMocks();
 
       await handler({
         page: mockPage,
@@ -206,38 +193,29 @@ describe('hh3dHandler', () => {
         return new Error('Request failed');
       });
 
-      // Create the mock route
-      const mockRoute = {
-        request: vi.fn().mockReturnValue({
-          url: () => 'https://example.com/player.php',
-        }),
-        fetch: vi.fn().mockRejectedValue(networkError),
-        continue: vi.fn().mockResolvedValue(undefined),
-      };
-
-      // Create a simple page mock that just registers the route handler
-      const mockPage = {
-        goto: vi.fn().mockResolvedValue(undefined),
-        route: vi.fn().mockImplementation((pattern, handler) => {
-          mockPage.routeHandler = handler;
-        }),
-        waitForSelector: vi.fn(),
-        routeHandler: null,
-        unroute: vi.fn().mockResolvedValue(undefined),
-      } as unknown as Page;
-
-      const mockRequest = { url: 'https://example.com/video' };
-      const mockEnqueueLinks = vi.fn();
-
-      // Create the handler
       const { handler } = hh3dHandler(defaultOptions);
+      const { mockRequest, mockRoute, mockPage, mockEnqueueLinks } = createMocks({
+        route: {
+          fetch: vi.fn().mockRejectedValue(networkError),
+        },
+        page: {
+          goto: vi.fn().mockResolvedValue(undefined),
+          route: vi.fn().mockImplementation((pattern, handler) => {
+            mockPage.routeHandler = handler;
+          }),
+          waitForSelector: vi.fn(),
+          routeHandler: null,
+          unroute: vi.fn().mockResolvedValue(undefined),
+        },
+      });
 
-      // Start the handler but don't await it
-      const handlerPromise = handler({
+      handler({
         page: mockPage,
         request: mockRequest,
         enqueueLinks: mockEnqueueLinks,
       });
+
+      // Start the handler but don't await it
 
       // Execute the route handler in isolation
       try {
@@ -268,27 +246,12 @@ describe('hh3dHandler', () => {
 
       const selectorError = new Error('Selector timeout');
 
-      const mockRoute = {
-        request: vi.fn().mockReturnValue({
-          url: () => 'https://example.com/player.php',
-        }),
-        fetch: vi.fn().mockResolvedValue({}),
-        continue: vi.fn().mockResolvedValue(undefined),
-      };
-
-      const mockPage = {
-        goto: vi.fn().mockResolvedValue(undefined),
-        route: vi.fn().mockImplementation((pattern, handler) => {
-          setTimeout(() => handler(mockRoute), 0);
-        }),
-        waitForSelector: vi.fn().mockRejectedValue(selectorError),
-        unroute: vi.fn().mockResolvedValue(undefined),
-      };
-
-      const mockRequest = { url: 'https://example.com/video' };
-      const mockEnqueueLinks = vi.fn().mockResolvedValue(undefined);
-
       const { handler } = hh3dHandler(defaultOptions);
+      const { mockRequest, mockPage, mockEnqueueLinks } = createMocks({
+        page: {
+          waitForSelector: vi.fn().mockRejectedValue(selectorError),
+        },
+      });
 
       await expect(
         handler({
@@ -312,25 +275,7 @@ describe('hh3dHandler', () => {
       vi.mocked(scrapeUrl).mockResolvedValue(null);
 
       const { handler, initialState } = hh3dHandler(defaultOptions);
-
-      const mockRoute = {
-        request: vi.fn().mockReturnValue({
-          url: () => 'https://example.com/player.php',
-        }),
-        fetch: vi.fn().mockResolvedValue({}),
-        continue: vi.fn().mockResolvedValue(undefined),
-      };
-
-      const mockPage = {
-        goto: vi.fn().mockResolvedValue(undefined),
-        route: vi.fn().mockImplementation((pattern, handler) => {
-          setTimeout(() => handler(mockRoute), 0);
-        }),
-        waitForSelector: vi.fn().mockResolvedValue(undefined),
-      };
-
-      const mockRequest = { url: 'https://example.com/video' };
-      const mockEnqueueLinks = vi.fn().mockResolvedValue(undefined);
+      const { mockRequest, mockPage, mockEnqueueLinks } = createMocks();
 
       await handler({
         page: mockPage,

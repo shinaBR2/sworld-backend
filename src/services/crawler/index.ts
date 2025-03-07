@@ -5,7 +5,6 @@ import { validateUrlInput } from './validator';
 
 interface BaseCrawlOptions extends Omit<PlaywrightCrawlerOptions, 'requestHandler'> {
   selectors?: SelectorConfig[];
-  waitForSelectorTimeout?: number;
   handlerType?: string;
 }
 
