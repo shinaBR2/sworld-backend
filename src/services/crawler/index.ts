@@ -1,4 +1,4 @@
-import { PlaywrightCrawler, PlaywrightCrawlerOptions, PlaywrightRequestHandler } from 'crawlee';
+import { PlaywrightCrawler, PlaywrightCrawlerOptions } from 'crawlee';
 import { CrawlInputs, SelectorConfig } from './types';
 import { createRequestHandler } from './utils';
 import { validateUrlInput } from './validator';
@@ -16,6 +16,7 @@ interface CrawlResult<T> {
 
 /**
  * Generic crawler function that selects the appropriate handler based on input URLs
+ * @template T The type of data that will be collected during crawling
  * @param startUrls Array of URLs to start crawling from
  * @param options Configuration options for the crawler
  * @returns Promise resolving to a CrawlResult object with the collected data
@@ -34,7 +35,7 @@ const crawl = async <T>(props: CrawlInputs, crawlerOptions: BaseCrawlOptions): P
 
   const crawler = new PlaywrightCrawler({
     ...crawlerOptions,
-    requestHandler: handler as unknown as PlaywrightRequestHandler,
+    requestHandler: handler,
   });
 
   await crawler.run([url]);
