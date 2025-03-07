@@ -86,7 +86,7 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
     initialState.data.push({
       url: currentPageUrl,
       videoUrl: videoUrl,
-    } as unknown as T);
+    } as T);
 
     initialState.processedUrls.push(currentPageUrl);
 
