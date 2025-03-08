@@ -1,8 +1,9 @@
-import { PlaywrightRequestHandler } from 'crawlee';
+import type { PlaywrightRequestHandler } from 'crawlee';
 import { CustomError } from 'src/utils/custom-error';
 import { CRAWL_ERRORS, HTTP_ERRORS } from 'src/utils/error-codes';
 import { logger } from 'src/utils/logger';
-import { HandlerOptions, HandlerState, RequestHandlerWithState, SelectorName } from '../types';
+import type { HandlerOptions, HandlerState, RequestHandlerWithState } from '../types';
+import { SelectorName } from '../types';
 import { scrapeUrl } from './scrapers';
 import { videoUrlXHRMatcher } from './utils';
 
@@ -21,7 +22,9 @@ const hh3dHandler = <T>(options: HandlerOptions): RequestHandlerWithState<T> => 
   };
 
   /**
-   * For now url is ALL what we need
+   * Extract the URL selector from the provided selectors
+   * The URL selector is required for the crawler to function properly
+   * It defines both the CSS selector to find links and the timeout for waiting
    */
   const urlSelector = selectors.find(selector => selector.name === SelectorName.URL);
 
