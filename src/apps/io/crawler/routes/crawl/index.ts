@@ -25,12 +25,6 @@ import { buildVariables } from './utils';
 const crawlHandler = async (req: Request, res: Response) => {
   const { userId, getSingleVideo, url, title, slugPrefix = '' } = req.body;
 
-  if (typeof getSingleVideo == 'undefined' || !url || !title) {
-    return res.status(400).json({
-      message: 'Invalid request body',
-    });
-  }
-
   const inputs = {
     getSingleVideo,
     url,
