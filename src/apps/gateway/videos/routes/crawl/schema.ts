@@ -21,7 +21,7 @@ const transformEvent = (event: z.infer<typeof CrawlEventSchema>) => {
       id: event.data.id,
       userId: event.data.user_id,
       url: event.data.url,
-      getSingleVideo: event.data.get_single_video || true,
+      getSingleVideo: event.data.get_single_video,
       title: event.data.title,
       slugPrefix: event.data.slug_prefix,
     },

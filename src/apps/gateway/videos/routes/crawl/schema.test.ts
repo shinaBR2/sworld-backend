@@ -181,38 +181,6 @@ describe('CrawlSchema', () => {
     });
   });
 
-  it('should set default value for get_single_video', () => {
-    // Arrange
-    const requestWithoutGetSingleVideo = {
-      body: {
-        event: {
-          metadata: {
-            id: 'event-123',
-            span_id: 'span-456',
-            trace_id: 'trace-789',
-          },
-          data: {
-            id: '123e4567-e89b-12d3-a456-426614174000',
-            user_id: '123e4567-e89b-12d3-a456-426614174001',
-            url: 'https://example.com/video',
-            get_single_video: false, // Set to false explicitly
-            title: 'Example Video',
-          },
-        },
-      },
-      headers: {
-        'x-request-id': 'req-123',
-      },
-    };
-
-    // Act
-    const result = CrawlSchema.parse(requestWithoutGetSingleVideo);
-
-    // Assert
-    // The transform function should override this to true
-    expect(result.event.data.getSingleVideo).toBe(true);
-  });
-
   it('should handle missing optional fields', () => {
     // Arrange
     const requestWithMissingOptionals = {
