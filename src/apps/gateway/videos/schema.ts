@@ -12,7 +12,13 @@ const transformHeaders = (req: any) => ({
   signatureHeader: req.headers['x-webhook-signature'] as string,
 });
 
+const hasuraEventMetadataSchema = z.object({
+  id: z.string(),
+  span_id: z.string(),
+  trace_id: z.string(),
+});
+
 const webhookSchema = z.object(schema).transform(transformHeaders);
 
 export type WebhookRequest = z.infer<typeof webhookSchema>;
-export { headersSchema, transformHeaders, webhookSchema };
+export { hasuraEventMetadataSchema, headersSchema, transformHeaders, webhookSchema };
