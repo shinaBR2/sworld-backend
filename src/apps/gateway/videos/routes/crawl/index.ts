@@ -11,7 +11,7 @@ import { AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
 import { ValidatedRequest } from 'src/utils/validator';
 
-const crawl = async (req: Request, res: Response) => {
+const crawlHandler = async (req: Request, res: Response) => {
   const { ioServiceUrl } = envConfig;
   const { validatedData } = req as ValidatedRequest<ConvertRequest>;
   const { signatureHeader, event } = validatedData;
@@ -47,4 +47,4 @@ const crawl = async (req: Request, res: Response) => {
   return res.json(AppResponse(true, 'ok'));
 };
 
-export { crawl };
+export { crawlHandler };

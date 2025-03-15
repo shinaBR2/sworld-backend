@@ -8,7 +8,7 @@ import { CRAWL_ERRORS } from 'src/utils/error-codes';
 import { logger } from 'src/utils/logger';
 import { queues } from 'src/utils/systemConfig';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { crawl } from './index';
+import { crawlHandler } from './index';
 
 vi.mock('src/utils/schema', () => ({
   AppResponse: vi.fn((success, message, data) => ({ success, message, data })),
@@ -71,7 +71,7 @@ describe('crawl', () => {
   });
 
   it('should create cloud task when signature is valid', async () => {
-    await crawl(mockReq as Request, mockRes as Response);
+    await crawlHandler(mockReq as Request, mockRes as Response);
 
     expect(verifySignature).toHaveBeenCalledWith('test-signature');
     expect(createCloudTasks).toHaveBeenCalledWith({
@@ -103,7 +103,7 @@ describe('crawl', () => {
   it('should throw error when signature verification fails', async () => {
     vi.mocked(verifySignature).mockReturnValue(false);
 
-    await expect(crawl(mockReq as Request, mockRes as Response)).rejects.toThrow('Missing url selector');
+    await expect(crawlHandler(mockReq as Request, mockRes as Response)).rejects.toThrow('Missing url selector');
 
     expect(verifySignature).toHaveBeenCalledWith('test-signature');
     expect(CustomError.high).toHaveBeenCalledWith('Missing url selector', {
@@ -124,7 +124,7 @@ describe('crawl', () => {
     const taskError = new Error('Failed to create task');
     vi.mocked(createCloudTasks).mockRejectedValue(taskError);
 
-    await expect(crawl(mockReq as Request, mockRes as Response)).rejects.toThrow('Failed to create task');
+    await expect(crawlHandler(mockReq as Request, mockRes as Response)).rejects.toThrow('Failed to create task');
 
     expect(verifySignature).toHaveBeenCalledWith('test-signature');
     expect(createCloudTasks).toHaveBeenCalled();
