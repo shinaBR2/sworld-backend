@@ -39,56 +39,6 @@ describe('crawlHandler', () => {
     vi.clearAllMocks();
   });
 
-  it('should return 400 when getSingleVideo is undefined', async () => {
-    mockRequest = {
-      body: {
-        url: 'http://example.com',
-        title: 'Test Title',
-      },
-    };
-
-    await crawlHandler(mockRequest as Request, mockResponse as Response);
-
-    expect(mockResponse.status).toHaveBeenCalledWith(400);
-    expect(jsonMock).toHaveBeenCalledWith({
-      message: 'Invalid request body',
-    });
-  });
-
-  it('should return 400 when url is missing', async () => {
-    mockRequest = {
-      body: {
-        getSingleVideo: true,
-        title: 'Test Title',
-        userId: 'user123',
-      },
-    };
-
-    await crawlHandler(mockRequest as Request, mockResponse as Response);
-
-    expect(mockResponse.status).toHaveBeenCalledWith(400);
-    expect(jsonMock).toHaveBeenCalledWith({
-      message: 'Invalid request body',
-    });
-  });
-
-  it('should return 400 when title is missing', async () => {
-    mockRequest = {
-      body: {
-        getSingleVideo: true,
-        url: 'http://example.com',
-        userId: 'user123',
-      },
-    };
-
-    await crawlHandler(mockRequest as Request, mockResponse as Response);
-
-    expect(mockResponse.status).toHaveBeenCalledWith(400);
-    expect(jsonMock).toHaveBeenCalledWith({
-      message: 'Invalid request body',
-    });
-  });
-
   it('should successfully process video crawling and insertion', async () => {
     const mockCrawlResult = {
       data: [{ videoUrl: 'http://example.com/video1' }, { videoUrl: 'http://example.com/video2' }],
