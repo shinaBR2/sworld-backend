@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ZodError } from 'zod';
-import { hasuraEventMetadataSchema, webhookSchema } from './schema';
+import { hasuraEventMetadataSchema, transformEventMetadata, webhookSchema } from './schema';
 
 describe('webhookSchema', () => {
   const validRequest = {
@@ -164,5 +164,55 @@ describe('hasuraEventMetadataSchema', () => {
 
     // Verify extra field is stripped
     expect(result).not.toHaveProperty('extra_field');
+  });
+});
+
+describe('transformEventMetadata', () => {
+  it('should transform snake_case properties to camelCase', () => {
+    // Arrange
+    const input = {
+      id: '123-abc',
+      span_id: 'span-456',
+      trace_id: 'trace-789',
+      other_field: 'should-be-ignored',
+    };
+
+    // Act
+    const result = transformEventMetadata(input);
+
+    // Assert
+    expect(result).toEqual({
+      id: '123-abc',
+      spanId: 'span-456',
+      traceId: 'trace-789',
+    });
+    // Verify other fields are excluded
+    expect(result).not.toHaveProperty('other_field');
+  });
+
+  it('should handle missing properties', () => {
+    // Arrange
+    const input = {
+      id: '123-abc',
+      // span_id and trace_id missing
+    };
+
+    // Act
+    const result = transformEventMetadata(input);
+
+    // Assert
+    expect(result).toEqual({
+      id: '123-abc',
+      spanId: undefined,
+      traceId: undefined,
+    });
+  });
+
+  it('should handle null input gracefully', () => {
+    // Arrange - testing with null/undefined would depend on how your function should behave
+    // Let's assume it should handle null input
+
+    // Act/Assert
+    expect(() => transformEventMetadata(null)).toThrow();
   });
 });

@@ -18,7 +18,13 @@ const hasuraEventMetadataSchema = z.object({
   trace_id: z.string(),
 });
 
+const transformEventMetadata = (metadata: any) => ({
+  id: metadata.id,
+  spanId: metadata.span_id,
+  traceId: metadata.trace_id,
+});
+
 const webhookSchema = z.object(schema).transform(transformHeaders);
 
 export type WebhookRequest = z.infer<typeof webhookSchema>;
-export { hasuraEventMetadataSchema, headersSchema, transformHeaders, webhookSchema };
+export { hasuraEventMetadataSchema, headersSchema, transformEventMetadata, transformHeaders, webhookSchema };
