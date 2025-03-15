@@ -59,7 +59,7 @@ describe('buildVariables', () => {
 
     expect(result).toEqual([
       {
-        title: '1',
+        title: `${mockTitle} - Tập 1`,
         slug: `${mockSlugPrefix}1--${mockTimestamp}`,
         video_url: 'https://example.com/video1',
         user_id: mockUserId,
@@ -83,7 +83,7 @@ describe('buildVariables', () => {
         },
       },
       {
-        title: '2',
+        title: `${mockTitle} - Tập 2`,
         slug: `${mockSlugPrefix}2--${mockTimestamp}`,
         video_url: 'https://example.com/video2',
         user_id: mockUserId,

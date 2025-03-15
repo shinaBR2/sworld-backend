@@ -18,7 +18,7 @@ const buildVariables = (result: { data: CrawlData[] }, params: CrawlParams): Vid
     }
 
     return {
-      title: position.toString(),
+      title: `${title} - Tập ${position}`,
       slug: `${slugPrefix}${position}--${timestamp}`,
       video_url: videoUrl,
       user_id: userId,
