@@ -103,10 +103,10 @@ describe('crawl', () => {
   it('should throw error when signature verification fails', async () => {
     vi.mocked(verifySignature).mockReturnValue(false);
 
-    await expect(crawlHandler(mockReq as Request, mockRes as Response)).rejects.toThrow('Missing url selector');
+    await expect(crawlHandler(mockReq as Request, mockRes as Response)).rejects.toThrow('Invalid signature');
 
     expect(verifySignature).toHaveBeenCalledWith('test-signature');
-    expect(CustomError.high).toHaveBeenCalledWith('Missing url selector', {
+    expect(CustomError.high).toHaveBeenCalledWith('Invalid signature', {
       shouldRetry: false,
       errorCode: CRAWL_ERRORS.MISSING_URL_SELECTOR,
       context: {

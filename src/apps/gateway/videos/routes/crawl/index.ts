@@ -18,7 +18,7 @@ const crawlHandler = async (req: Request, res: Response) => {
   const { data, metadata } = event;
 
   if (!verifySignature(signatureHeader)) {
-    throw CustomError.high('Missing url selector', {
+    throw CustomError.high('Invalid signature', {
       shouldRetry: false,
       errorCode: CRAWL_ERRORS.MISSING_URL_SELECTOR,
       context: {
