@@ -7,12 +7,12 @@ const headersSchema = z.object({
 const schema = {
   headers: headersSchema.passthrough(),
 };
-const transformer = (req: any) => ({
+const transformHeaders = (req: any) => ({
   contentTypeHeader: req.headers['content-type'] as string,
   signatureHeader: req.headers['x-webhook-signature'] as string,
 });
 
-const webhookSchema = z.object(schema).transform(transformer);
+const webhookSchema = z.object(schema).transform(transformHeaders);
 
 export type WebhookRequest = z.infer<typeof webhookSchema>;
-export { webhookSchema };
+export { headersSchema, transformHeaders, webhookSchema };
