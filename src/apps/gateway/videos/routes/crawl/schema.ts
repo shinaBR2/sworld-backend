@@ -44,4 +44,4 @@ const CrawlSchema = z
   }));
 
 export { CrawlEventSchema, CrawlRequestSchema, CrawlSchema };
-export type ConvertRequest = z.infer<typeof CrawlSchema>;
+export type CrawlRequest = z.infer<typeof CrawlSchema>;
