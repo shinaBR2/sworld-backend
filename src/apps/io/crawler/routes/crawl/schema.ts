@@ -1,7 +1,8 @@
+import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 import { z } from 'zod';
 
 export const crawlHandlerSchema = z.object({
-  // headers: taskHandlerHeaderSchema.passthrough(),
+  headers: taskHandlerHeaderSchema.passthrough(),
   body: z.object({
     getSingleVideo: z.boolean(),
     url: z.string().url(),
