@@ -24,6 +24,7 @@ describe('envConfig', () => {
       'hasuraEndpoint',
       'hasuraAdminSecret',
       'hashnodeWebhookSecret',
+      'hashnodeEndpoint',
       'hashnodePersonalToken',
     ];
 

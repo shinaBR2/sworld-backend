@@ -15,6 +15,7 @@ const envConfig = {
   hasuraEndpoint: process.env.HASURA_ENDPOINT,
   hasuraAdminSecret: process.env.HASURA_ADMIN_SECRET,
   hashnodeWebhookSecret: process.env.HASHNODE_WEBHOOK_SECRET,
+  hashnodeEndpoint: process.env.HASHNODE_ENDPOINT,
   hashnodePersonalToken: process.env.HASHNODE_PERSONAL_TOKEN,
 };
 
