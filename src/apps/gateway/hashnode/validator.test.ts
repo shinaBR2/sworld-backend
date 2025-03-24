@@ -55,6 +55,12 @@ describe('compareSignatures', () => {
   test('handles different length signatures', () => {
     expect(compareSignatures('a', 'aa')).toBe(false);
   });
+
+  test('handles crypto.timingSafeEqual error', () => {
+    // Create buffers of different lengths which will cause timingSafeEqual to throw
+    const result = compareSignatures('abc', 'abcd');
+    expect(result).toBe(false);
+  });
 });
 
 describe('validateSignature', () => {
@@ -103,11 +109,15 @@ describe('validateSignature', () => {
     });
   });
 
-  test('handles timestamp check bypass', () => {
+  test('rejects malformed signature header', () => {
     const result = validateSignature({
-      ...validOptions,
-      validForSeconds: 0,
+      incomingSignatureHeader: 'malformed-header',
+      payload: mockPayload,
+      secret: MOCK_SECRET,
     });
-    expect(result.isValid).toBe(true);
+    expect(result).toEqual({
+      isValid: false,
+      reason: 'Invalid signature header',
+    });
   });
 });
