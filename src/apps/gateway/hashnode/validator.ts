@@ -77,7 +77,6 @@ const compareSignatures = (signatureA: string, signatureB: string) => {
  */
 const validateSignature = (options: ValidateSignatureOptions): ValidateSignatureResult => {
   const { incomingSignatureHeader, payload, secret, validForSeconds = 30 } = options;
-  console.log('validateSignature', { incomingSignatureHeader, payload, secret, validForSeconds });
 
   if (!incomingSignatureHeader) {
     return { isValid: false, reason: 'Missing signature' };
@@ -91,22 +90,15 @@ const validateSignature = (options: ValidateSignatureOptions): ValidateSignature
 
   const { timestamp: incomingSignatureTimestamp, signature: incomingSignature } = parseSignatureHeaderData;
 
-  console.log('validateSignature', { parseSignatureHeaderData });
-
   const signature = createSignature({ timestamp: incomingSignatureTimestamp, payload, secret });
   let isSignatureValid = compareSignatures(signature, incomingSignature);
-
-  console.log('validateSignature', { isSignatureValid, signature, incomingSignature });
 
   if (!isSignatureValid) {
     return { isValid: false, reason: 'Invalid signature' };
   }
 
-  console.log('validateSignature', { isSignatureValid, validForSeconds });
   if (validForSeconds !== 0) {
     const differenceInSeconds = Math.abs((Date.now() - incomingSignatureTimestamp) / MILLISECONDS_PER_SECOND);
-
-    console.log('validateSignature', { differenceInSeconds, validForSeconds });
 
     const isTimestampValid = differenceInSeconds <= validForSeconds;
     if (!isTimestampValid) {

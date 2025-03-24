@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { ZodError } from 'zod';
 import { webhookSchema } from './schema';
 
 describe('webhookSchema', () => {
@@ -9,95 +8,84 @@ describe('webhookSchema', () => {
       'x-hashnode-signature': 'test-signature',
       'some-other-header': 'value',
     },
+    body: {
+      metadata: {
+        uuid: '8ebc1c40-4689-4896-a3fa-e98974d9c64a',
+      },
+      data: {
+        publication: { id: '6045fecf8458d42fc821d079' },
+        post: { id: '67e0ae5addd1bbc4e0f63015' },
+        eventType: 'post_published',
+      },
+    },
   };
 
-  it('should successfully transform valid request', () => {
-    const result = webhookSchema.parse(validRequest);
+  it('should validate valid request with different event types', () => {
+    const eventTypes = ['post_published', 'post_updated', 'post_deleted'] as const;
 
-    expect(result).toEqual({
-      contentTypeHeader: 'application/json',
-      signatureHeader: 'test-signature',
+    eventTypes.forEach(eventType => {
+      const request = {
+        ...validRequest,
+        body: {
+          ...validRequest.body,
+          data: {
+            ...validRequest.body.data,
+            eventType,
+          },
+        },
+      };
+
+      const result = webhookSchema.parse(request);
+      expect(result.body.data.eventType).toBe(eventType);
     });
   });
 
-  it('should allow additional headers due to passthrough', () => {
-    const requestWithExtraHeaders = {
-      headers: {
-        'content-type': 'application/json',
-        'x-hashnode-signature': 'test-signature',
-        'extra-header': 'some-value',
-        'another-header': 'another-value',
+  it('should fail with invalid event type', () => {
+    const invalidRequest = {
+      ...validRequest,
+      body: {
+        ...validRequest.body,
+        data: {
+          ...validRequest.body.data,
+          eventType: 'unknown_event',
+        },
       },
     };
-
-    const result = webhookSchema.parse(requestWithExtraHeaders);
-
-    expect(result).toEqual({
-      contentTypeHeader: 'application/json',
-      signatureHeader: 'test-signature',
-    });
-  });
-
-  it('should fail when content-type header is missing', () => {
-    const requestWithoutContentType = {
-      headers: {
-        'x-hashnode-signature': 'test-signature',
-      },
-    };
-
-    expect(() => webhookSchema.parse(requestWithoutContentType)).toThrow(ZodError);
-  });
-
-  it('should fail when x-hashnode-signature header is missing', () => {
-    const requestWithoutSignature = {
-      headers: {
-        'content-type': 'application/json',
-      },
-    };
-
-    expect(() => webhookSchema.parse(requestWithoutSignature)).toThrow(ZodError);
-  });
-
-  it('should fail when headers property is missing', () => {
-    const requestWithoutHeaders = {};
-
-    expect(() => webhookSchema.parse(requestWithoutHeaders)).toThrow(ZodError);
-  });
-
-  it('should handle null or undefined values appropriately', () => {
-    const requestWithNullValues = {
-      headers: {
-        'content-type': null,
-        'x-hashnode-signature': undefined,
-      },
-    };
-
-    expect(() => webhookSchema.parse(requestWithNullValues)).toThrow(ZodError);
-  });
-
-  it('should fail when headers is null', () => {
-    const requestWithNullHeaders = {
-      headers: null,
-    };
-
-    expect(() => webhookSchema.parse(requestWithNullHeaders)).toThrow(ZodError);
-  });
-
-  it('should validate transformed output types', () => {
-    const result = webhookSchema.parse(validRequest);
-
-    expect(typeof result.contentTypeHeader).toBe('string');
-    expect(typeof result.signatureHeader).toBe('string');
+    expect(() => webhookSchema.parse(invalidRequest)).toThrow();
   });
 
   it('should fail when content-type is not application/json', () => {
-    const invalidContentType = {
-      headers: {
-        'content-type': 'text/plain',
-        'x-hashnode-signature': 'test-signature',
+    const invalidRequest = {
+      ...validRequest,
+      headers: { ...validRequest.headers, 'content-type': 'text/plain' },
+    };
+    expect(() => webhookSchema.parse(invalidRequest)).toThrow();
+  });
+
+  it('should fail when signature is missing', () => {
+    const invalidRequest = {
+      ...validRequest,
+      headers: { 'content-type': 'application/json' },
+    };
+    expect(() => webhookSchema.parse(invalidRequest)).toThrow();
+  });
+
+  it('should fail with invalid UUID', () => {
+    const invalidRequest = {
+      ...validRequest,
+      body: {
+        ...validRequest.body,
+        metadata: { uuid: 'not-a-uuid' },
       },
     };
+    expect(() => webhookSchema.parse(invalidRequest)).toThrow();
+  });
 
-    expect(() => webhookSchema.parse(invalidContentType)).toThrow(ZodError);
+  it('should fail when required body fields are missing', () => {
+    const invalidRequest = {
+      ...validRequest,
+      body: {},
+    };
+    expect(() => webhookSchema.parse(invalidRequest)).toThrow();
   });
 });
