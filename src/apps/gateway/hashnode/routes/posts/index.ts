@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
+import { deletePost } from 'src/services/hasura/mutations/posts/delete';
+import { insertPost } from 'src/services/hasura/mutations/posts/insert';
+import { updatePost } from 'src/services/hasura/mutations/posts/update';
 import { CustomError } from 'src/utils/custom-error';
 import { envConfig } from 'src/utils/envConfig';
-import { VALIDATION_ERRORS } from 'src/utils/error-codes';
+import { HTTP_ERRORS, VALIDATION_ERRORS } from 'src/utils/error-codes';
 import { AppResponse } from 'src/utils/schema';
 import { ValidatedRequest } from 'src/utils/validator';
 import { WebhookRequest } from '../../schema';
@@ -32,24 +35,39 @@ const postEventsHandler = async (req: Request, res: Response) => {
   const { eventType, post } = body.data;
   const { id: postId } = post;
 
-  if (eventType === 'post_published') {
-    // TODO: trigger the compute service to generate the image
-  } else if (eventType === 'post_updated') {
-    // TODO: trigger the compute service to delete the image
-  } else if (eventType === 'post_deleted') {
-    // TODO: trigger the compute service to delete the image
-  } else {
-    throw CustomError.high('Invalid event type', {
-      shouldRetry: false,
-      errorCode: VALIDATION_ERRORS.INVALID_PAYLOAD,
+  try {
+    if (eventType === 'post_published') {
+      await insertPost({
+        id: postId,
+        ...post,
+      });
+    } else if (eventType === 'post_updated') {
+      await updatePost(postId, post);
+    } else if (eventType === 'post_deleted') {
+      await deletePost(postId);
+    } else {
+      throw CustomError.high('Invalid event type', {
+        shouldRetry: false,
+        errorCode: VALIDATION_ERRORS.INVALID_PAYLOAD,
+        context: {
+          body,
+        },
+        source: 'apps/gateway/hashnode/routes/posts/index.ts',
+      });
+    }
+
+    return res.json(AppResponse(true, 'ok'));
+  } catch (error) {
+    throw CustomError.high('Failed to process post event', {
+      shouldRetry: true,
+      errorCode: HTTP_ERRORS.SERVER_ERROR,
       context: {
+        error,
         body,
       },
       source: 'apps/gateway/hashnode/routes/posts/index.ts',
     });
   }
-
-  return res.json(AppResponse(true, 'ok'));
 };
 
 export { postEventsHandler };
