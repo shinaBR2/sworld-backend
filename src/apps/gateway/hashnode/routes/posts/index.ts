@@ -14,8 +14,6 @@ import { validateSignature } from '../../validator';
 const fetchPost = async (hId: string) => {
   const postDetail = await getPost(hId);
 
-  console.log(postDetail);
-
   if (!postDetail) {
     throw CustomError.high('Post not found', {
       shouldRetry: false,
@@ -59,8 +57,6 @@ const postEventsHandler = async (req: Request, res: Response) => {
     if (eventType === 'post_published') {
       const postDetail = await fetchPost(hId);
 
-      console.log(postDetail);
-
       const { title, brief, content, readTimeInMinutes, slug } = postDetail;
 
       await insertPost({
@@ -73,8 +69,6 @@ const postEventsHandler = async (req: Request, res: Response) => {
       });
     } else if (eventType === 'post_updated') {
       const postDetail = await fetchPost(hId);
-
-      console.log(postDetail);
 
       const { title, brief, content, readTimeInMinutes, slug } = postDetail;
 
