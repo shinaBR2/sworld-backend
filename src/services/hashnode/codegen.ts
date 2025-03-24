@@ -1,13 +1,13 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 import { envConfig } from '../../utils/envConfig';
 
-const hasuraUrl = envConfig.hashnodeEndpoint as string;
+const hashnodeUrl = envConfig.hashnodeEndpoint as string;
 const token = envConfig.hashnodePersonalToken as string;
 
 const config: CodegenConfig = {
   schema: [
     {
-      [hasuraUrl]: {
+      [hashnodeUrl]: {
         headers: {
           Authorization: token,
         },
