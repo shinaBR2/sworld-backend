@@ -62,3 +62,39 @@ describe('createHashnodeClient', () => {
     );
   });
 });
+
+describe('getHashnodeClient', () => {
+  let mockClient: any;
+
+  beforeEach(async () => {
+    // Clear all mocks and module cache
+    vi.clearAllMocks();
+    vi.resetModules();
+
+    // Re-import the module after reset
+    await import('./client');
+
+    // Setup mocks
+    mockClient = { test: 'client' };
+    vi.mocked(GraphQLClient).mockReturnValue(mockClient);
+    vi.mocked(envConfig).hashnodeEndpoint = 'https://api.hashnode.com';
+    vi.mocked(envConfig).hashnodePersonalToken = 'test-token';
+  });
+
+  it('should create new client instance when none exists', async () => {
+    const { getHashnodeClient } = await import('./client');
+    const client = getHashnodeClient();
+
+    expect(GraphQLClient).toHaveBeenCalledTimes(1);
+    expect(client).toBe(mockClient);
+  });
+
+  it('should return existing client instance on subsequent calls', async () => {
+    const { getHashnodeClient } = await import('./client');
+    const firstClient = getHashnodeClient();
+    const secondClient = getHashnodeClient();
+
+    expect(GraphQLClient).toHaveBeenCalledTimes(1);
+    expect(firstClient).toBe(secondClient);
+  });
+});
