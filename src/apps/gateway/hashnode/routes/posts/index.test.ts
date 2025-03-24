@@ -54,8 +54,7 @@ describe('postEventsHandler', () => {
     await postEventsHandler(mockRequest, mockResponse);
 
     expect(insertPost).toHaveBeenCalledWith({
-      id: mockPost.id,
-      ...mockPost,
+      hId: mockPost.id,
     });
     expect(mockResponse.json).toHaveBeenCalled();
   });

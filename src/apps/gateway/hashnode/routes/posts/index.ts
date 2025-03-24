@@ -5,6 +5,7 @@ import { updatePost } from 'src/services/hasura/mutations/posts/update';
 import { CustomError } from 'src/utils/custom-error';
 import { envConfig } from 'src/utils/envConfig';
 import { HTTP_ERRORS, VALIDATION_ERRORS } from 'src/utils/error-codes';
+import { logger } from 'src/utils/logger';
 import { AppResponse } from 'src/utils/schema';
 import { ValidatedRequest } from 'src/utils/validator';
 import { WebhookRequest } from '../../schema';
@@ -35,10 +36,12 @@ const postEventsHandler = async (req: Request, res: Response) => {
   const { eventType, post } = body.data;
   const { id: postId } = post;
 
+  // Send request to hashnode API to get post
+
   try {
     if (eventType === 'post_published') {
       await insertPost({
-        id: postId,
+        hId: postId,
         ...post,
       });
     } else if (eventType === 'post_updated') {
@@ -58,6 +61,7 @@ const postEventsHandler = async (req: Request, res: Response) => {
 
     return res.json(AppResponse(true, 'ok'));
   } catch (error) {
+    logger.info(error, 'error');
     throw CustomError.high('Failed to process post event', {
       shouldRetry: true,
       errorCode: HTTP_ERRORS.SERVER_ERROR,
