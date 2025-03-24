@@ -6878,6 +6878,15 @@ export type Videos_Variance_Order_By = {
   view_count?: InputMaybe<Order_By>;
 };
 
+export type DeletePostMutationVariables = Exact<{
+  id: Scalars['uuid']['input'];
+}>;
+
+export type DeletePostMutation = {
+  __typename?: 'mutation_root';
+  delete_posts_by_pk?: { __typename?: 'posts'; id: any } | null;
+};
+
 export type InsertPostMutationVariables = Exact<{
   object: Posts_Insert_Input;
 }>;
@@ -6885,6 +6894,16 @@ export type InsertPostMutationVariables = Exact<{
 export type InsertPostMutation = {
   __typename?: 'mutation_root';
   insert_posts_one?: { __typename?: 'posts'; id: any } | null;
+};
+
+export type UpdatePostMutationVariables = Exact<{
+  id: Scalars['uuid']['input'];
+  set: Posts_Set_Input;
+}>;
+
+export type UpdatePostMutation = {
+  __typename?: 'mutation_root';
+  update_posts_by_pk?: { __typename?: 'posts'; id: any } | null;
 };
 
 export type InsertVideosMutationVariables = Exact<{
@@ -6918,6 +6937,13 @@ export class TypedDocumentString<TResult, TVariables>
   }
 }
 
+export const DeletePostDocument = new TypedDocumentString(`
+    mutation DeletePost($id: uuid!) {
+  delete_posts_by_pk(id: $id) {
+    id
+  }
+}
+    `) as unknown as TypedDocumentString<DeletePostMutation, DeletePostMutationVariables>;
 export const InsertPostDocument = new TypedDocumentString(`
     mutation InsertPost($object: posts_insert_input!) {
   insert_posts_one(object: $object) {
@@ -6925,6 +6951,13 @@ export const InsertPostDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<InsertPostMutation, InsertPostMutationVariables>;
+export const UpdatePostDocument = new TypedDocumentString(`
+    mutation UpdatePost($id: uuid!, $set: posts_set_input!) {
+  update_posts_by_pk(pk_columns: {id: $id}, _set: $set) {
+    id
+  }
+}
+    `) as unknown as TypedDocumentString<UpdatePostMutation, UpdatePostMutationVariables>;
 export const InsertVideosDocument = new TypedDocumentString(`
     mutation InsertVideos($objects: [videos_insert_input!]!) {
   insert_videos(objects: $objects) {

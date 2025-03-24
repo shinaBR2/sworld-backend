@@ -13,12 +13,18 @@ import * as types from './graphql';
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+  '\n  mutation DeletePost($id: uuid!) {\n    delete_posts_by_pk(id: $id) {\n      id\n    }\n  }\n': typeof types.DeletePostDocument;
   '\n  mutation InsertPost($object: posts_insert_input!) {\n    insert_posts_one(object: $object) {\n      id\n    }\n  }\n': typeof types.InsertPostDocument;
+  '\n  mutation UpdatePost($id: uuid!, $set: posts_set_input!) {\n    update_posts_by_pk(pk_columns: { id: $id }, _set: $set) {\n      id\n    }\n  }\n': typeof types.UpdatePostDocument;
   '\n  mutation InsertVideos($objects: [videos_insert_input!]!) {\n    insert_videos(objects: $objects) {\n      returning {\n        id\n        title\n        description\n      }\n    }\n  }\n': typeof types.InsertVideosDocument;
 };
 const documents: Documents = {
+  '\n  mutation DeletePost($id: uuid!) {\n    delete_posts_by_pk(id: $id) {\n      id\n    }\n  }\n':
+    types.DeletePostDocument,
   '\n  mutation InsertPost($object: posts_insert_input!) {\n    insert_posts_one(object: $object) {\n      id\n    }\n  }\n':
     types.InsertPostDocument,
+  '\n  mutation UpdatePost($id: uuid!, $set: posts_set_input!) {\n    update_posts_by_pk(pk_columns: { id: $id }, _set: $set) {\n      id\n    }\n  }\n':
+    types.UpdatePostDocument,
   '\n  mutation InsertVideos($objects: [videos_insert_input!]!) {\n    insert_videos(objects: $objects) {\n      returning {\n        id\n        title\n        description\n      }\n    }\n  }\n':
     types.InsertVideosDocument,
 };
@@ -27,8 +33,20 @@ const documents: Documents = {
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
+  source: '\n  mutation DeletePost($id: uuid!) {\n    delete_posts_by_pk(id: $id) {\n      id\n    }\n  }\n'
+): typeof import('./graphql').DeletePostDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
   source: '\n  mutation InsertPost($object: posts_insert_input!) {\n    insert_posts_one(object: $object) {\n      id\n    }\n  }\n'
 ): typeof import('./graphql').InsertPostDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  mutation UpdatePost($id: uuid!, $set: posts_set_input!) {\n    update_posts_by_pk(pk_columns: { id: $id }, _set: $set) {\n      id\n    }\n  }\n'
+): typeof import('./graphql').UpdatePostDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
