@@ -23,6 +23,7 @@ describe('envConfig', () => {
       'cloudTaskServiceAccount',
       'hasuraEndpoint',
       'hasuraAdminSecret',
+      'hashnodeWebhookSecret',
     ];
 
     expectedKeys.forEach(key => {
