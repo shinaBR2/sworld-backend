@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { getPost } from 'src/services/hashnode/queries/posts';
 import { deletePost } from 'src/services/hasura/mutations/posts/delete';
 import { insertPost } from 'src/services/hasura/mutations/posts/insert';
 import { updatePost } from 'src/services/hasura/mutations/posts/update';
@@ -10,6 +11,25 @@ import { AppResponse } from 'src/utils/schema';
 import { ValidatedRequest } from 'src/utils/validator';
 import { WebhookRequest } from '../../schema';
 import { validateSignature } from '../../validator';
+
+const fetchPost = async (hId: string) => {
+  const postDetail = await getPost(hId);
+
+  console.log(postDetail);
+
+  if (!postDetail) {
+    throw CustomError.high('Post not found', {
+      shouldRetry: false,
+      errorCode: VALIDATION_ERRORS.INVALID_PAYLOAD,
+      context: {
+        hId,
+      },
+      source: 'apps/gateway/hashnode/routes/posts/index.ts',
+    });
+  }
+
+  return postDetail;
+};
 
 const postEventsHandler = async (req: Request, res: Response) => {
   const { validatedData } = req as ValidatedRequest<WebhookRequest>;
@@ -34,20 +54,40 @@ const postEventsHandler = async (req: Request, res: Response) => {
   }
 
   const { eventType, post } = body.data;
-  const { id: postId } = post;
-
-  // Send request to hashnode API to get post
+  const { id: hId } = post;
 
   try {
     if (eventType === 'post_published') {
+      const postDetail = await fetchPost(hId);
+
+      console.log(postDetail);
+
+      const { title, brief, content, readTimeInMinutes, slug } = postDetail;
+
       await insertPost({
-        hId: postId,
-        ...post,
+        hId,
+        title,
+        brief,
+        markdownContent: content.markdown,
+        readTimeInMinutes,
+        slug,
       });
     } else if (eventType === 'post_updated') {
-      await updatePost(postId, post);
+      const postDetail = await fetchPost(hId);
+
+      console.log(postDetail);
+
+      const { title, brief, content, readTimeInMinutes, slug } = postDetail;
+
+      await updatePost(hId, {
+        title,
+        brief,
+        markdownContent: content.markdown,
+        readTimeInMinutes,
+        slug,
+      });
     } else if (eventType === 'post_deleted') {
-      await deletePost(postId);
+      await deletePost(hId);
     } else {
       throw CustomError.high('Invalid event type', {
         shouldRetry: false,
