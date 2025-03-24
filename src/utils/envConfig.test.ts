@@ -24,6 +24,7 @@ describe('envConfig', () => {
       'hasuraEndpoint',
       'hasuraAdminSecret',
       'hashnodeWebhookSecret',
+      'hashnodePersonalToken',
     ];
 
     expectedKeys.forEach(key => {
