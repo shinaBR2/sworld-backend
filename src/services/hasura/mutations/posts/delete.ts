@@ -3,23 +3,25 @@ import { DeletePostMutation } from '../../generated-graphql/graphql';
 import { hasuraClient } from '../client';
 
 const DELETE_POST = graphql(/* GraphQL */ `
-  mutation DeletePost($id: uuid!) {
-    delete_posts_by_pk(id: $id) {
-      id
+  mutation DeletePost($hId: String!) {
+    delete_posts(where: { hId: { _eq: $hId } }) {
+      returning {
+        id
+      }
     }
   }
 `);
 
-const deletePost = async (id: string): Promise<any> => {
+const deletePost = async (hId: string): Promise<any> => {
   const variables = {
-    id,
+    hId,
   };
 
   const response = await hasuraClient.request<DeletePostMutation, any>({
     document: DELETE_POST.toString(),
     variables,
   });
-  return response.delete_posts_by_pk?.id;
+  return response.delete_posts?.returning[0]?.id;
 };
 
 export { deletePost };

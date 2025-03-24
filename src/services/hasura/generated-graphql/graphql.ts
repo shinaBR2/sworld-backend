@@ -6879,12 +6879,12 @@ export type Videos_Variance_Order_By = {
 };
 
 export type DeletePostMutationVariables = Exact<{
-  id: Scalars['uuid']['input'];
+  hId: Scalars['String']['input'];
 }>;
 
 export type DeletePostMutation = {
   __typename?: 'mutation_root';
-  delete_posts_by_pk?: { __typename?: 'posts'; id: any } | null;
+  delete_posts?: { __typename?: 'posts_mutation_response'; returning: Array<{ __typename?: 'posts'; id: any }> } | null;
 };
 
 export type InsertPostMutationVariables = Exact<{
@@ -6938,9 +6938,11 @@ export class TypedDocumentString<TResult, TVariables>
 }
 
 export const DeletePostDocument = new TypedDocumentString(`
-    mutation DeletePost($id: uuid!) {
-  delete_posts_by_pk(id: $id) {
-    id
+    mutation DeletePost($hId: String!) {
+  delete_posts(where: {hId: {_eq: $hId}}) {
+    returning {
+      id
+    }
   }
 }
     `) as unknown as TypedDocumentString<DeletePostMutation, DeletePostMutationVariables>;

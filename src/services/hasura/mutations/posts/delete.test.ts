@@ -9,32 +9,36 @@ vi.mock('../client', () => ({
 }));
 
 describe('deletePost', () => {
-  const mockId = '123e4567-e89b-12d3-a456-426614174000';
+  const mockHId = '67e0119df9bbbad779d16ef9';
 
   it('should call hasura client with correct parameters', async () => {
     const mockResponse = {
-      delete_posts_by_pk: { id: mockId },
+      delete_posts: {
+        returning: [{ id: 'uuid-1' }],
+      },
     };
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
 
-    const result = await deletePost(mockId);
+    const result = await deletePost(mockHId);
 
     expect(hasuraClient.request).toHaveBeenCalledWith({
       document: expect.stringContaining('mutation DeletePost'),
       variables: {
-        id: mockId,
+        hId: mockHId,
       },
     });
-    expect(result).toBe(mockId);
+    expect(result).toBe('uuid-1');
   });
 
   it('should return undefined when post is not found', async () => {
     const mockResponse = {
-      delete_posts_by_pk: undefined,
+      delete_posts: {
+        returning: [],
+      },
     };
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
 
-    const result = await deletePost(mockId);
+    const result = await deletePost(mockHId);
 
     expect(result).toBeUndefined();
   });
@@ -43,6 +47,6 @@ describe('deletePost', () => {
     const error = new Error('Hasura error');
     vi.mocked(hasuraClient.request).mockRejectedValueOnce(error);
 
-    await expect(deletePost(mockId)).rejects.toThrow('Hasura error');
+    await expect(deletePost(mockHId)).rejects.toThrow('Hasura error');
   });
 });
