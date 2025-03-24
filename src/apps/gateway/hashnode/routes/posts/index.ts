@@ -6,7 +6,6 @@ import { updatePost } from 'src/services/hasura/mutations/posts/update';
 import { CustomError } from 'src/utils/custom-error';
 import { envConfig } from 'src/utils/envConfig';
 import { HTTP_ERRORS, VALIDATION_ERRORS } from 'src/utils/error-codes';
-import { logger } from 'src/utils/logger';
 import { AppResponse } from 'src/utils/schema';
 import { ValidatedRequest } from 'src/utils/validator';
 import { WebhookRequest } from '../../schema';
@@ -101,7 +100,6 @@ const postEventsHandler = async (req: Request, res: Response) => {
 
     return res.json(AppResponse(true, 'ok'));
   } catch (error) {
-    logger.info(error, 'error');
     throw CustomError.high('Failed to process post event', {
       shouldRetry: true,
       errorCode: HTTP_ERRORS.SERVER_ERROR,
