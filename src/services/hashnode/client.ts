@@ -12,7 +12,7 @@ const createHashnodeClient = (): GraphQLClient => {
   }
 
   if (!token) {
-    throw new Error('Hashnode admin secret is not defined. Please check environment variables.');
+    throw new Error('Hashnode token is not defined. Please check environment variables.');
   }
 
   return new GraphQLClient(endpoint, {
