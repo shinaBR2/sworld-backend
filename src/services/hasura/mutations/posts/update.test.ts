@@ -9,7 +9,7 @@ vi.mock('../client', () => ({
 }));
 
 describe('updatePost', () => {
-  const mockId = '123e4567-e89b-12d3-a456-426614174000';
+  const mockHId = '67e0119df9bbbad779d16ef9';
   const mockPost = {
     title: 'Updated Title',
     content: 'Updated Content',
@@ -17,29 +17,33 @@ describe('updatePost', () => {
 
   it('should call hasura client with correct parameters', async () => {
     const mockResponse = {
-      update_posts_by_pk: { id: mockId },
+      update_posts: {
+        returning: [{ id: 'uuid-1' }],
+      },
     };
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
 
-    const result = await updatePost(mockId, mockPost);
+    const result = await updatePost(mockHId, mockPost);
 
     expect(hasuraClient.request).toHaveBeenCalledWith({
       document: expect.stringContaining('mutation UpdatePost'),
       variables: {
-        id: mockId,
+        hId: mockHId,
         set: mockPost,
       },
     });
-    expect(result).toBe(mockId);
+    expect(result).toBe('uuid-1');
   });
 
   it('should return undefined when post is not found', async () => {
     const mockResponse = {
-      update_posts_by_pk: undefined,
+      update_posts: {
+        returning: [],
+      },
     };
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
 
-    const result = await updatePost(mockId, mockPost);
+    const result = await updatePost(mockHId, mockPost);
 
     expect(result).toBeUndefined();
   });
@@ -48,6 +52,6 @@ describe('updatePost', () => {
     const error = new Error('Hasura error');
     vi.mocked(hasuraClient.request).mockRejectedValueOnce(error);
 
-    await expect(updatePost(mockId, mockPost)).rejects.toThrow('Hasura error');
+    await expect(updatePost(mockHId, mockPost)).rejects.toThrow('Hasura error');
   });
 });

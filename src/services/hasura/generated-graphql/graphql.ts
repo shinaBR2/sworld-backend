@@ -6897,13 +6897,13 @@ export type InsertPostMutation = {
 };
 
 export type UpdatePostMutationVariables = Exact<{
-  id: Scalars['uuid']['input'];
+  hId: Scalars['String']['input'];
   set: Posts_Set_Input;
 }>;
 
 export type UpdatePostMutation = {
   __typename?: 'mutation_root';
-  update_posts_by_pk?: { __typename?: 'posts'; id: any } | null;
+  update_posts?: { __typename?: 'posts_mutation_response'; returning: Array<{ __typename?: 'posts'; id: any }> } | null;
 };
 
 export type InsertVideosMutationVariables = Exact<{
@@ -6952,9 +6952,11 @@ export const InsertPostDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<InsertPostMutation, InsertPostMutationVariables>;
 export const UpdatePostDocument = new TypedDocumentString(`
-    mutation UpdatePost($id: uuid!, $set: posts_set_input!) {
-  update_posts_by_pk(pk_columns: {id: $id}, _set: $set) {
-    id
+    mutation UpdatePost($hId: String!, $set: posts_set_input!) {
+  update_posts(where: {hId: {_eq: $hId}}, _set: $set) {
+    returning {
+      id
+    }
   }
 }
     `) as unknown as TypedDocumentString<UpdatePostMutation, UpdatePostMutationVariables>;

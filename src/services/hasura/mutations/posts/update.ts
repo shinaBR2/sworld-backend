@@ -3,16 +3,18 @@ import { Posts_Set_Input, UpdatePostMutation } from '../../generated-graphql/gra
 import { hasuraClient } from '../client';
 
 const UPDATE_POST = graphql(/* GraphQL */ `
-  mutation UpdatePost($id: uuid!, $set: posts_set_input!) {
-    update_posts_by_pk(pk_columns: { id: $id }, _set: $set) {
-      id
+  mutation UpdatePost($hId: String!, $set: posts_set_input!) {
+    update_posts(where: { hId: { _eq: $hId } }, _set: $set) {
+      returning {
+        id
+      }
     }
   }
 `);
 
-const updatePost = async (id: string, post: Posts_Set_Input): Promise<any> => {
+const updatePost = async (hId: string, post: Posts_Set_Input): Promise<any> => {
   const variables = {
-    id,
+    hId,
     set: post,
   };
 
@@ -20,7 +22,7 @@ const updatePost = async (id: string, post: Posts_Set_Input): Promise<any> => {
     document: UPDATE_POST.toString(),
     variables,
   });
-  return response.update_posts_by_pk?.id;
+  return response.update_posts?.returning[0]?.id;
 };
 
 export { updatePost };

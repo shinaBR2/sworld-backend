@@ -15,7 +15,7 @@ import * as types from './graphql';
 type Documents = {
   '\n  mutation DeletePost($id: uuid!) {\n    delete_posts_by_pk(id: $id) {\n      id\n    }\n  }\n': typeof types.DeletePostDocument;
   '\n  mutation InsertPost($object: posts_insert_input!) {\n    insert_posts_one(object: $object) {\n      id\n    }\n  }\n': typeof types.InsertPostDocument;
-  '\n  mutation UpdatePost($id: uuid!, $set: posts_set_input!) {\n    update_posts_by_pk(pk_columns: { id: $id }, _set: $set) {\n      id\n    }\n  }\n': typeof types.UpdatePostDocument;
+  '\n  mutation UpdatePost($hId: String!, $set: posts_set_input!) {\n    update_posts(where: { hId: { _eq: $hId } }, _set: $set) {\n      returning {\n        id\n      }\n    }\n  }\n': typeof types.UpdatePostDocument;
   '\n  mutation InsertVideos($objects: [videos_insert_input!]!) {\n    insert_videos(objects: $objects) {\n      returning {\n        id\n        title\n        description\n      }\n    }\n  }\n': typeof types.InsertVideosDocument;
 };
 const documents: Documents = {
@@ -23,7 +23,7 @@ const documents: Documents = {
     types.DeletePostDocument,
   '\n  mutation InsertPost($object: posts_insert_input!) {\n    insert_posts_one(object: $object) {\n      id\n    }\n  }\n':
     types.InsertPostDocument,
-  '\n  mutation UpdatePost($id: uuid!, $set: posts_set_input!) {\n    update_posts_by_pk(pk_columns: { id: $id }, _set: $set) {\n      id\n    }\n  }\n':
+  '\n  mutation UpdatePost($hId: String!, $set: posts_set_input!) {\n    update_posts(where: { hId: { _eq: $hId } }, _set: $set) {\n      returning {\n        id\n      }\n    }\n  }\n':
     types.UpdatePostDocument,
   '\n  mutation InsertVideos($objects: [videos_insert_input!]!) {\n    insert_videos(objects: $objects) {\n      returning {\n        id\n        title\n        description\n      }\n    }\n  }\n':
     types.InsertVideosDocument,
@@ -45,7 +45,7 @@ export function graphql(
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(
-  source: '\n  mutation UpdatePost($id: uuid!, $set: posts_set_input!) {\n    update_posts_by_pk(pk_columns: { id: $id }, _set: $set) {\n      id\n    }\n  }\n'
+  source: '\n  mutation UpdatePost($hId: String!, $set: posts_set_input!) {\n    update_posts(where: { hId: { _eq: $hId } }, _set: $set) {\n      returning {\n        id\n      }\n    }\n  }\n'
 ): typeof import('./graphql').UpdatePostDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
