@@ -60,7 +60,7 @@ const createMockRequest = (data: any = {}, metadata: any = {}, taskId: string = 
 };
 
 const setupSuccessfulMocks = () => {
-  vi.mocked(finishVideoProcess).mockResolvedValueOnce(undefined);
+  vi.mocked(finishVideoProcess).mockResolvedValueOnce('uuid');
 };
 
 describe('importPlatformHandler', () => {

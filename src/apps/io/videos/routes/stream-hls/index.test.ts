@@ -221,7 +221,7 @@ describe('streamHLSHandler', () => {
       playlistUrl: 'temp-url',
       duration: 100,
       thumbnailUrl: 'temp-thumbnail',
-    });
+    } as any);
 
     // Setup Hasura failure
     const hasuraError = CustomError.critical('Hasura mutation failed', {
