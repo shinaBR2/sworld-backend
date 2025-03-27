@@ -1,5 +1,9 @@
 import { graphql } from '../../generated-graphql';
-import { InsertNotificationMutation, Notifications_Insert_Input } from '../../generated-graphql/graphql';
+import {
+  InsertNotificationMutation,
+  InsertNotificationMutationVariables,
+  Notifications_Insert_Input,
+} from '../../generated-graphql/graphql';
 import { hasuraClient } from '../client';
 
 const INSERT_NOTIFICATION = graphql(/* GraphQL */ `
@@ -10,12 +14,12 @@ const INSERT_NOTIFICATION = graphql(/* GraphQL */ `
   }
 `);
 
-const insertPost = async (notification: Notifications_Insert_Input): Promise<any> => {
+const insertPost = async (notification: Notifications_Insert_Input): Promise<string> => {
   const variables = {
     object: notification,
   };
 
-  const response = await hasuraClient.request<InsertNotificationMutation, any>({
+  const response = await hasuraClient.request<InsertNotificationMutation, InsertNotificationMutationVariables>({
     document: INSERT_NOTIFICATION.toString(),
     variables,
   });
