@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { hasuraClient } from '../client';
-import { insertPost } from './insert';
+import { insertNotification } from './insert';
 
 vi.mock('../client', () => ({
   hasuraClient: {
@@ -8,7 +8,7 @@ vi.mock('../client', () => ({
   },
 }));
 
-describe('insertPost', () => {
+describe('insertNotification', () => {
   const mockNotification = {
     userId: 'user-123',
     type: 'POST_CREATED',
@@ -24,7 +24,7 @@ describe('insertPost', () => {
     };
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
 
-    const result = await insertPost(mockNotification);
+    const result = await insertNotification(mockNotification);
 
     expect(hasuraClient.request).toHaveBeenCalledWith({
       document: expect.stringContaining('mutation InsertNotification'),
@@ -41,7 +41,7 @@ describe('insertPost', () => {
     };
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
 
-    const result = await insertPost(mockNotification);
+    const result = await insertNotification(mockNotification);
 
     expect(result).toBeUndefined();
   });
@@ -50,6 +50,6 @@ describe('insertPost', () => {
     const error = new Error('Database error');
     vi.mocked(hasuraClient.request).mockRejectedValueOnce(error);
 
-    await expect(insertPost(mockNotification)).rejects.toThrow('Database error');
+    await expect(insertNotification(mockNotification)).rejects.toThrow('Database error');
   });
 });

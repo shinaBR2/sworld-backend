@@ -14,7 +14,7 @@ const INSERT_NOTIFICATION = graphql(/* GraphQL */ `
   }
 `);
 
-const insertPost = async (notification: Notifications_Insert_Input): Promise<string> => {
+const insertNotification = async (notification: Notifications_Insert_Input): Promise<string> => {
   const variables = {
     object: notification,
   };
@@ -26,4 +26,4 @@ const insertPost = async (notification: Notifications_Insert_Input): Promise<str
   return response.insert_notifications_one?.id;
 };
 
-export { insertPost };
+export { insertNotification };
