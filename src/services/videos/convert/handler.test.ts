@@ -149,13 +149,6 @@ describe('convertVideo', () => {
     await expect(convertVideo(mockData)).rejects.toThrow('Video conversion failed: Failed to create directory');
   });
 
-  // Remove this obsolete test case
-  // it('should throw error if database update fails', async () => {
-  //   const error = new Error('Database update failed');
-  //   vi.mocked(finalizeVideo).mockRejectedValueOnce(error);
-  //   ...
-  // });
-
   // Add new test case for Hasura mutation failure
   it('should throw error if finishVideoProcess fails', async () => {
     const error = new Error('Hasura mutation failed');
@@ -164,5 +157,55 @@ describe('convertVideo', () => {
     await expect(convertVideo(mockData)).rejects.toThrow('Video conversion failed: Hasura mutation failed');
     expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
     expect(logger.error).toHaveBeenCalled();
+  });
+
+  it('should throw error if screenshot generation fails', async () => {
+    const error = new Error('Screenshot failed');
+    vi.mocked(ffmpegHelpers.takeScreenshot).mockRejectedValueOnce(error);
+
+    await expect(convertVideo(mockData)).rejects.toThrow('Video conversion failed: Screenshot failed');
+    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
+    expect(logger.error).toHaveBeenCalled();
+  });
+
+  it('should throw error if screenshot file is not created', async () => {
+    vi.mocked(ffmpegHelpers.takeScreenshot).mockResolvedValue(undefined);
+    vi.mocked(existsSync)
+      .mockReturnValueOnce(true) // for input file check
+      .mockReturnValueOnce(false); // for screenshot file check
+
+    await expect(convertVideo(mockData)).rejects.toThrow('Video conversion failed: Screenshot file not created');
+    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
+    expect(logger.error).toHaveBeenCalled();
+  });
+
+  it('should throw error if cloudinary upload fails', async () => {
+    const error = new Error('Upload failed');
+    vi.mocked(cloudinaryHelpers.uploadFromLocalFilePath).mockRejectedValueOnce(error);
+
+    await expect(convertVideo(mockData)).rejects.toThrow('Video conversion failed: Upload failed');
+    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
+    expect(logger.error).toHaveBeenCalled();
+  });
+
+  it('should throw error if GCP upload fails', async () => {
+    const error = new Error('GCP upload failed');
+    vi.mocked(gcpHelpers.uploadFolderParallel).mockRejectedValueOnce(error);
+
+    await expect(convertVideo(mockData)).rejects.toThrow('Video conversion failed: GCP upload failed');
+    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
+    expect(logger.error).toHaveBeenCalled();
+  });
+
+  it('should log error but continue if cleanup fails', async () => {
+    const cleanupError = new Error('Cleanup failed');
+    vi.mocked(fileHelpers.cleanupDirectory).mockRejectedValueOnce(cleanupError);
+
+    await convertVideo(mockData);
+
+    expect(logger.error).toHaveBeenCalledWith(
+      cleanupError,
+      expect.stringMatching(/Failed to clean up working directory/)
+    );
   });
 });
