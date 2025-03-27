@@ -7350,12 +7350,18 @@ export type Videos_Variance_Order_By = {
   view_count?: InputMaybe<Order_By>;
 };
 
-export type InsertNotificationMutationVariables = Exact<{
-  object: Notifications_Insert_Input;
+export type FinalizeVideoMutationVariables = Exact<{
+  taskId: Scalars['uuid']['input'];
+  notificationObject: Notifications_Insert_Input;
 }>;
 
-export type InsertNotificationMutation = {
+export type FinalizeVideoMutation = {
   __typename?: 'mutation_root';
+  update_tasks?: {
+    __typename?: 'tasks_mutation_response';
+    affected_rows: number;
+    returning: Array<{ __typename?: 'tasks'; id: any }>;
+  } | null;
   insert_notifications_one?: { __typename?: 'notifications'; id: any } | null;
 };
 
@@ -7418,13 +7424,19 @@ export class TypedDocumentString<TResult, TVariables>
   }
 }
 
-export const InsertNotificationDocument = new TypedDocumentString(`
-    mutation InsertNotification($object: notifications_insert_input!) {
-  insert_notifications_one(object: $object) {
+export const FinalizeVideoDocument = new TypedDocumentString(`
+    mutation FinalizeVideo($taskId: uuid!, $notificationObject: notifications_insert_input!) {
+  update_tasks(where: {task_id: {_eq: $taskId}}, _set: {status: "completed"}) {
+    affected_rows
+    returning {
+      id
+    }
+  }
+  insert_notifications_one(object: $notificationObject) {
     id
   }
 }
-    `) as unknown as TypedDocumentString<InsertNotificationMutation, InsertNotificationMutationVariables>;
+    `) as unknown as TypedDocumentString<FinalizeVideoMutation, FinalizeVideoMutationVariables>;
 export const DeletePostDocument = new TypedDocumentString(`
     mutation DeletePost($hId: String!) {
   delete_posts(where: {hId: {_eq: $hId}}) {
