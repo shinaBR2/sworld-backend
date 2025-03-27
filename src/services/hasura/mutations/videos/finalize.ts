@@ -2,8 +2,14 @@ import { graphql } from '../../generated-graphql';
 import { FinalizeVideoMutation, FinalizeVideoMutationVariables } from '../../generated-graphql/graphql';
 import { hasuraClient } from '../client';
 
-const INSERT_NOTIFICATION = graphql(/* GraphQL */ `
-  mutation FinalizeVideo($taskId: uuid!, $notificationObject: notifications_insert_input!) {
+const FINALIZE_VIDEO = graphql(/* GraphQL */ `
+  mutation FinalizeVideo(
+    $taskId: uuid!
+    $notificationObject: notifications_insert_input!
+    $videoId: uuid!
+    $videoUpdates: videos_set_input!
+  ) {
+    # Update task status to completed
     update_tasks(where: { task_id: { _eq: $taskId } }, _set: { status: "completed" }) {
       affected_rows
       returning {
@@ -11,7 +17,13 @@ const INSERT_NOTIFICATION = graphql(/* GraphQL */ `
       }
     }
 
+    # Add notification
     insert_notifications_one(object: $notificationObject) {
+      id
+    }
+
+    # Finalize video using the input type
+    update_videos_by_pk(pk_columns: { id: $videoId }, _set: $videoUpdates) {
       id
     }
   }
@@ -19,7 +31,7 @@ const INSERT_NOTIFICATION = graphql(/* GraphQL */ `
 
 const finishVideoProcess = async (variables: FinalizeVideoMutationVariables): Promise<string> => {
   const response = await hasuraClient.request<FinalizeVideoMutation, FinalizeVideoMutationVariables>({
-    document: INSERT_NOTIFICATION.toString(),
+    document: FINALIZE_VIDEO.toString(),
     variables,
   });
   return response.insert_notifications_one?.id;

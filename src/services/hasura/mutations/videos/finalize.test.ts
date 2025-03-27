@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { hasuraClient } from '../client';
-import { finishVideoProcess } from './insert';
+import { finishVideoProcess } from './finalize';
 
 vi.mock('../client', () => ({
   hasuraClient: {
@@ -11,15 +11,20 @@ vi.mock('../client', () => ({
 describe('finishVideoProcess', () => {
   const mockVariables = {
     taskId: '123e4567-e89b-12d3-a456-426614174000',
+    videoId: '987fcdeb-89ab-12d3-a456-426614174000',
     notificationObject: {
       userId: 'user-123',
       type: 'VIDEO_PROCESSED',
       title: 'Video Processing Complete',
       description: 'Your video has been processed successfully',
     },
+    videoUpdates: {
+      status: 'published',
+      processedUrl: 'https://example.com/processed-video.mp4',
+    },
   };
 
-  it('should update task and insert notification successfully', async () => {
+  it('should update task, insert notification, and update video successfully', async () => {
     const mockResponse = {
       update_tasks: {
         affected_rows: 1,
@@ -31,6 +36,9 @@ describe('finishVideoProcess', () => {
       },
       insert_notifications_one: {
         id: 'notification-123',
+      },
+      update_videos_by_pk: {
+        id: mockVariables.videoId,
       },
     };
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
@@ -44,7 +52,7 @@ describe('finishVideoProcess', () => {
     expect(result).toBe('notification-123');
   });
 
-  it('should return undefined when insert fails', async () => {
+  it('should return undefined when notification insert fails', async () => {
     const mockResponse = {
       update_tasks: {
         affected_rows: 1,
@@ -55,6 +63,9 @@ describe('finishVideoProcess', () => {
         ],
       },
       insert_notifications_one: null,
+      update_videos_by_pk: {
+        id: mockVariables.videoId,
+      },
     };
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
 
