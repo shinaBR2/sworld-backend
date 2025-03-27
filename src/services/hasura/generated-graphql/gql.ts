@@ -13,12 +13,15 @@ import * as types from './graphql';
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
+  '\n  mutation InsertNotification($object: notifications_insert_input!) {\n    insert_notifications_one(object: $object) {\n      id\n    }\n  }\n': typeof types.InsertNotificationDocument;
   '\n  mutation DeletePost($hId: String!) {\n    delete_posts(where: { hId: { _eq: $hId } }) {\n      returning {\n        id\n      }\n    }\n  }\n': typeof types.DeletePostDocument;
   '\n  mutation InsertPost($object: posts_insert_input!) {\n    insert_posts_one(object: $object) {\n      id\n    }\n  }\n': typeof types.InsertPostDocument;
   '\n  mutation UpdatePost($hId: String!, $set: posts_set_input!) {\n    update_posts(where: { hId: { _eq: $hId } }, _set: $set) {\n      returning {\n        id\n      }\n    }\n  }\n': typeof types.UpdatePostDocument;
   '\n  mutation InsertVideos($objects: [videos_insert_input!]!) {\n    insert_videos(objects: $objects) {\n      returning {\n        id\n        title\n        description\n      }\n    }\n  }\n': typeof types.InsertVideosDocument;
 };
 const documents: Documents = {
+  '\n  mutation InsertNotification($object: notifications_insert_input!) {\n    insert_notifications_one(object: $object) {\n      id\n    }\n  }\n':
+    types.InsertNotificationDocument,
   '\n  mutation DeletePost($hId: String!) {\n    delete_posts(where: { hId: { _eq: $hId } }) {\n      returning {\n        id\n      }\n    }\n  }\n':
     types.DeletePostDocument,
   '\n  mutation InsertPost($object: posts_insert_input!) {\n    insert_posts_one(object: $object) {\n      id\n    }\n  }\n':
@@ -29,6 +32,12 @@ const documents: Documents = {
     types.InsertVideosDocument,
 };
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  mutation InsertNotification($object: notifications_insert_input!) {\n    insert_notifications_one(object: $object) {\n      id\n    }\n  }\n'
+): typeof import('./graphql').InsertNotificationDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
