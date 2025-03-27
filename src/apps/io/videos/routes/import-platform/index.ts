@@ -15,15 +15,6 @@ const importPlatformHandler = async (req: Request, res: Response) => {
       `[/videos/import-platform-handler] start processing event "${metadata.id}", video "${data.id}"`
     );
 
-    // await finalizeVideo({
-    //   id,
-    //   source: videoUrl,
-    //   thumbnailUrl: '',
-    // });
-
-    // await completeTask({
-    //   taskId,
-    // });
     await finishVideoProcess({
       taskId,
       notificationObject: {
