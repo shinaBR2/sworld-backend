@@ -23,7 +23,7 @@ export interface ConversionVideo {
  * Handles the complete video conversion process from source URL to HLS format
  * including downloading, converting, generating thumbnail, and uploading to cloud storage
  *
- * @param data Object containing video ID, source URL, and user ID
+ * @param data ConversionVideo object containing taskId and videoData (which includes video ID, source URL, and user ID)
  * @returns Promise resolving to the updated video record
  * @throws Error if any step in the conversion process fails
  */
