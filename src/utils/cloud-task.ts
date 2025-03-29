@@ -103,7 +103,7 @@ const createCloudTasks = async (params: CreateCloudTasksParams): Promise<CloudTa
         },
       },
       dispatchDeadline: {
-        seconds: 3600,
+        seconds: 1800,
       },
     };
 
