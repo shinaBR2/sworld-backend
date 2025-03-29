@@ -144,6 +144,9 @@ describe('createCloudTasks', () => {
           },
           body: Buffer.from(JSON.stringify(testPayload)).toString('base64'),
         },
+        dispatchDeadline: {
+          seconds: 3600,
+        },
       },
     });
 
@@ -406,6 +409,30 @@ describe('createCloudTasks', () => {
         url: 'https://test.com',
       }),
       'Task creation failed'
+    );
+  });
+
+  it('should set the dispatch deadline to 3600 seconds', async () => {
+    const transaction = { commit: vi.fn(), rollback: vi.fn() };
+    sequelize.transaction.mockResolvedValue(transaction);
+    dbCreateTask.mockResolvedValue({ completed: false });
+    dbUpdateStatus.mockResolvedValue({});
+
+    const params = {
+      ...baseParams,
+    };
+
+    const { createCloudTasks } = await import('./cloud-task');
+    await createCloudTasks(params);
+
+    expect(mockCreateTask).toHaveBeenCalledWith(
+      expect.objectContaining({
+        task: expect.objectContaining({
+          dispatchDeadline: {
+            seconds: 3600,
+          },
+        }),
+      })
     );
   });
 });
