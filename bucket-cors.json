@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["https://watch.shinabr2.com", "http://localhost:3002"],
+    "origin": ["https://watch.shinabr2.com", "http://localhost:3002", "http://localhost:4002"],
     "method": ["GET"],
     "responseHeader": ["Content-Type"],
     "maxAgeSeconds": 3600
