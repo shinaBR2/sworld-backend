@@ -120,7 +120,7 @@ describe('FFmpeg Helpers', () => {
       });
 
       await convertToHLS(inputPath, outputDir);
-      expect(logger.info).toHaveBeenCalledWith(progress, '[convertToHLS] Conversion progress:');
+      expect(logger.debug).toHaveBeenCalledWith(progress, '[convertToHLS] Conversion progress:');
     });
   });
 

@@ -76,7 +76,7 @@ export const convertVideo = async (data: ConversionVideo) => {
 
     await uploadFolderParallel(outputDir, outputPath);
     const playlistUrl = getDownloadUrl(`${outputPath}/playlist.m3u8`);
-    logger.debug(`Uploaded converted files to cloud storage: ${playlistUrl}`);
+    logger.info(`Uploaded converted files to cloud storage: ${playlistUrl}`);
 
     await finishVideoProcess({
       taskId,

@@ -44,7 +44,7 @@ const convertToHLS = async (inputPath: string, outputDir: string): Promise<void>
       .outputOptions(videoConfig.ffmpegCommands)
       .output(outputPath)
       .on('progress', progress => {
-        logger.info(progress, '[convertToHLS] Conversion progress:');
+        logger.debug(progress, '[convertToHLS] Conversion progress:');
       })
       .on('end', () => {
         logger.info('[convertToHLS] HLS conversion completed successfully');
