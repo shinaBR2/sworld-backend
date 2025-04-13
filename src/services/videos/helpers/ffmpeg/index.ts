@@ -1,8 +1,8 @@
-import * as path from 'path';
-import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import ffprobeInstaller from '@ffprobe-installer/ffprobe';
+import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
 import { existsSync } from 'fs';
+import * as path from 'path';
 import { logger } from 'src/utils/logger';
 import { videoConfig } from '../../config';
 
@@ -44,7 +44,7 @@ const convertToHLS = async (inputPath: string, outputDir: string): Promise<void>
       .outputOptions(videoConfig.ffmpegCommands)
       .output(outputPath)
       .on('progress', progress => {
-        logger.debug(progress, '[convertToHLS] Conversion progress:');
+        logger.info(progress, '[convertToHLS] Conversion progress:');
       })
       .on('end', () => {
         logger.info('[convertToHLS] HLS conversion completed successfully');

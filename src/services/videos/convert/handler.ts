@@ -1,4 +1,4 @@
-import { existsSync, statSync } from 'fs';
+import { existsSync, readdirSync, statSync } from 'fs';
 import * as path from 'path';
 import { finishVideoProcess } from 'src/services/hasura/mutations/videos/finalize';
 import { logger } from 'src/utils/logger';
@@ -49,6 +49,9 @@ export const convertVideo = async (data: ConversionVideo) => {
 
     // Step 3: Convert video to HLS format
     await convertToHLS(inputPath, outputDir);
+
+    const fileCount = readdirSync(outputDir).length;
+    logger.info(`HLS converted with ${fileCount} files`);
 
     // Verify input file still exists and check its size after conversion
     if (!existsSync(inputPath)) {
