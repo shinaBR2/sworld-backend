@@ -291,4 +291,48 @@ describe('streamHLSHandler', () => {
       playableVideoUrl: context.defaultData.videoUrl,
     });
   });
+
+  it('should handle Hasura error when keepOriginalSource is true', async () => {
+    const customData = {
+      ...context.defaultData,
+      keepOriginalSource: true,
+    };
+    const customRequest = createMockRequest(customData, context.defaultMetadata, context.defaultTaskId);
+    context.mockRequest = customRequest; // Important: Update the context request
+
+    // Setup Hasura failure BEFORE testErrorScenario
+    const hasuraError = CustomError.critical('Hasura mutation failed', {
+      errorCode: HTTP_ERRORS.SERVER_ERROR,
+      shouldRetry: true,
+    });
+    vi.mocked(finishVideoProcess).mockRejectedValueOnce(hasuraError);
+
+    await testErrorScenario(
+      () => {
+        // Empty setup since mocks are already configured
+      },
+      HTTP_ERRORS.SERVER_ERROR,
+      'Hasura server error',
+      () => {
+        expect(streamM3U8).not.toHaveBeenCalled();
+        expect(context.mockResponse.json).not.toHaveBeenCalled();
+
+        // Verify finishVideoProcess was called with expected arguments
+        expect(finishVideoProcess).toHaveBeenCalledWith({
+          taskId: context.defaultTaskId,
+          notificationObject: {
+            type: 'video-ready',
+            entityId: context.defaultData.id,
+            entityType: 'video',
+            user_id: context.defaultData.userId,
+          },
+          videoId: context.defaultData.id,
+          videoUpdates: {
+            source: context.defaultData.videoUrl,
+            status: 'ready',
+          },
+        });
+      }
+    );
+  });
 });
