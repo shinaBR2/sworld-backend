@@ -9,7 +9,26 @@ import { logger } from 'src/utils/logger';
 const streamHLSHandler = async (req: Request, res: Response) => {
   const { data, metadata } = req.body;
   const taskId = req.headers['x-task-id'] as string;
-  const { id, videoUrl, userId } = data;
+  const { id, videoUrl, userId, keepOriginalSource } = data;
+
+  if (keepOriginalSource) {
+    await finishVideoProcess({
+      taskId,
+      notificationObject: {
+        type: 'video-ready',
+        entityId: id,
+        entityType: 'video',
+        user_id: userId,
+      },
+      videoId: id,
+      videoUpdates: {
+        source: videoUrl,
+        status: 'ready',
+      },
+    });
+
+    return res.json({ playableVideoUrl: videoUrl });
+  }
 
   logger.info(metadata, `[/videos/stream-hls-handler] start processing event "${metadata.id}", video "${id}"`);
   const {

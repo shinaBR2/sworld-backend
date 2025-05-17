@@ -257,4 +257,38 @@ describe('streamHLSHandler', () => {
       }
     );
   });
+
+  it('should skip HLS conversion when keepOriginalSource is true', async () => {
+    const customData = {
+      ...context.defaultData,
+      keepOriginalSource: true,
+    };
+    const customRequest = createMockRequest(customData, context.defaultMetadata, context.defaultTaskId);
+
+    await streamHLSHandler(customRequest, context.mockResponse);
+
+    // Should not call streamM3U8
+    expect(streamM3U8).not.toHaveBeenCalled();
+
+    // Should call finishVideoProcess with original URL
+    expect(finishVideoProcess).toHaveBeenCalledWith({
+      taskId: context.defaultTaskId,
+      notificationObject: {
+        type: 'video-ready',
+        entityId: context.defaultData.id,
+        entityType: 'video',
+        user_id: context.defaultData.userId,
+      },
+      videoId: context.defaultData.id,
+      videoUpdates: {
+        source: context.defaultData.videoUrl,
+        status: 'ready',
+      },
+    });
+
+    // Should return original URL as playable URL
+    expect(context.mockResponse.json).toHaveBeenCalledWith({
+      playableVideoUrl: context.defaultData.videoUrl,
+    });
+  });
 });
