@@ -7,11 +7,11 @@ import { FixThumbnailHandlerRequest, FixThumbnailHandlerSchema } from './routes/
 import { importPlatformHandler } from './routes/import-platform';
 import { ImportHandlerRequest, ImportHandlerSchema } from './routes/import-platform/schema';
 import { streamHLSHandler } from './routes/stream-hls';
-import { StreamHandlerRequest, StreamHandlerSchema } from './routes/stream-hls/schema';
+import { StreamHandlerRequest, streamHandlerSchema } from 'src/schema/videos/stream-hls';
 
 const videosRouter: Router = express.Router();
 
-videosRouter.post('/stream-hls-handler', validateRequest<StreamHandlerRequest>(StreamHandlerSchema), streamHLSHandler);
+videosRouter.post('/stream-hls-handler', validateRequest<StreamHandlerRequest>(streamHandlerSchema), streamHLSHandler);
 videosRouter.post(
   '/import-platform-handler',
   validateRequest<ImportHandlerRequest>(ImportHandlerSchema),

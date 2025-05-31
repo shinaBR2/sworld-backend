@@ -1,15 +1,15 @@
 import { EventMetadataSchema } from 'src/schema/hasura';
-import { VideoDataSchema } from 'src/services/videos/convert/schema';
 import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 import { z } from 'zod';
+import { videoDataSchema } from '../convert';
 
-const StreamHandlerSchema = z.object({
+const streamHandlerSchema = z.object({
   body: z.object({
     data: z.object({
-      id: VideoDataSchema.shape.id,
-      userId: VideoDataSchema.shape.user_id,
-      videoUrl: VideoDataSchema.shape.video_url,
-      keepOriginalSource: VideoDataSchema.shape.keep_original_source,
+      id: videoDataSchema.shape.id,
+      userId: videoDataSchema.shape.user_id,
+      videoUrl: videoDataSchema.shape.video_url,
+      keepOriginalSource: videoDataSchema.shape.keep_original_source,
     }),
     metadata: z.object({
       id: EventMetadataSchema.shape.id,
@@ -20,5 +20,5 @@ const StreamHandlerSchema = z.object({
   headers: taskHandlerHeaderSchema.passthrough(),
 });
 
-export type StreamHandlerRequest = z.infer<typeof StreamHandlerSchema>;
-export { StreamHandlerSchema };
+export type StreamHandlerRequest = z.infer<typeof streamHandlerSchema>;
+export { streamHandlerSchema };
