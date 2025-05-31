@@ -32,7 +32,7 @@ const transformEvent = (event: z.infer<typeof CrawlEventSchema>) => {
   };
 };
 
-const CrawlSchema = z
+const crawlSchema = z
   .object({
     body: z.object({
       event: CrawlEventSchema,
@@ -62,6 +62,6 @@ const crawlHandlerSchema = z.object({
   }),
 });
 
-export { CrawlEventSchema, CrawlRequestSchema, CrawlSchema, crawlHandlerSchema };
-export type CrawlRequest = z.infer<typeof CrawlSchema>;
+export { CrawlEventSchema, CrawlRequestSchema, crawlSchema, crawlHandlerSchema };
+export type CrawlRequest = z.infer<typeof crawlSchema>;
 export type CrawlHandlerRequest = z.infer<typeof crawlHandlerSchema>;

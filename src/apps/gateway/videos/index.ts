@@ -1,12 +1,12 @@
 import express, { Router } from 'express';
 import { validateRequest } from 'src/utils/validator';
 import { crawlHandler } from './routes/crawl';
-import { CrawlRequest, CrawlSchema } from './routes/crawl/schema';
 import { fixVideosDuration } from './routes/fix-videos-duration';
 import { fixVideosThumbnail } from './routes/fix-videos-thumbnail';
 import { streamToStorage } from './routes/stream-to-storage';
 import { HasuraWebhookRequest, hasuraWebhookSchema } from 'src/schema/hasura';
 import { ConvertRequest, convertSchema } from 'src/schema/videos/convert';
+import { CrawlRequest, crawlSchema } from 'src/schema/videos/crawl';
 
 const videosRouter: Router = express.Router();
 
@@ -21,6 +21,6 @@ videosRouter.post(
   validateRequest<HasuraWebhookRequest>(hasuraWebhookSchema),
   fixVideosThumbnail
 );
-videosRouter.post('/crawl', validateRequest<CrawlRequest>(CrawlSchema), crawlHandler);
+videosRouter.post('/crawl', validateRequest<CrawlRequest>(crawlSchema), crawlHandler);
 
 export { videosRouter };
