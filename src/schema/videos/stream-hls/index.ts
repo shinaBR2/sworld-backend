@@ -1,4 +1,4 @@
-import { EventMetadataSchema } from 'src/schema/hasura';
+import { hasuraEventMetadataSchema } from 'src/schema/hasura';
 import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 import { z } from 'zod';
 import { videoDataSchema } from '../convert';
@@ -12,9 +12,9 @@ const streamHandlerSchema = z.object({
       keepOriginalSource: videoDataSchema.shape.keep_original_source,
     }),
     metadata: z.object({
-      id: EventMetadataSchema.shape.id,
-      spanId: EventMetadataSchema.shape.span_id,
-      traceId: EventMetadataSchema.shape.trace_id,
+      id: hasuraEventMetadataSchema.shape.id,
+      spanId: hasuraEventMetadataSchema.shape.span_id,
+      traceId: hasuraEventMetadataSchema.shape.trace_id,
     }),
   }),
   headers: taskHandlerHeaderSchema.passthrough(),

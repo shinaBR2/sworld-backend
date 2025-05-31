@@ -1,11 +1,5 @@
 import { z } from 'zod';
 
-const EventMetadataSchema = z.object({
-  id: z.string(),
-  span_id: z.string(),
-  trace_id: z.string(),
-});
-
 const headersSchema = z.object({
   'content-type': z.string(),
   'x-webhook-signature': z.string(),
@@ -34,4 +28,3 @@ const hasuraWebhookSchema = z.object(schema).transform(transformHeaders);
 
 export type HasuraWebhookRequest = z.infer<typeof hasuraWebhookSchema>;
 export { hasuraEventMetadataSchema, headersSchema, transformEventMetadata, transformHeaders, hasuraWebhookSchema };
-export { EventMetadataSchema };
