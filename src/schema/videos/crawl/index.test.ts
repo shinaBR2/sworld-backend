@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { CrawlEventSchema, CrawlRequestSchema, crawlHandlerSchema, crawlSchema } from './index';
 import { transformEventMetadata, transformHeaders } from 'src/schema/hasura';
