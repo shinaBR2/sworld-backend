@@ -3,7 +3,7 @@ import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 import { hasuraEventMetadataSchema } from 'src/schema/hasura';
 import { videoDataSchema } from 'src/schema/videos/convert';
 
-const ImportHandlerSchema = z.object({
+const importHandlerSchema = z.object({
   body: z.object({
     data: z.object({
       id: videoDataSchema.shape.id,
@@ -19,5 +19,5 @@ const ImportHandlerSchema = z.object({
   headers: taskHandlerHeaderSchema.passthrough(),
 });
 
-export type ImportHandlerRequest = z.infer<typeof ImportHandlerSchema>;
-export { ImportHandlerSchema };
+export type ImportHandlerRequest = z.infer<typeof importHandlerSchema>;
+export { importHandlerSchema };

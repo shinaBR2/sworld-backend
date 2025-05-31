@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ImportHandlerSchema } from './schema';
+import { importHandlerSchema } from './index';
 
 describe('ImportHandlerSchema', () => {
   // Common test data
@@ -30,14 +30,14 @@ describe('ImportHandlerSchema', () => {
     it('should reject request with missing x-task-id headers', () => {
       const { 'x-task-id': _, ...headersWithoutTaskId } = validHeaders;
       // @ts-expect-error
-      const result = ImportHandlerSchema.safeParse(createRequest({ headers: headersWithoutTaskId }));
+      const result = importHandlerSchema.safeParse(createRequest({ headers: headersWithoutTaskId }));
       expect(result.success).toBe(false);
     });
 
     it('should reject request with missing content-type headers', () => {
       const { 'content-type': _, ...headersWithoutContentType } = validHeaders;
       // @ts-expect-error
-      const result = ImportHandlerSchema.safeParse(createRequest({ headers: headersWithoutContentType }));
+      const result = importHandlerSchema.safeParse(createRequest({ headers: headersWithoutContentType }));
       expect(result.success).toBe(false);
     });
   });
@@ -46,24 +46,24 @@ describe('ImportHandlerSchema', () => {
     it('should reject request with missing required fields', () => {
       const { id: _, ...dataWithoutId } = validData;
       // @ts-expect-error
-      const result = ImportHandlerSchema.safeParse(createRequest({ data: dataWithoutId }));
+      const result = importHandlerSchema.safeParse(createRequest({ data: dataWithoutId }));
       expect(result.success).toBe(false);
     });
 
     it('should reject empty string values', () => {
-      const result = ImportHandlerSchema.safeParse(createRequest({ data: { ...validData, id: '' } }));
+      const result = importHandlerSchema.safeParse(createRequest({ data: { ...validData, id: '' } }));
       expect(result.success).toBe(false);
     });
 
     it('should reject non-UUID id', () => {
-      const result = ImportHandlerSchema.safeParse(createRequest({ data: { ...validData, id: 'invalid-id' } }));
+      const result = importHandlerSchema.safeParse(createRequest({ data: { ...validData, id: 'invalid-id' } }));
       expect(result.success).toBe(false);
     });
   });
 
   describe('URL validation', () => {
     it('should reject non-HTTPS video URL', () => {
-      const result = ImportHandlerSchema.safeParse(
+      const result = importHandlerSchema.safeParse(
         createRequest({
           data: { ...validData, videoUrl: 'http://storage.example.com/video.mp4' },
         })
@@ -72,7 +72,7 @@ describe('ImportHandlerSchema', () => {
     });
 
     it('should reject non-video file URL', () => {
-      const result = ImportHandlerSchema.safeParse(
+      const result = importHandlerSchema.safeParse(
         createRequest({
           data: { ...validData, videoUrl: 'https://storage.example.com/image.jpg' },
         })
@@ -83,7 +83,7 @@ describe('ImportHandlerSchema', () => {
 
   it('should validate correct request structure', () => {
     const validRequest = createRequest();
-    const result = ImportHandlerSchema.safeParse(validRequest);
+    const result = importHandlerSchema.safeParse(validRequest);
     expect(result.success).toBe(true);
   });
 });
