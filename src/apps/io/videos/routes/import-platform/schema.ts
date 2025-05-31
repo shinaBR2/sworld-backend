@@ -1,19 +1,19 @@
 import { z } from 'zod';
-import { VideoDataSchema } from 'src/services/videos/convert/schema';
 import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
-import { EventMetadataSchema } from 'src/schema/hasura';
+import { hasuraEventMetadataSchema } from 'src/schema/hasura';
+import { videoDataSchema } from 'src/schema/videos/convert';
 
 const ImportHandlerSchema = z.object({
   body: z.object({
     data: z.object({
-      id: VideoDataSchema.shape.id,
-      userId: VideoDataSchema.shape.user_id,
-      videoUrl: VideoDataSchema.shape.video_url,
+      id: videoDataSchema.shape.id,
+      userId: videoDataSchema.shape.user_id,
+      videoUrl: videoDataSchema.shape.video_url,
     }),
     metadata: z.object({
-      id: EventMetadataSchema.shape.id,
-      spanId: EventMetadataSchema.shape.span_id,
-      traceId: EventMetadataSchema.shape.trace_id,
+      id: hasuraEventMetadataSchema.shape.id,
+      spanId: hasuraEventMetadataSchema.shape.span_id,
+      traceId: hasuraEventMetadataSchema.shape.trace_id,
     }),
   }),
   headers: taskHandlerHeaderSchema.passthrough(),

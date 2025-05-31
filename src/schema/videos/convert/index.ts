@@ -1,9 +1,14 @@
 import { z } from 'zod';
-import { EventMetadataSchema } from '../../hasura';
+import { hasuraEventMetadataSchema } from '../../hasura';
 import { validateMediaURL } from 'src/services/videos/convert/validator';
 import { videoUrlSchema } from '../common';
+import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 
-const VideoDataSchema = z.object({
+/**
+ * These schemas from hasura, for gateway
+ */
+
+const videoDataSchema = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
   video_url: videoUrlSchema,
@@ -11,12 +16,12 @@ const VideoDataSchema = z.object({
   keep_original_source: z.boolean(),
 });
 
-const EventSchema = z.object({
-  metadata: EventMetadataSchema,
-  data: VideoDataSchema,
+const eventSchema = z.object({
+  metadata: hasuraEventMetadataSchema,
+  data: videoDataSchema,
 });
 
-const transformEvent = (event: z.infer<typeof EventSchema>) => {
+const transformEvent = (event: z.infer<typeof eventSchema>) => {
   const mediaInfo = validateMediaURL(event.data.video_url);
   const { platform = null, fileType = null } = mediaInfo;
 
@@ -38,10 +43,10 @@ const transformEvent = (event: z.infer<typeof EventSchema>) => {
   };
 };
 
-const ConvertSchema = z
+const convertSchema = z
   .object({
     body: z.object({
-      event: EventSchema,
+      event: eventSchema,
     }),
     headers: z
       .object({
@@ -56,5 +61,25 @@ const ConvertSchema = z
     signatureHeader: req.headers['x-webhook-signature'] as string,
   }));
 
-export { ConvertSchema, EventSchema, VideoDataSchema };
-export type ConvertRequest = z.infer<typeof ConvertSchema>;
+/**
+ * These schemas for Cloud Task handler
+ */
+const convertHandlerSchema = z.object({
+  body: z.object({
+    data: z.object({
+      id: videoDataSchema.shape.id,
+      userId: videoDataSchema.shape.user_id,
+      videoUrl: videoDataSchema.shape.video_url,
+    }),
+    metadata: z.object({
+      id: hasuraEventMetadataSchema.shape.id, // Can we reuse somehow?
+      spanId: hasuraEventMetadataSchema.shape.span_id,
+      traceId: hasuraEventMetadataSchema.shape.trace_id,
+    }),
+  }),
+  headers: taskHandlerHeaderSchema.passthrough(),
+});
+
+export { convertSchema, eventSchema, videoDataSchema, convertHandlerSchema };
+export type ConvertRequest = z.infer<typeof convertSchema>;
+export type ConvertHandlerRequest = z.infer<typeof convertHandlerSchema>;

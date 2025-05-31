@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { VideoDataSchema } from 'src/services/videos/convert/schema';
 import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
+import { videoDataSchema } from 'src/schema/videos/convert';
 
 const FixThumbnailHandlerSchema = z.object({
   body: z.object({
-    id: VideoDataSchema.shape.id,
+    id: videoDataSchema.shape.id,
   }),
   headers: taskHandlerHeaderSchema.passthrough(),
 });
