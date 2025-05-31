@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { VideoDataSchema } from 'src/services/videos/convert/schema';
 import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
-import { EventMetadataSchema } from 'src/schema/videos/common';
+import { EventMetadataSchema } from 'src/schema/hasura';
 
 const ConvertHandlerSchema = z.object({
   body: z.object({

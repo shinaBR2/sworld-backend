@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { headersSchema, transformEventMetadata, transformHeaders } from '../../schema';
-import { hasuraEventMetadataSchema } from 'src/schema/hasura';
+import { hasuraEventMetadataSchema, headersSchema, transformEventMetadata, transformHeaders } from 'src/schema/hasura';
 
 const CrawlRequestSchema = z.object({
   id: z.string().uuid(),

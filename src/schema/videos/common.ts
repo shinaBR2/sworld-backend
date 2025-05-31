@@ -15,14 +15,4 @@ const videoUrlSchema = z
     }
   );
 
-/**
- * Hasura event trigger schema
- */
-
-const EventMetadataSchema = z.object({
-  id: z.string(),
-  span_id: z.string(),
-  trace_id: z.string(),
-});
-
-export { videoUrlSchema, EventMetadataSchema };
+export { videoUrlSchema };

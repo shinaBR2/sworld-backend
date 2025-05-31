@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { validateMediaURL } from './validator';
-import { EventMetadataSchema, videoUrlSchema } from 'src/schema/hasura';
+import { EventMetadataSchema } from '../../hasura';
+import { validateMediaURL } from 'src/services/videos/convert/validator';
+import { videoUrlSchema } from '../common';
 
 const VideoDataSchema = z.object({
   id: z.string().uuid(),
