@@ -28,7 +28,7 @@ vi.mock('./routes/crawl', () => ({
 
 vi.mock('src/schema/videos/crawl', () => ({
   crawlHandlerSchema: 'mockSchema',
-  CrawlHandlerInput: {},
+  CrawlHandlerRequest: {},
 }));
 
 describe('crawlerRouter', () => {
