@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { crawlHandlerSchema } from './schema';
+import { crawlHandlerSchema } from './index';
 
 vi.mock('src/utils/cloud-task/schema', () => ({
   taskHandlerHeaderSchema: z.object({
