@@ -1,4 +1,4 @@
-import { EventMetadataSchema } from 'src/services/videos/convert/schema';
+import { EventMetadataSchema } from 'src/schema/videos/common';
 import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 import { z } from 'zod';
 

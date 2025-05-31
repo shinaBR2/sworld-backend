@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { EventMetadataSchema, VideoDataSchema } from 'src/services/videos/convert/schema';
+import { VideoDataSchema } from 'src/services/videos/convert/schema';
 import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
+import { EventMetadataSchema } from 'src/schema/videos/common';
 
 const ImportHandlerSchema = z.object({
   body: z.object({

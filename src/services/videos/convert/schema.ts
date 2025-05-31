@@ -1,19 +1,6 @@
 import { z } from 'zod';
 import { validateMediaURL } from './validator';
-
-const videoUrlSchema = z
-  .string()
-  .url()
-  .regex(/^https:\/\//i, 'URL must use HTTPS')
-  .refine(
-    url => {
-      const result = validateMediaURL(url);
-      return result.platform !== null || result.fileType !== null;
-    },
-    {
-      message: 'URL must be a valid media file or from a supported platform',
-    }
-  );
+import { EventMetadataSchema, videoUrlSchema } from 'src/schema/videos/common';
 
 const VideoDataSchema = z.object({
   id: z.string().uuid(),
@@ -21,12 +8,6 @@ const VideoDataSchema = z.object({
   video_url: videoUrlSchema,
   skip_process: z.boolean(),
   keep_original_source: z.boolean(),
-});
-
-const EventMetadataSchema = z.object({
-  id: z.string(),
-  span_id: z.string(),
-  trace_id: z.string(),
 });
 
 const EventSchema = z.object({
@@ -74,5 +55,5 @@ const ConvertSchema = z
     signatureHeader: req.headers['x-webhook-signature'] as string,
   }));
 
-export { ConvertSchema, EventMetadataSchema, EventSchema, VideoDataSchema };
+export { ConvertSchema, EventSchema, VideoDataSchema };
 export type ConvertRequest = z.infer<typeof ConvertSchema>;
