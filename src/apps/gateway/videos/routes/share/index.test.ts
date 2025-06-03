@@ -2,7 +2,10 @@ import { describe, it, vi, expect, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
 import { envConfig } from 'src/utils/envConfig';
 import { AppError, AppResponse } from 'src/utils/schema';
+import { VIDEO_ERRORS } from 'src/utils/error-codes';
+import { CustomError } from 'src/utils/custom-error';
 import { verifySignature } from 'src/services/videos/convert/validator';
+import * as CustomErrorModule from 'src/utils/custom-error';
 import { getPlaylistVideos } from 'src/services/hasura/queries/share';
 import { insertSharedVideoRecipients } from 'src/services/hasura/mutations/share-videos';
 import { shareVideoHandler } from './index';
@@ -33,6 +36,7 @@ describe('shareVideoHandler', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(CustomErrorModule.CustomError, 'critical');
     mockRes = {
       json: mockJson,
     };
@@ -125,6 +129,34 @@ describe('shareVideoHandler', () => {
     expect(mockJson).toHaveBeenCalledWith(
       AppError('No valid users found', {
         eventId: 'event-1',
+      })
+    );
+  });
+
+  it('should throw CustomError when insertSharedVideoRecipients fails', async () => {
+    vi.mocked(verifySignature).mockReturnValue(true);
+    vi.mocked(getPlaylistVideos).mockResolvedValue({
+      playlist_by_pk: {
+        playlist_videos: [{ video: { id: 'video-1', status: 'ready' } }],
+      },
+      users: [{ id: 'user-1', email: 'user1@example.com' }],
+    });
+
+    const mockError = new Error('Database error');
+    vi.mocked(insertSharedVideoRecipients).mockRejectedValue(mockError);
+
+    await expect(shareVideoHandler(mockReq as Request, mockRes as Response)).rejects.toThrow('Video share failed');
+
+    expect(CustomErrorModule.CustomError.critical).toHaveBeenCalledWith(
+      'Video share failed',
+      expect.objectContaining({
+        errorCode: VIDEO_ERRORS.SHARE_FAILED,
+        originalError: mockError,
+        context: {
+          data: (mockReq as any).validatedData.event.data,
+          metadata: (mockReq as any).validatedData.event.metadata,
+        },
+        source: 'apps/gateway/videos/routes/share/index.ts',
       })
     );
   });

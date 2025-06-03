@@ -84,7 +84,7 @@ const shareVideoHandler = async (req: Request, res: Response) => {
   try {
     await insertSharedVideoRecipients(insert_records, entityId, validEmails);
   } catch (error) {
-    throw CustomError.critical('Video conversion failed', {
+    throw CustomError.critical('Video share failed', {
       originalError: error,
       errorCode: VIDEO_ERRORS.SHARE_FAILED,
       context: {
