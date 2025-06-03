@@ -1,17 +1,15 @@
 import { Request, Response } from 'express';
 import { envConfig } from 'src/utils/envConfig';
-import { queues } from 'src/utils/systemConfig';
-import { logger } from 'src/utils/logger';
 import { AppError, AppResponse } from 'src/utils/schema';
-import { ValidatedRequest } from 'src/utils/validator';
+import { ValidatedRequest, isValidEmail } from 'src/utils/validator';
 import { verifySignature } from 'src/services/videos/convert/validator';
-import { CreateCloudTasksParams, createCloudTasks } from 'src/utils/cloud-task';
-import { TaskEntityType, TaskType } from 'src/database/models/task';
+import { ShareRequest } from 'src/schema/videos/share';
+import { getPlaylistVideos } from 'src/services/hasura/queries/share';
+import { insertSharedVideoRecipients } from 'src/services/hasura/mutations/share-videos';
 
 const shareVideoHandler = async (req: Request, res: Response) => {
   const { computeServiceUrl, ioServiceUrl } = envConfig;
-  // const { validatedData } = req as ValidatedRequest<ConvertRequest>;
-  const { validatedData } = req as ValidatedRequest<any>;
+  const { validatedData } = req as ValidatedRequest<ShareRequest>;
   const { signatureHeader, event } = validatedData;
   const { data, metadata } = event;
 
@@ -32,36 +30,68 @@ const shareVideoHandler = async (req: Request, res: Response) => {
     );
   }
 
-  const { id: entityId, platform, fileType, skipProcess } = data;
-  const { streamVideoQueue, convertVideoQueue } = queues;
+  const { id: entityId, sharedRecipientsInput } = data;
 
-  if (skipProcess) {
-    logger.info({ metadata }, 'Skip process');
-    return res.json(AppResponse(true, 'skipped'));
-  }
+  // if (skipProcess) {
+  //   logger.info({ metadata }, 'Skip process');
+  //   return res.json(AppResponse(true, 'skipped'));
+  // }
 
-  const taskConfig: CreateCloudTasksParams = {
-    audience: ioServiceUrl,
-    queue: streamVideoQueue,
-    payload: event,
-    url: `${ioServiceUrl}/videos/share-handler`,
-    entityId,
-    entityType: TaskEntityType.VIDEO,
-    type: TaskType.SHARE,
-  };
-
-  try {
-    const task = await createCloudTasks(taskConfig);
-    logger.info({ metadata, task }, 'Video task created successfully');
-    return res.json(AppResponse(true, 'ok'));
-  } catch (error) {
+  // 1. Validate emails
+  const validEmails = sharedRecipientsInput.filter(email => isValidEmail(email));
+  if (!validEmails.length) {
+    // TODO send email
     return res.json(
-      AppError('Failed to create task', {
+      AppError('Invalid email', {
         eventId: metadata.id,
-        error,
       })
     );
   }
+  // 2. get list videos and users
+  const { playlist_by_pk, users } = await getPlaylistVideos(entityId, validEmails);
+
+  if (!playlist_by_pk) {
+    return res.json(
+      AppError('Playlist not found', {
+        eventId: metadata.id,
+      })
+    );
+  }
+
+  const videos = playlist_by_pk.playlist_videos.map(pv => pv.video);
+
+  if (!videos.length) {
+    return res.json(
+      AppError('No ready videos found in playlist', {
+        eventId: metadata.id,
+      })
+    );
+  }
+
+  if (!users?.length) {
+    return res.json(
+      AppError('No valid users found', {
+        eventId: metadata.id,
+      })
+    );
+  }
+
+  // 3. create shared_video_recipients record for each video in playlist
+  const insert_records = [];
+  for (let i = 0; i < users.length; i++) {
+    const records = videos.map(video => {
+      return {
+        videoId: video.id,
+        playlistId: entityId,
+        receiverId: users[i].id,
+      };
+    });
+    insert_records.push(...records);
+  }
+  // 4. Update shared_recipients in playlist
+  await insertSharedVideoRecipients(insert_records, entityId, validEmails);
+
+  return res.json(AppResponse(true, 'ok'));
 };
 
 export { shareVideoHandler };

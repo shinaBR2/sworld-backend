@@ -59,4 +59,9 @@ const validateRequest: ValidateRequest =
     }
   };
 
-export { validateRequest, type ValidatedRequest, type Header };
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+export { validateRequest, type ValidatedRequest, type Header, isValidEmail };
