@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { z } from 'zod';
 import type { Request, Response, NextFunction } from 'express';
-import { validateRequest } from './validator';
+import { isValidEmail, validateRequest } from './validator';
 
 describe('validateRequest', () => {
   let mockReq: Partial<Request>;
@@ -236,5 +236,39 @@ describe('validateRequest', () => {
       message: expect.stringContaining('Invalid input:'),
       dataObject: null,
     });
+  });
+});
+
+describe('isValidEmail', () => {
+  it('should return true for valid email addresses', () => {
+    expect(isValidEmail('test@example.com')).toBe(true);
+    expect(isValidEmail('user.name@domain.co.uk')).toBe(true);
+    expect(isValidEmail('user+tag@example.com')).toBe(true);
+    expect(isValidEmail('123@domain.com')).toBe(true);
+  });
+
+  it('should return false for invalid email addresses', () => {
+    expect(isValidEmail('not-an-email')).toBe(false);
+    expect(isValidEmail('@domain.com')).toBe(false);
+    expect(isValidEmail('user@')).toBe(false);
+    expect(isValidEmail('user@domain')).toBe(false);
+    expect(isValidEmail('user.domain.com')).toBe(false);
+  });
+
+  it('should handle empty strings and whitespace', () => {
+    expect(isValidEmail('')).toBe(false);
+    expect(isValidEmail('   ')).toBe(false);
+    expect(isValidEmail('\t\n')).toBe(false);
+  });
+
+  it('should handle strings with whitespace', () => {
+    expect(isValidEmail('  test@example.com  ')).toBe(false);
+    expect(isValidEmail('\ntest@example.com\t')).toBe(false);
+  });
+
+  it('should handle special characters in local part', () => {
+    expect(isValidEmail('user.name+tag@example.com')).toBe(true);
+    expect(isValidEmail('user-name@example.com')).toBe(true);
+    expect(isValidEmail('user_name@example.com')).toBe(true);
   });
 });
