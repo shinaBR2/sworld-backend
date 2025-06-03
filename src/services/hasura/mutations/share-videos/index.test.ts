@@ -75,4 +75,24 @@ describe('insertSharedVideoRecipients', () => {
 
     await expect(insertSharedVideoRecipients(mockObjects, mockPlaylistId, mockEmails)).rejects.toThrow(mockError);
   });
+
+  it('should throw an error when insert_shared_video_recipients is missing', async () => {
+    vi.mocked(hasuraClient.request).mockResolvedValueOnce({
+      update_playlist_by_pk: mockResponse.update_playlist_by_pk,
+    } as InsertshareMutation);
+
+    await expect(insertSharedVideoRecipients(mockObjects, mockPlaylistId, mockEmails)).rejects.toThrow(
+      'Failed to insert shared video recipients or update playlist'
+    );
+  });
+
+  it('should throw an error when update_playlist_by_pk is missing', async () => {
+    vi.mocked(hasuraClient.request).mockResolvedValueOnce({
+      insert_shared_video_recipients: mockResponse.insert_shared_video_recipients,
+    } as InsertshareMutation);
+
+    await expect(insertSharedVideoRecipients(mockObjects, mockPlaylistId, mockEmails)).rejects.toThrow(
+      'Failed to insert shared video recipients or update playlist'
+    );
+  });
 });
