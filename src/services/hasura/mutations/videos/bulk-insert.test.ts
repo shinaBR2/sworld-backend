@@ -4,7 +4,7 @@ import { hasuraClient } from '../../client';
 import { VideoInput, insertVideos } from './bulk-insert';
 
 // Mock GraphQL client
-vi.mock('../client', () => ({
+vi.mock('../../client', () => ({
   hasuraClient: {
     request: vi.fn(),
   },

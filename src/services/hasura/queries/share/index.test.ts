@@ -3,12 +3,15 @@ import { hasuraClient } from '../../client';
 import { getPlaylistVideos } from './index';
 import { PlaylistDetailQuery } from '../../generated-graphql/graphql';
 
-// Mock GraphQL client
-vi.mock('../../client', () => ({
-  hasuraClient: {
-    request: vi.fn(),
-  },
-}));
+// Mock the hasura client
+vi.mock('../../client', () => {
+  const mockRequest = vi.fn();
+  return {
+    hasuraClient: {
+      request: mockRequest,
+    },
+  };
+});
 
 describe('getPlaylistVideos', () => {
   beforeEach(() => {

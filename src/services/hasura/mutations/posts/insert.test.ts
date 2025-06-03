@@ -4,7 +4,7 @@ import { hasuraClient } from '../../client';
 import { insertPost } from './insert';
 
 // Mock GraphQL client
-vi.mock('../client', () => ({
+vi.mock('../../client', () => ({
   hasuraClient: {
     request: vi.fn(),
   },
