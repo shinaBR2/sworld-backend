@@ -5,6 +5,8 @@ import { verifySignature } from 'src/services/videos/convert/validator';
 import { ShareRequest } from 'src/schema/videos/share';
 import { getPlaylistVideos } from 'src/services/hasura/queries/share';
 import { insertSharedVideoRecipients } from 'src/services/hasura/mutations/share-videos';
+import { CustomError } from 'src/utils/custom-error';
+import { VIDEO_ERRORS } from 'src/utils/error-codes';
 
 const shareVideoHandler = async (req: Request, res: Response) => {
   const { validatedData } = req as ValidatedRequest<ShareRequest>;
@@ -79,7 +81,19 @@ const shareVideoHandler = async (req: Request, res: Response) => {
   }
 
   // 4. Update shared_recipients in playlist
-  await insertSharedVideoRecipients(insert_records, entityId, validEmails);
+  try {
+    await insertSharedVideoRecipients(insert_records, entityId, validEmails);
+  } catch (error) {
+    throw CustomError.critical('Video conversion failed', {
+      originalError: error,
+      errorCode: VIDEO_ERRORS.SHARE_FAILED,
+      context: {
+        data,
+        metadata,
+      },
+      source: 'apps/gateway/videos/routes/share/index.ts',
+    });
+  }
 
   return res.json(AppResponse(true, 'ok'));
 };
