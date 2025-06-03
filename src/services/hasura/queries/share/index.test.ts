@@ -18,30 +18,44 @@ describe('getPlaylistVideos', () => {
     vi.clearAllMocks();
   });
 
-  const mockPlaylistId = '550e8400-e29b-41d4-a716-446655440000';
+  const mockPlaylistId = 'test-playlist-id';
+  const mockEmails = ['user1@example.com', 'user2@example.com'];
 
-  const mockResponse: PlaylistDetailQuery = {
+  const mockResponse = {
     playlist_by_pk: {
       playlist_videos: [
         {
           video: {
-            id: '550e8400-e29b-41d4-a716-446655440001',
+            id: 'video-1',
             status: 'ready',
           },
         },
       ],
     },
+    users: [
+      {
+        id: 'user-1',
+        email: 'user1@example.com',
+        username: 'user1',
+      },
+      {
+        id: 'user-2',
+        email: 'user2@example.com',
+        username: 'user2',
+      },
+    ],
   };
 
   it('should call hasuraClient.request with correct parameters', async () => {
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
 
-    await getPlaylistVideos(mockPlaylistId);
+    await getPlaylistVideos(mockPlaylistId, mockEmails);
 
     expect(hasuraClient.request).toHaveBeenCalledWith({
       document: expect.stringContaining('query PlaylistDetail'),
       variables: {
         id: mockPlaylistId,
+        emails: mockEmails,
       },
     });
   });
@@ -49,7 +63,7 @@ describe('getPlaylistVideos', () => {
   it('should return playlist_by_pk from the response', async () => {
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
 
-    const result = await getPlaylistVideos(mockPlaylistId);
+    const result = await getPlaylistVideos(mockPlaylistId, mockEmails);
 
     expect(result).toEqual(mockResponse);
   });
@@ -58,6 +72,6 @@ describe('getPlaylistVideos', () => {
     const mockError = new Error('GraphQL request failed');
     vi.mocked(hasuraClient.request).mockRejectedValueOnce(mockError);
 
-    await expect(getPlaylistVideos(mockPlaylistId)).rejects.toThrow(mockError);
+    await expect(getPlaylistVideos(mockPlaylistId, mockEmails)).rejects.toThrow(mockError);
   });
 });

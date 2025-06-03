@@ -9124,6 +9124,7 @@ export type FinalizeVideoMutation = {
 
 export type PlaylistDetailQueryVariables = Exact<{
   id: Scalars['uuid']['input'];
+  emails: Array<Scalars['String']['input']> | Scalars['String']['input'];
 }>;
 
 export type PlaylistDetailQuery = {
@@ -9135,6 +9136,7 @@ export type PlaylistDetailQuery = {
       video: { __typename?: 'videos'; id: any; status?: string | null };
     }>;
   } | null;
+  users: Array<{ __typename?: 'users'; id: any; email: string; username?: string | null }>;
 };
 
 export class TypedDocumentString<TResult, TVariables>
@@ -9209,7 +9211,7 @@ export const FinalizeVideoDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<FinalizeVideoMutation, FinalizeVideoMutationVariables>;
 export const PlaylistDetailDocument = new TypedDocumentString(`
-    query PlaylistDetail($id: uuid!) {
+    query PlaylistDetail($id: uuid!, $emails: [String!]!) {
   playlist_by_pk(id: $id) {
     playlist_videos(where: {video: {status: {_eq: "ready"}}}) {
       video {
@@ -9217,6 +9219,11 @@ export const PlaylistDetailDocument = new TypedDocumentString(`
         status
       }
     }
+  }
+  users(where: {email: {_in: $emails}}) {
+    id
+    email
+    username
   }
 }
     `) as unknown as TypedDocumentString<PlaylistDetailQuery, PlaylistDetailQueryVariables>;
