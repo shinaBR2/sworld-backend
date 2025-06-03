@@ -12,7 +12,10 @@ const INSERT_SHARED_VIDEO_RECIPIENTS = graphql(/* GraphQL */ `
     $playlistId: uuid!
     $sharedRecipients: jsonb!
   ) {
-    insert_shared_video_recipients(objects: $objects) {
+    insert_shared_video_recipients(
+      objects: $objects
+      on_conflict: { constraint: shared_video_recipients_playlist_id_video_id_receiver_id_key, update_columns: [] }
+    ) {
       returning {
         id
       }

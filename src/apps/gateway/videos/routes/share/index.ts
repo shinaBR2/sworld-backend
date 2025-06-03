@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { envConfig } from 'src/utils/envConfig';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { ValidatedRequest, isValidEmail } from 'src/utils/validator';
 import { verifySignature } from 'src/services/videos/convert/validator';
@@ -8,7 +7,6 @@ import { getPlaylistVideos } from 'src/services/hasura/queries/share';
 import { insertSharedVideoRecipients } from 'src/services/hasura/mutations/share-videos';
 
 const shareVideoHandler = async (req: Request, res: Response) => {
-  const { computeServiceUrl, ioServiceUrl } = envConfig;
   const { validatedData } = req as ValidatedRequest<ShareRequest>;
   const { signatureHeader, event } = validatedData;
   const { data, metadata } = event;
@@ -16,15 +14,6 @@ const shareVideoHandler = async (req: Request, res: Response) => {
   if (!verifySignature(signatureHeader)) {
     return res.json(
       AppError('Invalid webhook signature for event', {
-        eventId: metadata.id,
-      })
-    );
-  }
-
-  // TODO remove this for simplicity
-  if (!computeServiceUrl || !ioServiceUrl) {
-    return res.json(
-      AppError('Missing environment variable', {
         eventId: metadata.id,
       })
     );
@@ -88,6 +77,7 @@ const shareVideoHandler = async (req: Request, res: Response) => {
     });
     insert_records.push(...records);
   }
+
   // 4. Update shared_recipients in playlist
   await insertSharedVideoRecipients(insert_records, entityId, validEmails);
 

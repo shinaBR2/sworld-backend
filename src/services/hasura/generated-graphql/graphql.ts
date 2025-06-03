@@ -9200,7 +9200,10 @@ export const UpdatePostDocument = new TypedDocumentString(`
     `) as unknown as TypedDocumentString<UpdatePostMutation, UpdatePostMutationVariables>;
 export const InsertshareDocument = new TypedDocumentString(`
     mutation insertshare($objects: [shared_video_recipients_insert_input!]!, $playlistId: uuid!, $sharedRecipients: jsonb!) {
-  insert_shared_video_recipients(objects: $objects) {
+  insert_shared_video_recipients(
+    objects: $objects
+    on_conflict: {constraint: shared_video_recipients_playlist_id_video_id_receiver_id_key, update_columns: []}
+  ) {
     returning {
       id
     }
