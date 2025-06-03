@@ -57,7 +57,7 @@ const insertSharedVideoRecipients = async (
     },
     update_playlist_by_pk: {
       id: response.update_playlist_by_pk.id,
-      sharedRecipients: response.update_playlist_by_pk.sharedRecipients as string[],
+      sharedRecipients: response.update_playlist_by_pk.sharedRecipients,
     },
   };
 };
