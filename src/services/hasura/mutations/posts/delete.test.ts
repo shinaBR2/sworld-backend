@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { hasuraClient } from '../client';
+import { hasuraClient } from '../../client';
 import { deletePost } from './delete';
 
 vi.mock('../client', () => ({
