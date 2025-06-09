@@ -77,7 +77,7 @@ const sharePlaylistHandler = async (req: Request, res: Response) => {
   try {
     await sharePlaylist(recipients, entityId, validEmails);
   } catch (error) {
-    throw CustomError.critical('Video share failed', {
+    throw CustomError.critical('Playlist share failed', {
       originalError: error,
       errorCode: VIDEO_ERRORS.SHARE_FAILED,
       context: {

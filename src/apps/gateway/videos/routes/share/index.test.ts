@@ -143,10 +143,12 @@ describe('sharePlaylistHandler', () => {
     const mockError = new Error('Database error');
     vi.mocked(sharePlaylist).mockRejectedValue(mockError);
 
-    await expect(sharePlaylistHandler(mockReq as Request, mockRes as Response)).rejects.toThrow('Video share failed');
+    await expect(sharePlaylistHandler(mockReq as Request, mockRes as Response)).rejects.toThrow(
+      'Playlist share failed'
+    );
 
     expect(CustomErrorModule.CustomError.critical).toHaveBeenCalledWith(
-      'Video share failed',
+      'Playlist share failed',
       expect.objectContaining({
         errorCode: VIDEO_ERRORS.SHARE_FAILED,
         originalError: mockError,
