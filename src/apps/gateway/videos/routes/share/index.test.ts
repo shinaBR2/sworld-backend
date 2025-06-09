@@ -6,7 +6,7 @@ import { verifySignature } from 'src/services/videos/convert/validator';
 import * as CustomErrorModule from 'src/utils/custom-error';
 import { getPlaylistVideos } from 'src/services/hasura/queries/share';
 import { sharePlaylist } from 'src/services/hasura/mutations/share-videos';
-import { shareVideoHandler } from './index';
+import { sharePlaylistHandler } from './index';
 
 vi.mock('src/utils/envConfig', () => ({
   envConfig: {
@@ -27,7 +27,7 @@ vi.mock('src/services/hasura/mutations/share-videos', () => ({
   sharePlaylist: vi.fn(),
 }));
 
-describe('shareVideoHandler', () => {
+describe('sharePlaylistHandler', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
   const mockJson = vi.fn();
@@ -57,7 +57,7 @@ describe('shareVideoHandler', () => {
   it('should return error if signature is invalid', async () => {
     vi.mocked(verifySignature).mockReturnValue(false);
 
-    await shareVideoHandler(mockReq as Request, mockRes as Response);
+    await sharePlaylistHandler(mockReq as Request, mockRes as Response);
 
     expect(mockJson).toHaveBeenCalledWith(
       AppError('Invalid webhook signature for event', {
@@ -70,7 +70,7 @@ describe('shareVideoHandler', () => {
     vi.mocked(verifySignature).mockReturnValue(true);
     mockReq.validatedData!.event.data.sharedRecipientsInput = ['invalid-email'];
 
-    await shareVideoHandler(mockReq as Request, mockRes as Response);
+    await sharePlaylistHandler(mockReq as Request, mockRes as Response);
 
     expect(mockJson).toHaveBeenCalledWith(
       AppError('Invalid email', {
@@ -86,7 +86,7 @@ describe('shareVideoHandler', () => {
       users: [],
     });
 
-    await shareVideoHandler(mockReq as Request, mockRes as Response);
+    await sharePlaylistHandler(mockReq as Request, mockRes as Response);
 
     expect(mockJson).toHaveBeenCalledWith(
       AppError('Playlist not found', {
@@ -104,7 +104,7 @@ describe('shareVideoHandler', () => {
       users: [],
     });
 
-    await shareVideoHandler(mockReq as Request, mockRes as Response);
+    await sharePlaylistHandler(mockReq as Request, mockRes as Response);
 
     expect(mockJson).toHaveBeenCalledWith(
       AppError('No ready videos found in playlist', {
@@ -122,7 +122,7 @@ describe('shareVideoHandler', () => {
       users: null,
     });
 
-    await shareVideoHandler(mockReq as Request, mockRes as Response);
+    await sharePlaylistHandler(mockReq as Request, mockRes as Response);
 
     expect(mockJson).toHaveBeenCalledWith(
       AppError('No valid users found', {
@@ -143,7 +143,7 @@ describe('shareVideoHandler', () => {
     const mockError = new Error('Database error');
     vi.mocked(sharePlaylist).mockRejectedValue(mockError);
 
-    await expect(shareVideoHandler(mockReq as Request, mockRes as Response)).rejects.toThrow('Video share failed');
+    await expect(sharePlaylistHandler(mockReq as Request, mockRes as Response)).rejects.toThrow('Video share failed');
 
     expect(CustomErrorModule.CustomError.critical).toHaveBeenCalledWith(
       'Video share failed',
@@ -180,7 +180,7 @@ describe('shareVideoHandler', () => {
       },
     });
 
-    await shareVideoHandler(mockReq as Request, mockRes as Response);
+    await sharePlaylistHandler(mockReq as Request, mockRes as Response);
 
     expect(sharePlaylist).toHaveBeenCalledWith(
       expect.arrayContaining([

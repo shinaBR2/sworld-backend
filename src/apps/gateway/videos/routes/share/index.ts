@@ -8,7 +8,7 @@ import { sharePlaylist } from 'src/services/hasura/mutations/share-videos';
 import { CustomError } from 'src/utils/custom-error';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
 
-const shareVideoHandler = async (req: Request, res: Response) => {
+const sharePlaylistHandler = async (req: Request, res: Response) => {
   const { validatedData } = req as ValidatedRequest<ShareRequest>;
   const { signatureHeader, event } = validatedData;
   const { data, metadata } = event;
@@ -91,4 +91,4 @@ const shareVideoHandler = async (req: Request, res: Response) => {
   return res.json(AppResponse(true, 'ok'));
 };
 
-export { shareVideoHandler };
+export { sharePlaylistHandler };
