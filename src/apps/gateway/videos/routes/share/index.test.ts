@@ -1,13 +1,11 @@
 import { describe, it, vi, expect, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
-import { envConfig } from 'src/utils/envConfig';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
-import { CustomError } from 'src/utils/custom-error';
 import { verifySignature } from 'src/services/videos/convert/validator';
 import * as CustomErrorModule from 'src/utils/custom-error';
 import { getPlaylistVideos } from 'src/services/hasura/queries/share';
-import { insertSharedVideoRecipients } from 'src/services/hasura/mutations/share-videos';
+import { sharePlaylist } from 'src/services/hasura/mutations/share-videos';
 import { shareVideoHandler } from './index';
 
 vi.mock('src/utils/envConfig', () => ({
@@ -26,7 +24,7 @@ vi.mock('src/services/hasura/queries/share', () => ({
 }));
 
 vi.mock('src/services/hasura/mutations/share-videos', () => ({
-  insertSharedVideoRecipients: vi.fn(),
+  sharePlaylist: vi.fn(),
 }));
 
 describe('shareVideoHandler', () => {
@@ -133,7 +131,7 @@ describe('shareVideoHandler', () => {
     );
   });
 
-  it('should throw CustomError when insertSharedVideoRecipients fails', async () => {
+  it('should throw CustomError when sharePlaylist fails', async () => {
     vi.mocked(verifySignature).mockReturnValue(true);
     vi.mocked(getPlaylistVideos).mockResolvedValue({
       playlist_by_pk: {
@@ -143,7 +141,7 @@ describe('shareVideoHandler', () => {
     });
 
     const mockError = new Error('Database error');
-    vi.mocked(insertSharedVideoRecipients).mockRejectedValue(mockError);
+    vi.mocked(sharePlaylist).mockRejectedValue(mockError);
 
     await expect(shareVideoHandler(mockReq as Request, mockRes as Response)).rejects.toThrow('Video share failed');
 
@@ -161,7 +159,7 @@ describe('shareVideoHandler', () => {
     );
   });
 
-  it('should successfully share videos with valid users', async () => {
+  it('should successfully share playlist with valid users', async () => {
     vi.mocked(verifySignature).mockReturnValue(true);
     vi.mocked(getPlaylistVideos).mockResolvedValue({
       playlist_by_pk: {
@@ -172,8 +170,8 @@ describe('shareVideoHandler', () => {
         { id: 'user-2', email: 'user2@example.com' },
       ],
     });
-    vi.mocked(insertSharedVideoRecipients).mockResolvedValue({
-      insert_shared_video_recipients: {
+    vi.mocked(sharePlaylist).mockResolvedValue({
+      insert_shared_playlist_recipients: {
         returning: [{ id: 'record-1' }, { id: 'record-2' }],
       },
       update_playlist_by_pk: {
@@ -184,12 +182,11 @@ describe('shareVideoHandler', () => {
 
     await shareVideoHandler(mockReq as Request, mockRes as Response);
 
-    expect(insertSharedVideoRecipients).toHaveBeenCalledWith(
+    expect(sharePlaylist).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
-          videoId: expect.any(String),
           playlistId: 'playlist-1',
-          receiverId: expect.any(String),
+          recipientId: expect.any(String),
         }),
       ]),
       'playlist-1',

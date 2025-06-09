@@ -4,7 +4,7 @@ import { ValidatedRequest, isValidEmail } from 'src/utils/validator';
 import { verifySignature } from 'src/services/videos/convert/validator';
 import { ShareRequest } from 'src/schema/videos/share';
 import { getPlaylistVideos } from 'src/services/hasura/queries/share';
-import { insertSharedVideoRecipients } from 'src/services/hasura/mutations/share-videos';
+import { sharePlaylist } from 'src/services/hasura/mutations/share-videos';
 import { CustomError } from 'src/utils/custom-error';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
 
@@ -67,22 +67,15 @@ const shareVideoHandler = async (req: Request, res: Response) => {
     );
   }
 
-  // 3. create shared_video_recipients record for each video in playlist
-  const insert_records = [];
-  for (let i = 0; i < users.length; i++) {
-    const records = videos.map(video => {
-      return {
-        videoId: video.id,
-        playlistId: entityId,
-        receiverId: users[i].id,
-      };
-    });
-    insert_records.push(...records);
-  }
+  // 3. create shared_playlist_recipients records
+  const recipients = users.map(user => ({
+    playlistId: entityId,
+    recipientId: user.id,
+  }));
 
   // 4. Update shared_recipients in playlist
   try {
-    await insertSharedVideoRecipients(insert_records, entityId, validEmails);
+    await sharePlaylist(recipients, entityId, validEmails);
   } catch (error) {
     throw CustomError.critical('Video share failed', {
       originalError: error,
