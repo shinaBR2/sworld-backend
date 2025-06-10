@@ -5,7 +5,7 @@ import { crawlHandler } from './routes/crawl';
 import { fixVideosDuration } from './routes/fix-videos-duration';
 import { fixVideosThumbnail } from './routes/fix-videos-thumbnail';
 import { streamToStorage } from './routes/stream-to-storage';
-import { sharePlaylistHandler } from './routes/share';
+import { sharePlaylistHandler } from './routes/share-playlist';
 
 type Middleware = (req: Request, res: Response, next: NextFunction) => void;
 let routeHandlers: { path: string; middlewares: Middleware[] }[] = [];
