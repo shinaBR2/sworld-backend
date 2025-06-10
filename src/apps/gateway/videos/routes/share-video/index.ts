@@ -49,14 +49,6 @@ const shareVideoHandler = async (req: Request, res: Response) => {
     );
   }
 
-  if (!users?.length) {
-    return res.json(
-      AppError('No valid users found', {
-        eventId: metadata.id,
-      })
-    );
-  }
-
   // 3. create shared_playlist_recipients records
   const recipients = users.map(user => ({
     videoId: entityId,
