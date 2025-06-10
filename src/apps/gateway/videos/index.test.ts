@@ -52,7 +52,7 @@ vi.mock('./routes/crawl', () => ({
   crawlHandler: vi.fn(),
 }));
 
-vi.mock('./routes/share', () => ({
+vi.mock('./routes/share-playlist', () => ({
   sharePlaylistHandler: vi.fn(),
 }));
 
