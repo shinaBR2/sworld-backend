@@ -6045,6 +6045,10 @@ enum shared_video_recipients_constraint {
   unique or primary key constraint on columns "id"
   """
   shared_video_recipients_pkey
+  """
+  unique or primary key constraint on columns "video_id", "recipient_id"
+  """
+  shared_video_recipients_video_id_recipient_id_key
 }
 
 """

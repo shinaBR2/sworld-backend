@@ -5463,6 +5463,8 @@ export type Shared_Video_Recipients_Bool_Exp = {
 export enum Shared_Video_Recipients_Constraint {
   /** unique or primary key constraint on columns "id" */
   SharedVideoRecipientsPkey = 'shared_video_recipients_pkey',
+  /** unique or primary key constraint on columns "video_id", "recipient_id" */
+  SharedVideoRecipientsVideoIdRecipientIdKey = 'shared_video_recipients_video_id_recipient_id_key',
 }
 
 /** input type for inserting data into table "shared_video_recipients" */
@@ -9555,6 +9557,21 @@ export type SharePlaylistMutation = {
   update_playlist_by_pk?: { __typename?: 'playlist'; id: any; sharedRecipients?: any | null } | null;
 };
 
+export type ShareVideoMutationVariables = Exact<{
+  objects: Array<Shared_Video_Recipients_Insert_Input> | Shared_Video_Recipients_Insert_Input;
+  videoId: Scalars['uuid']['input'];
+  sharedRecipients: Scalars['jsonb']['input'];
+}>;
+
+export type ShareVideoMutation = {
+  __typename?: 'mutation_root';
+  insert_shared_video_recipients?: {
+    __typename?: 'shared_video_recipients_mutation_response';
+    returning: Array<{ __typename?: 'shared_video_recipients'; id: any }>;
+  } | null;
+  update_videos_by_pk?: { __typename?: 'videos'; id: any; sharedRecipients?: any | null } | null;
+};
+
 export type InsertVideosMutationVariables = Exact<{
   objects: Array<Videos_Insert_Input> | Videos_Insert_Input;
 }>;
@@ -9674,6 +9691,25 @@ export const SharePlaylistDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<SharePlaylistMutation, SharePlaylistMutationVariables>;
+export const ShareVideoDocument = new TypedDocumentString(`
+    mutation shareVideo($objects: [shared_video_recipients_insert_input!]!, $videoId: uuid!, $sharedRecipients: jsonb!) {
+  insert_shared_video_recipients(
+    objects: $objects
+    on_conflict: {constraint: shared_video_recipients_video_id_recipient_id_key, update_columns: []}
+  ) {
+    returning {
+      id
+    }
+  }
+  update_videos_by_pk(
+    pk_columns: {id: $videoId}
+    _set: {sharedRecipients: $sharedRecipients}
+  ) {
+    id
+    sharedRecipients
+  }
+}
+    `) as unknown as TypedDocumentString<ShareVideoMutation, ShareVideoMutationVariables>;
 export const InsertVideosDocument = new TypedDocumentString(`
     mutation InsertVideos($objects: [videos_insert_input!]!) {
   insert_videos(objects: $objects) {
