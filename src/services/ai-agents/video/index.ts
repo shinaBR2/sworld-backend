@@ -14,6 +14,7 @@ const movieAgent = new Agent({
 
 const getResult = async (input: string) => {
   const result = await run(movieAgent, input);
+  return result.output;
 };
 
 export { getResult };
