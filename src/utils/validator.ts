@@ -35,6 +35,7 @@ const formatZodError = (error: ZodError): string => {
     .join(', ');
 };
 
+// TODO: remove due to validators/request.ts
 const validateRequest: ValidateRequest =
   <T>(schema: ZodSchema<T>) =>
   (req: Request, res: Response, next: NextFunction) => {
