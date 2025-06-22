@@ -117,7 +117,7 @@ const honoValidateRequest = <T>(schema: ZodSchema<T>) => {
         message: 'Failed to parse request',
         dataObject: null,
       };
-      return c.json(serviceResponse, 400);
+      return c.json(serviceResponse, 200);
     }
   };
 };

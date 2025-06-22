@@ -162,7 +162,7 @@ describe('honoValidateRequest', () => {
     );
   });
 
-  it('should handle JSON parsing errors', async () => {
+  it('should handle JSON parsing errors by using empty object', async () => {
     const mockContext = {
       req: {
         json: vi.fn().mockRejectedValue(new Error('Invalid JSON')),
@@ -182,6 +182,34 @@ describe('honoValidateRequest', () => {
       {
         success: false,
         message: expect.stringContaining('Invalid input'),
+        dataObject: null,
+      },
+      200
+    );
+  });
+
+  it('should handle other errors', async () => {
+    const mockContext = {
+      req: {
+        json: vi.fn().mockResolvedValue({}),
+        url: 'not-a-url', // This will cause URL parsing to fail
+        raw: { headers: new Headers() },
+        param: () => {
+          throw new Error('Param error');
+        },
+      },
+      json: vi.fn(),
+    } as unknown as Context;
+
+    const mockNext = vi.fn() as Next;
+    const middleware = honoValidateRequest(testSchema);
+    await middleware(mockContext, mockNext);
+
+    expect(mockNext).not.toHaveBeenCalled();
+    expect(mockContext.json).toHaveBeenCalledWith(
+      {
+        success: false,
+        message: 'Failed to parse request',
         dataObject: null,
       },
       200
