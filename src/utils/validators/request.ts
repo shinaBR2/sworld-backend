@@ -1,4 +1,3 @@
-// src/utils/validator.ts
 import type { Request, Response, NextFunction } from 'express';
 import type { Context, Next } from 'hono';
 import { type ZodError, type ZodSchema } from 'zod';
