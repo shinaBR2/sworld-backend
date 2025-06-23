@@ -9,7 +9,8 @@ describe('requestHandler', () => {
   const mockSuccessHandler: BusinessHandler = async context => {
     return {
       success: true,
-      data: context.validatedData,
+      message: 'Success',
+      dataObject: context.validatedData,
     };
   };
 
@@ -22,7 +23,7 @@ describe('requestHandler', () => {
     it('should handle successful requests', async () => {
       const mockReq = {
         validatedData: { foo: 'bar' },
-      } as Request;
+      } as unknown as Request;
 
       const mockRes = {
         json: vi.fn(),
@@ -33,7 +34,8 @@ describe('requestHandler', () => {
 
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
-        data: { foo: 'bar' },
+        message: 'Success',
+        dataObject: { foo: 'bar' },
       });
     });
 
@@ -41,7 +43,7 @@ describe('requestHandler', () => {
       const validatedData = { test: 'data' };
       const mockReq = {
         validatedData,
-      } as Request;
+      } as unknown as Request;
 
       const mockRes = {
         json: vi.fn(),
@@ -52,8 +54,20 @@ describe('requestHandler', () => {
 
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
-        data: validatedData,
+        message: 'Success',
+        dataObject: validatedData,
       });
+    });
+  });
+
+  describe('error handling', () => {
+    it('should let errors bubble up to middleware', async () => {
+      const mockReq = { validatedData: { foo: 'bar' } } as unknown as Request;
+      const mockRes = { json: vi.fn() } as unknown as Response;
+
+      const handler = expressRequestHandler(mockErrorHandler);
+      await expect(handler(mockReq, mockRes)).rejects.toThrow('Business logic error');
+      expect(mockRes.json).not.toHaveBeenCalled();
     });
   });
 
@@ -69,7 +83,8 @@ describe('requestHandler', () => {
 
       expect(mockContext.json).toHaveBeenCalledWith({
         success: true,
-        data: { foo: 'bar' },
+        message: 'Success',
+        dataObject: { foo: 'bar' },
       });
     });
 
@@ -85,8 +100,20 @@ describe('requestHandler', () => {
 
       expect(mockContext.json).toHaveBeenCalledWith({
         success: true,
-        data: validatedData,
+        message: 'Success',
+        dataObject: validatedData,
       });
+    });
+
+    it('should let errors bubble up to middleware', async () => {
+      const mockContext = {
+        validatedData: { foo: 'bar' },
+        json: vi.fn(),
+      } as unknown as Context;
+
+      const handler = honoRequestHandler(mockErrorHandler);
+      await expect(handler(mockContext)).rejects.toThrow('Business logic error');
+      expect(mockContext.json).not.toHaveBeenCalled();
     });
   });
 });
