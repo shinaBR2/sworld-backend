@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import type { Context, Next } from 'hono';
-import { type ZodError, type ZodSchema } from 'zod';
+import { type ZodError, type ZodSchema, z } from 'zod';
 import { ServiceResponse } from '../schema';
 
 // Framework-agnostic validation context
@@ -19,7 +19,7 @@ interface ValidationResult<T> {
 }
 
 // Pure validation logic (framework-independent)
-const validateData = <T>(schema: ZodSchema<T>, context: ValidationContext): ValidationResult<T> => {
+const validateData = <T>(schema: ZodSchema<T, any, any>, context: ValidationContext): ValidationResult<T> => {
   try {
     const validated = schema.parse(context);
     return {
@@ -56,7 +56,7 @@ const formatZodError = (error: ZodError): string => {
 };
 
 // Express wrapper
-const expressValidateRequest = <T>(schema: ZodSchema<T>) => {
+const expressValidateRequest = <T>(schema: ZodSchema<T, any, any>) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const context: ValidationContext = {
       params: req.params,
@@ -82,7 +82,7 @@ const expressValidateRequest = <T>(schema: ZodSchema<T>) => {
 };
 
 // Hono wrapper
-const honoValidateRequest = <T>(schema: ZodSchema<T>) => {
+const honoValidateRequest = <T>(schema: ZodSchema<T, any, any>) => {
   return async (c: Context, next: Next) => {
     try {
       const body = await c.req.json().catch(() => ({}));
@@ -126,8 +126,8 @@ const validateRequest = expressValidateRequest; // Start with Express
 // const validateRequest = honoValidateRequest // Switch to Hono later
 
 // Types for compatibility
-type ValidatedRequest<T> = Request & { validatedData: T };
-type ValidatedContext<T> = Context & { validatedData: T };
+type ValidatedRequest<T extends z.ZodType> = Request & { validatedData: z.infer<T> };
+type ValidatedContext<T extends z.ZodType> = Context & { validatedData: z.infer<T> };
 
 export {
   validateRequest,
