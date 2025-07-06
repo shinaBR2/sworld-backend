@@ -6,7 +6,6 @@ const validPayload = {
   body: {
     action: {
       name: 'pair_device',
-      extension_id: 'ext-123',
     },
     input: {
       input: {
@@ -33,21 +32,6 @@ describe('deviceRequestCreateSchema', () => {
         body: {
           ...validPayload.body,
           action: undefined,
-        },
-      };
-      const result = deviceRequestCreateSchema.safeParse(invalidPayload);
-      expect(result.success).toBe(false);
-    });
-
-    it('should reject missing extension_id', () => {
-      const invalidPayload = {
-        ...validPayload,
-        body: {
-          ...validPayload.body,
-          action: {
-            name: 'pair_device',
-            // extension_id missing
-          },
         },
       };
       const result = deviceRequestCreateSchema.safeParse(invalidPayload);

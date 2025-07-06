@@ -1,11 +1,9 @@
-import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 import { z } from 'zod';
 
 const deviceRequestCreateSchema = z.object({
   body: z.object({
     action: z.object({
       name: z.string(),
-      extension_id: z.string(),
     }),
     input: z.object({
       input: z.object({
