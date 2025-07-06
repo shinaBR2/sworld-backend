@@ -49,7 +49,7 @@ describe('getClientIP', () => {
     expect(getClientIP(headers)).toBe('203.0.113.2');
   });
 
-  it('returns first valid IP if x-forwarded-for contains invalid IPs', () => {
+  it('returns unknown when the first x-forwarded-for IP is invalid', () => {
     const headers = buildHeaders({
       'x-forwarded-for': 'invalid, 203.0.113.195',
     });
