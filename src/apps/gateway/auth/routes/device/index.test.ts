@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createDeviceRequest } from './index';
 import { generateHumanCode, generateSecureCode } from 'src/utils/string';
 import { createDeviceRequest as createDeviceRequestMutation } from 'src/services/hasura/mutations/auth/device';
+import { envConfig } from 'src/utils/envConfig';
 
 // Mock dependencies
 vi.mock('src/utils/string', () => ({
@@ -11,6 +12,12 @@ vi.mock('src/utils/string', () => ({
 
 vi.mock('src/services/hasura/mutations/auth/device', () => ({
   createDeviceRequest: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock('src/utils/envConfig', () => ({
+  envConfig: {
+    mainSiteUrl: 'https://watch.sworld.dev',
+  },
 }));
 
 describe('createDeviceRequest', () => {

@@ -1,5 +1,6 @@
 import { createDeviceRequest as createDeviceRequestMutation } from 'src/services/hasura/mutations/auth/device';
 import { generateHumanCode, generateSecureCode } from 'src/utils/string';
+import { envConfig } from 'src/utils/envConfig';
 
 const createDeviceRequest = async ({
   extensionId,
@@ -37,8 +38,8 @@ const createDeviceRequest = async ({
   return {
     deviceCode, // Extension keeps this secret
     userCode, // Show this to user
-    verification_uri: 'https://watch.sworld.dev/pair',
-    verification_uri_complete: `https://watch.sworld.dev/pair?code=${userCode}`,
+    verification_uri: `${envConfig.mainSiteUrl}/pair`,
+    verification_uri_complete: `${envConfig.mainSiteUrl}/pair?code=${userCode}`,
     expires_in: 600, // 10 minutes in seconds
     interval: 5, // Poll every 5 seconds
   };
