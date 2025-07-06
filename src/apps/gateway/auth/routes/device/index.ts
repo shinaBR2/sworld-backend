@@ -1,4 +1,3 @@
-import { randomBytes } from 'crypto';
 import { createDeviceRequest as createDeviceRequestMutation } from 'src/services/hasura/mutations/auth/device';
 import { generateHumanCode, generateSecureCode } from 'src/utils/string';
 

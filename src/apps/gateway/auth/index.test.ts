@@ -1,6 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { validateRequest } from 'src/utils/validators/request';
-import { requestHandler } from 'src/utils/requestHandler';
 import { createDeviceRequest } from './routes/device';
 
 let routeHandlers: { path: string; middlewares: any[] }[] = [];
@@ -25,7 +23,11 @@ vi.mock('express', () => {
 vi.mock('src/utils/validators/request', () => ({
   validateRequest: vi.fn().mockImplementation(schema => {
     return (req: any, res: any, next: any) => {
-      req.validatedData = req.body;
+      req.validatedData = {
+        ...req.body,
+        ip: 'fake-ip',
+        userAgent: 'fake-user-agent',
+      };
       next();
     };
   }),
@@ -80,9 +82,13 @@ describe('authRouter', () => {
     // Simulate validation
     validate(req, res, next);
     // Simulate handler
-    const result = await handler({ validatedData: req.body });
+    const result = await handler({ validatedData: req.validatedData });
 
-    expect(createDeviceRequest).toHaveBeenCalledWith({ extensionId: 'ext-123' });
+    expect(createDeviceRequest).toHaveBeenCalledWith({
+      extensionId: 'ext-123',
+      ip: 'fake-ip',
+      userAgent: 'fake-user-agent',
+    });
     expect(result).toMatchObject({
       success: true,
       message: 'ok',
