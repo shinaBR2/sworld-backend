@@ -11,9 +11,10 @@ authRouter.post(
   validateRequest<DeviceRequestCreateRequest>(deviceRequestCreateSchema),
   requestHandler(async context => {
     const { validatedData } = context;
+    const { ip, userAgent } = validatedData;
     const { extensionId } = validatedData.input.input;
 
-    const data = await createDeviceRequest({ extensionId });
+    const data = await createDeviceRequest({ extensionId, ip, userAgent });
 
     return {
       success: true,
