@@ -1,0 +1,106 @@
+import { describe, expect, it } from 'vitest';
+import { deviceRequestCreateSchema } from './index';
+
+// Example valid payload
+const validPayload = {
+  body: {
+    action: {
+      name: 'pair_device',
+      extension_id: 'ext-123',
+    },
+    input: {
+      input: {
+        extensionId: 'ext-123',
+      },
+    },
+  },
+  headers: {
+    'content-type': 'application/json',
+    'X-Hasura-Action': 'createDeviceRequest',
+  },
+};
+
+describe('deviceRequestCreateSchema', () => {
+  it('should validate a correct payload', () => {
+    const result = deviceRequestCreateSchema.safeParse(validPayload);
+    expect(result.success).toBe(true);
+  });
+
+  describe('body validation', () => {
+    it('should reject missing action', () => {
+      const invalidPayload = {
+        ...validPayload,
+        body: {
+          ...validPayload.body,
+          action: undefined,
+        },
+      };
+      const result = deviceRequestCreateSchema.safeParse(invalidPayload);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject missing extension_id', () => {
+      const invalidPayload = {
+        ...validPayload,
+        body: {
+          ...validPayload.body,
+          action: {
+            name: 'pair_device',
+            // extension_id missing
+          },
+        },
+      };
+      const result = deviceRequestCreateSchema.safeParse(invalidPayload);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject missing input.input', () => {
+      const invalidPayload = {
+        ...validPayload,
+        body: {
+          ...validPayload.body,
+          input: {},
+        },
+      };
+      const result = deviceRequestCreateSchema.safeParse(invalidPayload);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject missing extensionId in input.input', () => {
+      const invalidPayload = {
+        ...validPayload,
+        body: {
+          ...validPayload.body,
+          input: {
+            input: {}, // missing extensionId
+          },
+        },
+      };
+      const result = deviceRequestCreateSchema.safeParse(invalidPayload);
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe('headers validation', () => {
+    it('should require content-type and x-task-id headers', () => {
+      const invalidPayload = {
+        ...validPayload,
+        headers: {},
+      };
+      const result = deviceRequestCreateSchema.safeParse(invalidPayload);
+      expect(result.success).toBe(false);
+    });
+
+    it('should allow additional headers', () => {
+      const payloadWithExtraHeaders = {
+        ...validPayload,
+        headers: {
+          ...validPayload.headers,
+          'x-extra-header': 'some-value',
+        },
+      };
+      const result = deviceRequestCreateSchema.safeParse(payloadWithExtraHeaders);
+      expect(result.success).toBe(true);
+    });
+  });
+});
