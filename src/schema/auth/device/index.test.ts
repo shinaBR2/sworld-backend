@@ -15,7 +15,7 @@ const validPayload = {
   },
   headers: {
     'content-type': 'application/json',
-    'X-Hasura-Action': 'createDeviceRequest',
+    'x-hasura-action': 'createDeviceRequest',
   },
 };
 
@@ -66,10 +66,21 @@ describe('deviceRequestCreateSchema', () => {
   });
 
   describe('headers validation', () => {
-    it('should require content-type and x-task-id headers', () => {
+    it('should require content-type and x-hasura-action headers', () => {
       const invalidPayload = {
         ...validPayload,
         headers: {},
+      };
+      const result = deviceRequestCreateSchema.safeParse(invalidPayload);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject missing x-hasura-action header', () => {
+      const invalidPayload = {
+        ...validPayload,
+        headers: {
+          'content-type': 'application/json',
+        },
       };
       const result = deviceRequestCreateSchema.safeParse(invalidPayload);
       expect(result.success).toBe(false);
