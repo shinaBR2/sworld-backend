@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { subtitleDataSchema, eventSchema, subtitleCreatedSchema } from '../index';
+import { subtitleDataSchema, eventSchema, subtitleCreatedSchema } from './index';
 
 describe('Subtitle Schema', () => {
   const mockMetadata = {
@@ -10,7 +10,8 @@ describe('Subtitle Schema', () => {
 
   const validSubtitleData = {
     id: 'subtitle-123',
-    videoId: 'video-456',
+    videoId: '123e4567-e89b-12d3-a456-426614174000', // Valid UUID
+    userId: '123e4567-e89b-12d3-a456-426614174001', // Valid UUID
     lang: 'en',
     url: 'https://example.com/subtitle.vtt',
     isDefault: true,
@@ -30,6 +31,32 @@ describe('Subtitle Schema', () => {
 
     it('should validate URL format', () => {
       expect(() => subtitleDataSchema.parse({ ...validSubtitleData, url: 'invalid-url' })).toThrow();
+    });
+
+    it('should validate videoId as UUID', () => {
+      // Test invalid UUID
+      expect(() => subtitleDataSchema.parse({ ...validSubtitleData, videoId: 'invalid-uuid' })).toThrow('Invalid uuid');
+
+      // Test valid UUID
+      expect(() =>
+        subtitleDataSchema.parse({
+          ...validSubtitleData,
+          videoId: '123e4567-e89b-12d3-a456-426614174000',
+        })
+      ).not.toThrow();
+    });
+
+    it('should validate userId as UUID', () => {
+      // Test invalid UUID
+      expect(() => subtitleDataSchema.parse({ ...validSubtitleData, userId: 'invalid-uuid' })).toThrow('Invalid uuid');
+
+      // Test valid UUID
+      expect(() =>
+        subtitleDataSchema.parse({
+          ...validSubtitleData,
+          userId: '123e4567-e89b-12d3-a456-426614174001',
+        })
+      ).not.toThrow();
     });
   });
 

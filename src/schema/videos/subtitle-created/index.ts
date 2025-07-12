@@ -6,7 +6,8 @@ import { hasuraEventMetadataSchema } from '../../hasura';
  */
 const subtitleDataSchema = z.object({
   id: z.string(),
-  videoId: z.string(),
+  videoId: z.string().uuid(),
+  userId: z.string().uuid(),
   lang: z.string(),
   url: z.string().url(),
   isDefault: z.boolean(),
@@ -19,15 +20,7 @@ const subtitleDataSchema = z.object({
  */
 const eventSchema = z.object({
   metadata: hasuraEventMetadataSchema,
-  data: z.object({
-    id: z.string(),
-    videoId: z.string(),
-    lang: z.string(),
-    url: z.string().url(),
-    isDefault: z.boolean(),
-    createdAt: z.string().datetime(),
-    updatedAt: z.string().datetime(),
-  }),
+  data: subtitleDataSchema,
 });
 
 /**
