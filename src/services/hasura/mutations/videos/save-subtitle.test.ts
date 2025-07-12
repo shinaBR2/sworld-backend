@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { SaveSubtitleMutation } from '../../generated-graphql/graphql';
+import { SaveSubtitleMutation, Subtitles_Set_Input } from '../../generated-graphql/graphql';
 import { hasuraClient } from '../../client';
-import { SubtitleInput, saveSubtitle } from './save-subtitle';
+import { saveSubtitle } from './save-subtitle';
 
 // Mock GraphQL client
 vi.mock('../../client', () => ({
@@ -16,13 +16,8 @@ describe('saveSubtitle', () => {
   });
 
   const mockSubtitleId = 'subtitle-123';
-  const mockSubtitleInput: SubtitleInput = {
-    video_id: 'video-123',
-    language: 'en',
+  const mockSubtitleInput: Subtitles_Set_Input = {
     url: 'https://example.com/subtitle.vtt',
-    storage_path: 'videos/user123/video-123/en.vtt',
-    is_default: true,
-    created_by: 'user123',
   };
 
   const mockResponse: SaveSubtitleMutation = {

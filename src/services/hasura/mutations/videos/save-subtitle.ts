@@ -1,5 +1,9 @@
 import { graphql } from '../../generated-graphql';
-import { SaveSubtitleMutation, SaveSubtitleMutationVariables } from '../../generated-graphql/graphql';
+import {
+  SaveSubtitleMutation,
+  SaveSubtitleMutationVariables,
+  Subtitles_Set_Input,
+} from '../../generated-graphql/graphql';
 import { hasuraClient } from '../../client';
 
 const SAVE_SUBTITLE = graphql(/* GraphQL */ `
@@ -10,16 +14,7 @@ const SAVE_SUBTITLE = graphql(/* GraphQL */ `
   }
 `);
 
-interface SubtitleInput {
-  video_id: string;
-  language: string;
-  url: string;
-  storage_path: string;
-  is_default: boolean;
-  created_by: string;
-}
-
-const saveSubtitle = async (id: string, input: SubtitleInput) => {
+const saveSubtitle = async (id: string, input: Subtitles_Set_Input) => {
   const response = await hasuraClient.request<SaveSubtitleMutation, SaveSubtitleMutationVariables>({
     document: SAVE_SUBTITLE.toString(),
     variables: {
@@ -31,4 +26,4 @@ const saveSubtitle = async (id: string, input: SubtitleInput) => {
   return response.update_subtitles_by_pk;
 };
 
-export { SubtitleInput, saveSubtitle };
+export { saveSubtitle };
