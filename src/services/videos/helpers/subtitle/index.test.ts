@@ -91,7 +91,7 @@ describe('Subtitle Helper', () => {
 
     // Verify the error is thrown with the correct properties
     await expect(streamSubtitleFile(mockOptions)).rejects.toMatchObject({
-      message: 'Failed to fetch segment',
+      message: 'Failed to fetch subtitle',
       errorCode: HTTP_ERRORS.EMPTY_RESPONSE,
       shouldRetry: false,
       context: {

@@ -27,7 +27,7 @@ const streamSubtitleFile = async (options: StreamSubtitleOptions) => {
   const subtitleStream = response.body;
 
   if (!subtitleStream) {
-    throw new CustomError('Failed to fetch segment', {
+    throw new CustomError('Failed to fetch subtitle', {
       errorCode: HTTP_ERRORS.EMPTY_RESPONSE,
       shouldRetry: false,
       context: { url, storagePath, responseStatus: response.statusText, statusCode: response.status },
