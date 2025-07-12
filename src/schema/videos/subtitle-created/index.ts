@@ -5,7 +5,7 @@ import { hasuraEventMetadataSchema } from '../../hasura';
  * Schema for subtitle data
  */
 const subtitleDataSchema = z.object({
-  id: z.string(),
+  id: z.string().uuid(),
   videoId: z.string().uuid(),
   userId: z.string().uuid(),
   lang: z.string(),

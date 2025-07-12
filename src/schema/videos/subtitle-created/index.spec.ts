@@ -9,9 +9,9 @@ describe('Subtitle Schema', () => {
   };
 
   const validSubtitleData = {
-    id: 'subtitle-123',
-    videoId: '123e4567-e89b-12d3-a456-426614174000', // Valid UUID
-    userId: '123e4567-e89b-12d3-a456-426614174001', // Valid UUID
+    id: '123e4567-e89b-12d3-a456-426614174000', // Valid UUID
+    videoId: '123e4567-e89b-12d3-a456-426614174001', // Valid UUID
+    userId: '123e4567-e89b-12d3-a456-426614174002', // Valid UUID
     lang: 'en',
     url: 'https://example.com/subtitle.vtt',
     isDefault: true,
@@ -31,6 +31,19 @@ describe('Subtitle Schema', () => {
 
     it('should validate URL format', () => {
       expect(() => subtitleDataSchema.parse({ ...validSubtitleData, url: 'invalid-url' })).toThrow();
+    });
+
+    it('should validate id as UUID', () => {
+      // Test invalid UUID
+      expect(() => subtitleDataSchema.parse({ ...validSubtitleData, id: 'invalid-uuid' })).toThrow('Invalid uuid');
+
+      // Test valid UUID
+      expect(() =>
+        subtitleDataSchema.parse({
+          ...validSubtitleData,
+          id: '123e4567-e89b-12d3-a456-426614174000',
+        })
+      ).not.toThrow();
     });
 
     it('should validate videoId as UUID', () => {
