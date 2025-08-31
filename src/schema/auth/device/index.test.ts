@@ -17,6 +17,8 @@ const validPayload = {
     'content-type': 'application/json',
     'x-hasura-action': 'createDeviceRequest',
   },
+  ip: '192.168.1.1',
+  userAgent: 'Test User Agent',
 };
 
 describe('deviceRequestCreateSchema', () => {
