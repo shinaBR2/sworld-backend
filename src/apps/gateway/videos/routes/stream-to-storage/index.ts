@@ -34,7 +34,7 @@ const streamToStorage = async (req: Request, res: Response) => {
     return res.json(
       AppError('Invalid webhook signature for event', {
         eventId: metadata.id,
-      })
+      }),
     );
   }
 
@@ -43,7 +43,7 @@ const streamToStorage = async (req: Request, res: Response) => {
     return res.json(
       AppError('Missing environment variable', {
         eventId: metadata.id,
-      })
+      }),
     );
   }
 
@@ -75,7 +75,10 @@ const streamToStorage = async (req: Request, res: Response) => {
         break;
       case 'video':
         taskConfig.audience = computeServiceUrl;
-        taskConfig.url = buildHandlerUrl(computeServiceUrl, VIDEO_HANDLERS.CONVERT);
+        taskConfig.url = buildHandlerUrl(
+          computeServiceUrl,
+          VIDEO_HANDLERS.CONVERT,
+        );
         taskConfig.queue = convertVideoQueue;
         taskConfig.type = TaskType.CONVERT;
         break;
@@ -83,7 +86,10 @@ const streamToStorage = async (req: Request, res: Response) => {
         // TODO enhance list of allowed platform in the future
         if (platform && allowedPlatforms.includes(platform)) {
           taskConfig.audience = ioServiceUrl;
-          taskConfig.url = buildHandlerUrl(ioServiceUrl, VIDEO_HANDLERS.PLATFORM_IMPORT);
+          taskConfig.url = buildHandlerUrl(
+            ioServiceUrl,
+            VIDEO_HANDLERS.PLATFORM_IMPORT,
+          );
           taskConfig.type = TaskType.IMPORT_PLATFORM;
         } else {
           logger.error({ metadata }, 'Invalid source');
@@ -99,7 +105,7 @@ const streamToStorage = async (req: Request, res: Response) => {
       AppError('Failed to create task', {
         eventId: metadata.id,
         error,
-      })
+      }),
     );
   }
 };

@@ -43,7 +43,7 @@ const Video = sequelize.define<VideoTS>(
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-  }
+  },
 );
 
 export { Video, type VideoTS };

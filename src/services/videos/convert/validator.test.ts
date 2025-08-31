@@ -31,7 +31,9 @@ describe('verifySignature', () => {
 
 describe('validateMediaURL', () => {
   it('should identify YouTube URLs', () => {
-    const result = validateMediaURL('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    const result = validateMediaURL(
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    );
     expect(result).toEqual({
       url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
       platform: 'youtube' as Platform,
@@ -49,7 +51,9 @@ describe('validateMediaURL', () => {
   });
 
   it('should identify Mux URLs', () => {
-    const result = validateMediaURL('https://stream.mux.com/VZtzUzGRv02OhRnZCxcNg49OilvolTqdnFLEqBsTwaxU');
+    const result = validateMediaURL(
+      'https://stream.mux.com/VZtzUzGRv02OhRnZCxcNg49OilvolTqdnFLEqBsTwaxU',
+    );
     expect(result).toEqual({
       url: 'https://stream.mux.com/VZtzUzGRv02OhRnZCxcNg49OilvolTqdnFLEqBsTwaxU',
       platform: 'mux' as Platform,
@@ -104,7 +108,9 @@ describe('validateMediaURL', () => {
 
   it('should prioritize platform over file extension if both match', () => {
     // A YouTube URL that happens to end in .mp4
-    const result = validateMediaURL('https://youtube.com/watch?v=dQw4w9WgXcQ&dummy.mp4');
+    const result = validateMediaURL(
+      'https://youtube.com/watch?v=dQw4w9WgXcQ&dummy.mp4',
+    );
     expect(result).toEqual({
       url: 'https://youtube.com/watch?v=dQw4w9WgXcQ&dummy.mp4',
       platform: 'youtube' as Platform,
@@ -113,7 +119,9 @@ describe('validateMediaURL', () => {
   });
 
   it('should handle Facebook URLs', () => {
-    const result = validateMediaURL('https://www.facebook.com/watch/123456789/');
+    const result = validateMediaURL(
+      'https://www.facebook.com/watch/123456789/',
+    );
     expect(result).toEqual({
       url: 'https://www.facebook.com/watch/123456789/',
       platform: 'facebook' as Platform,
@@ -132,7 +140,7 @@ describe('validateMediaURL', () => {
 
   it('should handle different video formats', () => {
     const formats = ['mp4', 'mov', 'm4v'];
-    formats.forEach(format => {
+    formats.forEach((format) => {
       const result = validateMediaURL(`https://example.com/video.${format}`);
       expect(result).toEqual({
         url: `https://example.com/video.${format}`,

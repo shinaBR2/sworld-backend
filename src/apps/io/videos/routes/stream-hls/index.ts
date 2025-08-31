@@ -44,7 +44,10 @@ const streamHLSHandler = async (req: Request, res: Response) => {
     }
   }
 
-  logger.info(metadata, `[/videos/stream-hls-handler] start processing event "${metadata.id}", video "${id}"`);
+  logger.info(
+    metadata,
+    `[/videos/stream-hls-handler] start processing event "${metadata.id}", video "${id}"`,
+  );
   const {
     playlistUrl: playableVideoUrl,
     duration,

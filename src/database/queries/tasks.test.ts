@@ -31,32 +31,36 @@ describe('Task Queries', () => {
 
     it('should throw error if taskId is missing', async () => {
       const { taskId, ...paramsWithoutTaskId } = baseTask;
-      await expect(createTask(paramsWithoutTaskId as any)).rejects.toThrow('Missing required fields for task creation');
+      await expect(createTask(paramsWithoutTaskId as any)).rejects.toThrow(
+        'Missing required fields for task creation',
+      );
     });
 
     it('should throw error if type is missing', async () => {
       const { type, ...paramsWithoutType } = baseTask;
-      await expect(createTask(paramsWithoutType as any)).rejects.toThrow('Missing required fields for task creation');
+      await expect(createTask(paramsWithoutType as any)).rejects.toThrow(
+        'Missing required fields for task creation',
+      );
     });
 
     it('should throw error if metadata is missing', async () => {
       const { metadata, ...paramsWithoutMetadata } = baseTask;
       await expect(createTask(paramsWithoutMetadata as any)).rejects.toThrow(
-        'Missing required fields for task creation'
+        'Missing required fields for task creation',
       );
     });
 
     it('should throw error if entityType is missing', async () => {
       const { entityType, ...paramsWithoutEntityType } = baseTask;
       await expect(createTask(paramsWithoutEntityType as any)).rejects.toThrow(
-        'Missing required fields for task creation'
+        'Missing required fields for task creation',
       );
     });
 
     it('should throw error if entityId is missing', async () => {
       const { entityId, ...paramsWithoutEntityId } = baseTask;
       await expect(createTask(paramsWithoutEntityId as any)).rejects.toThrow(
-        'Missing required fields for task creation'
+        'Missing required fields for task creation',
       );
     });
 
@@ -158,7 +162,7 @@ describe('Task Queries', () => {
         {
           where: { taskId: mockParams.taskId },
           transaction: undefined,
-        }
+        },
       );
 
       expect(result).toEqual(1);
@@ -181,7 +185,7 @@ describe('Task Queries', () => {
         {
           where: { taskId: paramsWithTransaction.taskId },
           transaction: mockTransaction,
-        }
+        },
       );
 
       expect(result).toEqual(1);
@@ -190,14 +194,18 @@ describe('Task Queries', () => {
     it('should throw error when task is not found', async () => {
       (Task.update as Mock).mockResolvedValue([0]);
 
-      await expect(updateTaskStatus(mockParams)).rejects.toThrow(`Task with ID ${mockParams.taskId} not found`);
+      await expect(updateTaskStatus(mockParams)).rejects.toThrow(
+        `Task with ID ${mockParams.taskId} not found`,
+      );
     });
 
     it('should handle database errors', async () => {
       const mockError = new Error('Database error');
       (Task.update as Mock).mockRejectedValue(mockError);
 
-      await expect(updateTaskStatus(mockParams)).rejects.toThrow('Database error');
+      await expect(updateTaskStatus(mockParams)).rejects.toThrow(
+        'Database error',
+      );
     });
   });
 
@@ -218,7 +226,7 @@ describe('Task Queries', () => {
         {
           where: { taskId },
           transaction: undefined,
-        }
+        },
       );
 
       expect(result).toEqual(1);
@@ -244,7 +252,7 @@ describe('Task Queries', () => {
         {
           where: { taskId },
           transaction: mockTransaction,
-        }
+        },
       );
 
       expect(result).toEqual(1);
@@ -256,7 +264,9 @@ describe('Task Queries', () => {
 
       // const result = await completeTask({ taskId });
 
-      await expect(completeTask({ taskId })).rejects.toThrow(`Task with ID ${taskId} not found`);
+      await expect(completeTask({ taskId })).rejects.toThrow(
+        `Task with ID ${taskId} not found`,
+      );
     });
 
     it('should handle database errors', async () => {

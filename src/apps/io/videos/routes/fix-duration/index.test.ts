@@ -77,7 +77,10 @@ describe('fixDurationHandler', () => {
     await fixDurationHandler(mockReq, mockRes);
 
     expect(getVideoById).toHaveBeenCalledWith('video-123');
-    expect(parseM3U8Content).toHaveBeenCalledWith('video-source', expect.any(Array));
+    expect(parseM3U8Content).toHaveBeenCalledWith(
+      'video-source',
+      expect.any(Array),
+    );
     expect(sequelize.transaction).toHaveBeenCalled();
     expect(updateVideoDuration).toHaveBeenCalledWith({
       id: 'video-123',

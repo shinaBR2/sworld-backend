@@ -1,8 +1,15 @@
 import type { PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/types';
 import { webcrypto } from 'crypto';
-import { generateRegistrationOptions, verifyRegistrationResponse } from '@simplewebauthn/server';
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+} from '@simplewebauthn/server';
 // import { dbRead } from '../singleton/db';
-import { getUser, getUserPasskeys, setCurrentRegistrationOptions } from './userHelpers';
+import {
+  getUser,
+  getUserPasskeys,
+  setCurrentRegistrationOptions,
+} from './userHelpers';
 import { EXPECTED_ORIGINS, EXPECTED_RP_IDS, RP_ID, RP_NAME } from './config';
 import { logger } from 'src/utils/logger';
 
@@ -39,7 +46,7 @@ const generateOptions = async (userId: string) => {
     // (Recommended for smoother UX)
     attestationType: 'none',
     // Prevent users from re-registering existing authenticators
-    excludeCredentials: userPasskeys.map(passkey => ({
+    excludeCredentials: userPasskeys.map((passkey) => ({
       id: passkey.id,
       // Optional
       transports: passkey.transports,

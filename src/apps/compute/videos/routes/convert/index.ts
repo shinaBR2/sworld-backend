@@ -11,7 +11,10 @@ const convertHandler = async (req: Request, res: Response) => {
 
   let playableVideoUrl;
   try {
-    logger.info(metadata, `[/videos/convert-handler] start processing event "${metadata.id}", video "${id}"`);
+    logger.info(
+      metadata,
+      `[/videos/convert-handler] start processing event "${metadata.id}", video "${id}"`,
+    );
     playableVideoUrl = await convertVideo({
       taskId,
       videoData: data,

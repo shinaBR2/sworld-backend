@@ -88,7 +88,7 @@ describe('streamToStorage', () => {
       expect.objectContaining({
         success: true,
         message: 'ok',
-      })
+      }),
     );
   });
 
@@ -132,7 +132,7 @@ describe('streamToStorage', () => {
     expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
         message: 'Invalid source',
-      })
+      }),
     );
     expect(createCloudTasks).not.toHaveBeenCalled();
   });
@@ -145,7 +145,7 @@ describe('streamToStorage', () => {
     expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
         message: 'Invalid source',
-      })
+      }),
     );
   });
 
@@ -157,7 +157,7 @@ describe('streamToStorage', () => {
     expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
         message: 'Invalid source',
-      })
+      }),
     );
   });
 
@@ -172,7 +172,7 @@ describe('streamToStorage', () => {
         details: {
           eventId: 'test-event',
         },
-      })
+      }),
     );
     expect(createCloudTasks).not.toHaveBeenCalled();
   });
@@ -188,7 +188,7 @@ describe('streamToStorage', () => {
         details: {
           eventId: 'test-event',
         },
-      })
+      }),
     );
     expect(createCloudTasks).not.toHaveBeenCalled();
   });
@@ -207,7 +207,7 @@ describe('streamToStorage', () => {
           error,
           eventId: 'test-event',
         },
-      })
+      }),
     );
   });
 
@@ -221,7 +221,7 @@ describe('streamToStorage', () => {
       expect.objectContaining({
         success: true,
         message: 'ok',
-      })
+      }),
     );
   });
 });

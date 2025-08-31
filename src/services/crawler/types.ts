@@ -34,4 +34,10 @@ enum SelectorName {
 }
 
 export { SelectorName };
-export type { SelectorConfig, CrawlInputs, HandlerOptions, HandlerState, RequestHandlerWithState };
+export type {
+  SelectorConfig,
+  CrawlInputs,
+  HandlerOptions,
+  HandlerState,
+  RequestHandlerWithState,
+};

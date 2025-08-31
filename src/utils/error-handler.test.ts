@@ -6,13 +6,13 @@ import { errorHandler } from './error-handler';
 import { CustomError } from './custom-error';
 
 vi.mock('@sentry/node', () => ({
-  withScope: vi.fn(callback =>
+  withScope: vi.fn((callback) =>
     callback({
       setLevel: vi.fn(),
       setTag: vi.fn(),
       setTags: vi.fn(),
       setExtra: vi.fn(),
-    })
+    }),
   ),
   captureException: vi.fn(),
 }));
@@ -147,7 +147,7 @@ describe('errorHandler', () => {
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.objectContaining({
         stack: expect.not.stringContaining('node_modules'),
-      })
+      }),
     );
   });
 

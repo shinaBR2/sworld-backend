@@ -69,8 +69,12 @@ describe('createDeviceRequest', () => {
   });
 
   it('should throw an error when insert_device_requests_one is missing', async () => {
-    vi.mocked(hasuraClient.request).mockResolvedValueOnce({} as CreateDeviceRequestMutation);
+    vi.mocked(hasuraClient.request).mockResolvedValueOnce(
+      {} as CreateDeviceRequestMutation,
+    );
 
-    await expect(createDeviceRequest(mockInput)).rejects.toThrow('Failed to create device request');
+    await expect(createDeviceRequest(mockInput)).rejects.toThrow(
+      'Failed to create device request',
+    );
   });
 });

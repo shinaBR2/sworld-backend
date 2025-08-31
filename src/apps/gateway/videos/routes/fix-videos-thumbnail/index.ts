@@ -27,7 +27,7 @@ const fixVideosThumbnail = async (req: Request, res: Response) => {
   try {
     const videos = await getVideoMissingThumbnail();
     await Promise.all(
-      videos.map(async video => {
+      videos.map(async (video) => {
         const taskConfig: CreateCloudTasksParams = {
           audience: ioServiceUrl,
           queue: streamVideoQueue,
@@ -41,7 +41,7 @@ const fixVideosThumbnail = async (req: Request, res: Response) => {
         };
 
         await createCloudTasks(taskConfig);
-      })
+      }),
     );
 
     return res.json(AppResponse(true, 'ok'));

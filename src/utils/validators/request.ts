@@ -22,7 +22,10 @@ interface ValidationResult<T> {
 }
 
 // Pure validation logic (framework-independent)
-const validateData = <T>(schema: ZodSchema<T, any, any>, context: ValidationContext): ValidationResult<T> => {
+const validateData = <T>(
+  schema: ZodSchema<T, any, any>,
+  context: ValidationContext,
+): ValidationResult<T> => {
   try {
     const validated = schema.parse(context);
     return {
@@ -40,9 +43,9 @@ const validateData = <T>(schema: ZodSchema<T, any, any>, context: ValidationCont
 
 const formatZodError = (error: ZodError): string => {
   return error.errors
-    .map(err => {
+    .map((err) => {
       const path = err.path
-        .map(p => {
+        .map((p) => {
           if (p === 'headers') return 'Header';
           if (typeof p === 'string') return p;
           return `[${p}]`;

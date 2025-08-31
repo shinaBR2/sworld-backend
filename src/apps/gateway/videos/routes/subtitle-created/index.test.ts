@@ -11,7 +11,11 @@ vi.mock('src/services/videos/helpers/subtitle', () => ({
 }));
 
 vi.mock('src/services/videos/helpers/gcp-cloud-storage', () => ({
-  getDownloadUrl: vi.fn().mockImplementation((path: string) => `https://storage.googleapis.com/test-bucket/${path}`),
+  getDownloadUrl: vi
+    .fn()
+    .mockImplementation(
+      (path: string) => `https://storage.googleapis.com/test-bucket/${path}`,
+    ),
 }));
 
 vi.mock('src/services/hasura/mutations/videos/save-subtitle', () => ({
@@ -19,8 +23,12 @@ vi.mock('src/services/hasura/mutations/videos/save-subtitle', () => ({
 }));
 
 // Type the mocks for better type safety
-const mockStreamSubtitleFile = streamSubtitleFile as MockedFunction<typeof streamSubtitleFile>;
-const mockGetDownloadUrl = getDownloadUrl as MockedFunction<typeof getDownloadUrl>;
+const mockStreamSubtitleFile = streamSubtitleFile as MockedFunction<
+  typeof streamSubtitleFile
+>;
+const mockGetDownloadUrl = getDownloadUrl as MockedFunction<
+  typeof getDownloadUrl
+>;
 const mockSaveSubtitle = saveSubtitle as MockedFunction<typeof saveSubtitle>;
 
 describe('subtitleCreatedHandler', () => {
@@ -54,7 +62,9 @@ describe('subtitleCreatedHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStreamSubtitleFile.mockResolvedValue(undefined);
-    mockGetDownloadUrl.mockImplementation((path: string) => `https://storage.googleapis.com/test-bucket/${path}`);
+    mockGetDownloadUrl.mockImplementation(
+      (path: string) => `https://storage.googleapis.com/test-bucket/${path}`,
+    );
     mockSaveSubtitle.mockResolvedValue(mockSubtitle);
   });
 

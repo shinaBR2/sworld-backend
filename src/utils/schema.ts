@@ -5,7 +5,11 @@ type ServiceResponse<T> = {
   dataObject?: T;
 };
 
-const createResponse = <T>(success: boolean, message: string, dataObject?: T): ServiceResponse<T> => {
+const createResponse = <T>(
+  success: boolean,
+  message: string,
+  dataObject?: T,
+): ServiceResponse<T> => {
   return {
     success,
     message,
@@ -17,7 +21,11 @@ const AppError = <T>(message: string, error?: T): ServiceResponse<T> => {
   return createResponse(false, message, error);
 };
 
-const AppResponse = <T>(success: boolean, message: string, dataObject?: T): ServiceResponse<T> => {
+const AppResponse = <T>(
+  success: boolean,
+  message: string,
+  dataObject?: T,
+): ServiceResponse<T> => {
   return createResponse(success, message, dataObject);
 };
 

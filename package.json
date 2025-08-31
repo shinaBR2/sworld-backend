@@ -24,14 +24,8 @@
     "test:ci": "vitest run --coverage",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org sworld-dc --project node-express ./dist && sentry-cli sourcemaps upload --org sworld-dc --project node-express ./dist",
     "prepare": "husky install",
-    "lint-staged": "lint-staged",
     "format": "biome format --write",
     "lint": "biome check ."
-  },
-  "lint-staged": {
-    "**/*.{js,jsx,ts,tsx,json,md}": [
-      "prettier --write"
-    ]
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",
@@ -46,9 +40,7 @@
     "@types/node": "^20.17.10",
     "@vitest/coverage-v8": "^3.0.5",
     "husky": "^8.0.0",
-    "lint-staged": "^15.3.0",
     "pino-pretty": "^13.0.0",
-    "prettier": "^3.4.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
     "typescript": "^5.2.2",

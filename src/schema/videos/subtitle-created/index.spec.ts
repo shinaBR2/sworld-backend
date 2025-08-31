@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { subtitleDataSchema, eventSchema, subtitleCreatedSchema } from './index';
+import {
+  subtitleDataSchema,
+  eventSchema,
+  subtitleCreatedSchema,
+} from './index';
 
 describe('Subtitle Schema', () => {
   const mockMetadata = {
@@ -30,19 +34,23 @@ describe('Subtitle Schema', () => {
     });
 
     it('should validate URL format', () => {
-      expect(() => subtitleDataSchema.parse({ ...validSubtitleData, url: 'invalid-url' })).toThrow();
+      expect(() =>
+        subtitleDataSchema.parse({ ...validSubtitleData, url: 'invalid-url' }),
+      ).toThrow();
     });
 
     it('should validate id as UUID', () => {
       // Test invalid UUID
-      expect(() => subtitleDataSchema.parse({ ...validSubtitleData, id: 'invalid-uuid' })).toThrow('Invalid uuid');
+      expect(() =>
+        subtitleDataSchema.parse({ ...validSubtitleData, id: 'invalid-uuid' }),
+      ).toThrow('Invalid uuid');
 
       // Test valid UUID
       expect(() =>
         subtitleDataSchema.parse({
           ...validSubtitleData,
           id: '123e4567-e89b-12d3-a456-426614174000',
-        })
+        }),
       ).not.toThrow();
     });
 
@@ -52,7 +60,7 @@ describe('Subtitle Schema', () => {
         subtitleDataSchema.parse({
           ...validSubtitleData,
           videoId: 'invalid-uuid',
-        })
+        }),
       ).toThrow('Invalid uuid');
 
       // Test valid UUID
@@ -60,7 +68,7 @@ describe('Subtitle Schema', () => {
         subtitleDataSchema.parse({
           ...validSubtitleData,
           videoId: '123e4567-e89b-12d3-a456-426614174000',
-        })
+        }),
       ).not.toThrow();
     });
 
@@ -70,7 +78,7 @@ describe('Subtitle Schema', () => {
         subtitleDataSchema.parse({
           ...validSubtitleData,
           userId: 'invalid-uuid',
-        })
+        }),
       ).toThrow('Invalid uuid');
 
       // Test valid UUID
@@ -78,7 +86,7 @@ describe('Subtitle Schema', () => {
         subtitleDataSchema.parse({
           ...validSubtitleData,
           userId: '123e4567-e89b-12d3-a456-426614174001',
-        })
+        }),
       ).not.toThrow();
     });
   });
@@ -133,17 +141,18 @@ describe('Subtitle Schema', () => {
         subtitleCreatedSchema.parse({
           ...validRequest,
           headers: invalidHeaders,
-        })
+        }),
       ).toThrow();
     });
 
     it('should require x-webhook-signature header', () => {
-      const { 'x-webhook-signature': _, ...invalidHeaders } = validRequest.headers;
+      const { 'x-webhook-signature': _, ...invalidHeaders } =
+        validRequest.headers;
       expect(() =>
         subtitleCreatedSchema.parse({
           ...validRequest,
           headers: invalidHeaders,
-        })
+        }),
       ).toThrow();
     });
 

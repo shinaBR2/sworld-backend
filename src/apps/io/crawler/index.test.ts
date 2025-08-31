@@ -39,6 +39,10 @@ describe('crawlerRouter', () => {
     // Basic verification
     expect(crawlerRouter).toBe(mockRouter);
     expect(mockValidateRequest).toHaveBeenCalledWith('mockSchema');
-    expect(mockPost).toHaveBeenCalledWith('/crawl-handler', 'mockMiddleware', 'mockCrawlHandler');
+    expect(mockPost).toHaveBeenCalledWith(
+      '/crawl-handler',
+      'mockMiddleware',
+      'mockCrawlHandler',
+    );
   });
 });

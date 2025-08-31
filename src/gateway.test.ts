@@ -14,7 +14,7 @@ vi.mock('../src/apps/gateway', () => ({
     listen: vi.fn((port, cb) => {
       cb();
       return {
-        close: vi.fn(cb => cb()),
+        close: vi.fn((cb) => cb()),
       };
     }),
     use: vi.fn(),
@@ -48,8 +48,12 @@ describe('Gateway Server', () => {
   });
 
   it('should handle shutdown signals gracefully', async () => {
-    const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
-    const setTimeoutSpy = vi.spyOn(global, 'setTimeout').mockImplementation(() => ({ unref: vi.fn() }) as any);
+    const processExitSpy = vi
+      .spyOn(process, 'exit')
+      .mockImplementation(() => undefined as never);
+    const setTimeoutSpy = vi
+      .spyOn(global, 'setTimeout')
+      .mockImplementation(() => ({ unref: vi.fn() }) as any);
 
     await import('../src/gateway');
 

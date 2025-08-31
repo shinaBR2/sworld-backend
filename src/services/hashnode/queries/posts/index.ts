@@ -24,7 +24,10 @@ const getPost = async (id: string) => {
     id,
   };
 
-  const response = await getHashnodeClient().request<GetPostQuery>(GET_POST.toString(), variables);
+  const response = await getHashnodeClient().request<GetPostQuery>(
+    GET_POST.toString(),
+    variables,
+  );
 
   return response.post;
 };

@@ -47,7 +47,7 @@ describe('crawl', () => {
         title: 'Test',
         slugPrefix: 'test',
       },
-      {}
+      {},
     );
 
     // Update the expectation
@@ -57,7 +57,7 @@ describe('crawl', () => {
       },
       {
         persistStorage: false,
-      }
+      },
     );
 
     expect(createRequestHandler).toHaveBeenCalledWith('test', {
@@ -86,8 +86,8 @@ describe('crawl', () => {
           title: 'Test',
           slugPrefix: 'test',
         },
-        {}
-      )
+        {},
+      ),
     ).rejects.toThrow('Invalid URL');
   });
 });

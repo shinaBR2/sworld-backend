@@ -46,8 +46,15 @@ describe('crawlHandler', () => {
 
   it('should successfully process video crawling and insertion', async () => {
     const mockCrawlResult = {
-      data: [{ videoUrl: 'http://example.com/video1' }, { videoUrl: 'http://example.com/video2' }],
-      urls: ['URL_ADDRESS.com/video1', 'URL_ADDRESS.com/video1', 'URL_ADDRESSe.com/video2'],
+      data: [
+        { videoUrl: 'http://example.com/video1' },
+        { videoUrl: 'http://example.com/video2' },
+      ],
+      urls: [
+        'URL_ADDRESS.com/video1',
+        'URL_ADDRESS.com/video1',
+        'URL_ADDRESSe.com/video2',
+      ],
     };
     const mockVideos = [
       {
@@ -102,7 +109,7 @@ describe('crawlHandler', () => {
         maxRequestsPerCrawl: 100,
         maxConcurrency: 5,
         maxRequestsPerMinute: 20,
-      }
+      },
     );
 
     expect(buildVariables).toHaveBeenCalledWith(mockCrawlResult, {
@@ -121,7 +128,7 @@ describe('crawlHandler', () => {
         url: 'http://example.com',
         userId: 'user123',
       },
-      'crawl success, start inserting'
+      'crawl success, start inserting',
     );
     expect(jsonMock).toHaveBeenCalledWith({ result: mockCrawlResult });
     expect(completeTask).toHaveBeenCalledWith({
@@ -132,7 +139,11 @@ describe('crawlHandler', () => {
   it('should use empty string as default slugPrefix', async () => {
     const mockCrawlResult = {
       data: [{ videoUrl: 'http://example.com/video1' }],
-      urls: ['URL_ADDRESS.com/video1', 'URL_ADDRESS.com/video1', 'URL_ADDRESSe.com/video2'],
+      urls: [
+        'URL_ADDRESS.com/video1',
+        'URL_ADDRESS.com/video1',
+        'URL_ADDRESSe.com/video2',
+      ],
     };
     const mockVideos = [
       {
@@ -198,6 +209,8 @@ describe('crawlHandler', () => {
       },
     };
 
-    await expect(crawlHandler(mockRequest as Request, mockResponse as Response)).rejects.toThrow('Crawl failed');
+    await expect(
+      crawlHandler(mockRequest as Request, mockResponse as Response),
+    ).rejects.toThrow('Crawl failed');
   });
 });

@@ -32,7 +32,10 @@ const fixDurationHandler = async (req: Request, res: Response) => {
     }
 
     const { source } = video;
-    const { duration } = await parseM3U8Content(source, videoConfig.excludePatterns);
+    const { duration } = await parseM3U8Content(
+      source,
+      videoConfig.excludePatterns,
+    );
 
     transaction = await sequelize.transaction();
     await updateVideoDuration({

@@ -10,7 +10,7 @@ vi.mock('../src/apps/io', () => ({
     listen: vi.fn((port, cb) => {
       cb();
       return {
-        close: vi.fn(cb => cb()),
+        close: vi.fn((cb) => cb()),
       };
     }),
   },
@@ -34,12 +34,18 @@ describe('IO Server', () => {
     await import('../src/io');
 
     expect(Sentry.setupExpressErrorHandler).toHaveBeenCalledWith(app);
-    expect(logger.info).toHaveBeenCalledWith('IO service is running on port 4000');
+    expect(logger.info).toHaveBeenCalledWith(
+      'IO service is running on port 4000',
+    );
   });
 
   it('should handle shutdown signals gracefully', async () => {
-    const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
-    const setTimeoutSpy = vi.spyOn(global, 'setTimeout').mockImplementation(() => ({ unref: vi.fn() }) as any);
+    const processExitSpy = vi
+      .spyOn(process, 'exit')
+      .mockImplementation(() => undefined as never);
+    const setTimeoutSpy = vi
+      .spyOn(global, 'setTimeout')
+      .mockImplementation(() => ({ unref: vi.fn() }) as any);
 
     await import('../src/io');
 

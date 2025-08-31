@@ -5,7 +5,10 @@ import {
   saveUpdatedCounter,
   setCurrentAuthenticationOptions,
 } from './userHelpers';
-import { generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
+import {
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} from '@simplewebauthn/server';
 import { EXPECTED_ORIGINS, EXPECTED_RP_IDS, RP_ID } from './config';
 import { logger } from 'src/utils/logger';
 
@@ -15,7 +18,7 @@ const generateOptions = async (userId: string) => {
   const options = await generateAuthenticationOptions({
     rpID: RP_ID,
     // Require users to use a previously-registered authenticator
-    allowCredentials: userPasskeys.map(passkey => ({
+    allowCredentials: userPasskeys.map((passkey) => ({
       id: passkey.id,
       transports: passkey.transports,
     })),
@@ -47,7 +50,9 @@ const verify = async (userId: string, credential: any) => {
   const passkey = await getUserPasskey(userId, credential.id);
 
   if (!passkey) {
-    throw new Error(`Could not find passkey ${credential.id} for user ${user.id}`);
+    throw new Error(
+      `Could not find passkey ${credential.id} for user ${user.id}`,
+    );
   }
 
   let verification;

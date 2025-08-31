@@ -40,7 +40,9 @@ const streamSubtitleFile = async (options: StreamSubtitleOptions) => {
   }
 
   // Convert the web stream to a Node.js stream
-  const nodeStream = Readable.fromWeb(subtitleStream as unknown as ReadableStream<Uint8Array>);
+  const nodeStream = Readable.fromWeb(
+    subtitleStream as unknown as ReadableStream<Uint8Array>,
+  );
 
   // Stream the response directly to GCP
   return streamFile({

@@ -64,7 +64,7 @@ describe('hh3dHandler', () => {
     vi.clearAllMocks();
 
     // Make CustomError.high return an error so the flow continues
-    vi.mocked(CustomError.high).mockImplementation(message => {
+    vi.mocked(CustomError.high).mockImplementation((message) => {
       throw new Error(message);
     });
   });
@@ -195,20 +195,21 @@ describe('hh3dHandler', () => {
       });
 
       const { handler } = hh3dHandler(defaultOptions);
-      const { mockRequest, mockRoute, mockPage, mockEnqueueLinks } = createMocks({
-        route: {
-          fetch: vi.fn().mockRejectedValue(networkError),
-        },
-        page: {
-          goto: vi.fn().mockResolvedValue(undefined),
-          route: vi.fn().mockImplementation((pattern, handler) => {
-            mockPage.routeHandler = handler;
-          }),
-          waitForSelector: vi.fn(),
-          routeHandler: null,
-          unroute: vi.fn().mockResolvedValue(undefined),
-        },
-      });
+      const { mockRequest, mockRoute, mockPage, mockEnqueueLinks } =
+        createMocks({
+          route: {
+            fetch: vi.fn().mockRejectedValue(networkError),
+          },
+          page: {
+            goto: vi.fn().mockResolvedValue(undefined),
+            route: vi.fn().mockImplementation((pattern, handler) => {
+              mockPage.routeHandler = handler;
+            }),
+            waitForSelector: vi.fn(),
+            routeHandler: null,
+            unroute: vi.fn().mockResolvedValue(undefined),
+          },
+        });
 
       handler({
         page: mockPage,
@@ -263,7 +264,7 @@ describe('hh3dHandler', () => {
           page: mockPage,
           request: mockRequest,
           enqueueLinks: mockEnqueueLinks,
-        })
+        }),
       ).rejects.toThrow();
 
       expect(CustomError.high).toHaveBeenCalledWith('Enqueue links failed', {

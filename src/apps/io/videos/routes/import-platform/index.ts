@@ -12,7 +12,7 @@ const importPlatformHandler = async (req: Request, res: Response) => {
   try {
     logger.info(
       metadata,
-      `[/videos/import-platform-handler] start processing event "${metadata.id}", video "${data.id}"`
+      `[/videos/import-platform-handler] start processing event "${metadata.id}", video "${data.id}"`,
     );
 
     await finishVideoProcess({
