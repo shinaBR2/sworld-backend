@@ -27,6 +27,22 @@ describe('deviceRequestCreateSchema', () => {
     expect(result.success).toBe(true);
   });
 
+  it('should transform the payload correctly', () => {
+    const result = deviceRequestCreateSchema.safeParse(validPayload);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toMatchObject({
+        action: validPayload.body.action,
+        input: validPayload.body.input,
+        extensionId: validPayload.body.input.input.extensionId,
+        hasuraActionHeader: validPayload.headers['x-hasura-action'],
+        contentTypeHeader: validPayload.headers['content-type'],
+        ip: validPayload.ip,
+        userAgent: validPayload.userAgent,
+      });
+    }
+  });
+
   describe('body validation', () => {
     it('should reject missing action', () => {
       const invalidPayload = {
