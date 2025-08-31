@@ -67,6 +67,26 @@ describe('deviceRequestCreateSchema', () => {
     });
   });
 
+  describe('ip and userAgent validation', () => {
+    it('should require ip field', () => {
+      const invalidPayload = {
+        ...validPayload,
+        ip: undefined,
+      };
+      const result = deviceRequestCreateSchema.safeParse(invalidPayload);
+      expect(result.success).toBe(false);
+    });
+
+    it('should make userAgent optional', () => {
+      const payload = {
+        ...validPayload,
+        userAgent: undefined,
+      };
+      const result = deviceRequestCreateSchema.safeParse(payload);
+      expect(result.success).toBe(true);
+    });
+  });
+
   describe('headers validation', () => {
     it('should require content-type and x-hasura-action headers', () => {
       const invalidPayload = {
