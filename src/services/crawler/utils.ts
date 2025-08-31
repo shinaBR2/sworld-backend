@@ -1,11 +1,7 @@
-import { Page } from 'playwright';
+import type { Page } from 'playwright';
 import { hh3dHandler } from './hh3d';
 import { selectors } from './hh3d/selectors';
-import {
-  HandlerOptions,
-  RequestHandlerWithState,
-  SelectorConfig,
-} from './types';
+import type { HandlerOptions, RequestHandlerWithState, SelectorConfig } from './types';
 
 /**
  * Determines the appropriate handler based on the start URLs

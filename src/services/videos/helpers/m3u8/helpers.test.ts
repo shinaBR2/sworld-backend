@@ -4,7 +4,7 @@ import { HTTP_ERRORS } from 'src/utils/error-codes';
 import { fetchWithError } from 'src/utils/fetch';
 import { logger } from 'src/utils/logger';
 import { systemConfig } from 'src/utils/systemConfig';
-import { Mock, beforeEach, describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, type Mock, test, vi } from 'vitest';
 import { downloadFile, verifyFileSize } from '../file';
 import { streamFile } from '../gcp-cloud-storage';
 import {
@@ -104,10 +104,7 @@ describe('M3U8 parser', () => {
       };
       vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePatterns,
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toEqual([
@@ -174,10 +171,7 @@ describe('M3U8 parser', () => {
       };
       vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePatterns,
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       // Check included segments in order
@@ -258,10 +252,7 @@ describe('M3U8 parser', () => {
       };
       vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePatterns,
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       // Check included segments in order
@@ -330,10 +321,7 @@ describe('M3U8 parser', () => {
       };
       vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePatterns,
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toEqual([
@@ -383,10 +371,7 @@ describe('M3U8 parser', () => {
       };
       vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePatterns,
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(segments.included).toEqual([
@@ -435,10 +420,7 @@ describe('M3U8 parser', () => {
       };
       vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePatterns,
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
       expect(normalizeContent(modifiedContent)).toBe(expected);
       expect(modifiedContent).toContain('#EXT-X-PLAYLIST-TYPE:VOD');
       expect(segments.included).toEqual([
@@ -463,10 +445,7 @@ describe('M3U8 parser', () => {
       };
       vi.mocked(fetchWithError).mockResolvedValue(mockResponse as any);
 
-      const { modifiedContent, segments } = await parseM3U8Content(
-        baseUrl,
-        excludePatterns,
-      );
+      const { modifiedContent, segments } = await parseM3U8Content(baseUrl, excludePatterns);
 
       expect(segments.included).toEqual([
         {
@@ -626,10 +605,7 @@ describe('downloadSegments', () => {
     await downloadSegments(mockSegments, mockTempDir, maxSize);
 
     expect(verifyFileSize).toHaveBeenCalledTimes(3);
-    expect(verifyFileSize).toHaveBeenCalledWith(
-      '/tmp/test/segment1.ts',
-      maxSize,
-    );
+    expect(verifyFileSize).toHaveBeenCalledWith('/tmp/test/segment1.ts', maxSize);
   });
 
   test('should process segments in batches of 5', async () => {
@@ -651,17 +627,13 @@ describe('downloadSegments', () => {
     ]);
     // Verify second batch (1 segment)
     const secondBatch = downloadCalls.slice(5);
-    expect(secondBatch.map((call) => call[0])).toEqual([
-      'https://example.com/segment6.ts',
-    ]);
+    expect(secondBatch.map((call) => call[0])).toEqual(['https://example.com/segment6.ts']);
   });
 
   test('when error with promise.all', async () => {
     vi.mocked(downloadFile).mockRejectedValueOnce(new Error('Download failed'));
 
-    await expect(downloadSegments(mockSegments, mockTempDir)).rejects.toThrow(
-      'Download failed',
-    );
+    await expect(downloadSegments(mockSegments, mockTempDir)).rejects.toThrow('Download failed');
 
     expect(downloadFile).toHaveBeenCalledTimes(3);
   });
@@ -683,18 +655,12 @@ describe('streamSegmentFile', () => {
       statusText: 'OK',
     } as Response);
 
-    await streamSegmentFile(
-      'http://example.com/segment.ts',
-      'test-path/segment.ts',
-    );
+    await streamSegmentFile('http://example.com/segment.ts', 'test-path/segment.ts');
 
     // Verify fetch was called with correct URL
-    expect(fetchWithError).toHaveBeenCalledWith(
-      'http://example.com/segment.ts',
-      {
-        timeout: systemConfig.defaultExternalRequestTimeout,
-      },
-    );
+    expect(fetchWithError).toHaveBeenCalledWith('http://example.com/segment.ts', {
+      timeout: systemConfig.defaultExternalRequestTimeout,
+    });
 
     // Verify streamFile was called with correct arguments
     const streamFileCall = (streamFile as Mock).mock.calls[0][0];
@@ -817,9 +783,7 @@ describe('streamPlaylistFile', () => {
     mockStreamFile.mockRejectedValueOnce(mockError);
 
     // Expect the error to be propagated
-    await expect(streamPlaylistFile(content, storagePath)).rejects.toThrow(
-      'Stream error',
-    );
+    await expect(streamPlaylistFile(content, storagePath)).rejects.toThrow('Stream error');
 
     expect(mockStreamFile).toHaveBeenCalledOnce();
   });

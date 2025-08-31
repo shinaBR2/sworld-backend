@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { Task } from './task';
 import { DataTypes } from 'sequelize';
+import { describe, expect, it } from 'vitest';
+import { Task } from './task';
 
 describe('Task Model', () => {
   const attributes = Task.rawAttributes;

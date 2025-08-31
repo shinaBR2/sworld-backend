@@ -63,9 +63,7 @@ describe('app', () => {
   it('should set up error handler with logger', async () => {
     await import('./index');
     expect(errorHandler).toHaveBeenCalledWith('mockLogger');
-    const errorHandlerCall = mockUse.mock.calls.find(
-      (call) => call[0] === 'mockErrorHandler',
-    );
+    const errorHandlerCall = mockUse.mock.calls.find((call) => call[0] === 'mockErrorHandler');
     expect(errorHandlerCall).toBeTruthy();
   });
 
@@ -79,9 +77,7 @@ describe('app', () => {
     const crawlerRouterCallIndex = calls.findIndex(
       (call) => call[0] === '/crawlers' && call[1] === 'mockCrawlerRouter',
     );
-    const errorHandlerCallIndex = calls.findIndex(
-      (call) => call[0] === 'mockErrorHandler',
-    );
+    const errorHandlerCallIndex = calls.findIndex((call) => call[0] === 'mockErrorHandler');
 
     expect(videosRouterCallIndex).not.toBe(-1);
     expect(crawlerRouterCallIndex).not.toBe(-1);
@@ -102,8 +98,6 @@ describe('app', () => {
       throw error;
     });
 
-    await expect(() => import('./index')).rejects.toThrow(
-      'Base app creation failed',
-    );
+    await expect(() => import('./index')).rejects.toThrow('Base app creation failed');
   });
 });

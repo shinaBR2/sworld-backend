@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { sequelize, initialize } from './index';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { initialize, sequelize } from './index';
 
 // Mock the envConfig
 vi.mock('src/utils/envConfig', () => ({
@@ -55,9 +55,7 @@ describe('Database Initialization', () => {
 
     it('should throw error if authentication fails', async () => {
       // Mock authentication failure
-      const authenticateMock = vi
-        .fn()
-        .mockRejectedValue(new Error('Authentication failed'));
+      const authenticateMock = vi.fn().mockRejectedValue(new Error('Authentication failed'));
       const syncMock = vi.fn();
 
       sequelize.authenticate = authenticateMock;

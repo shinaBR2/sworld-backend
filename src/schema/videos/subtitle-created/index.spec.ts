@@ -1,9 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import {
-  subtitleDataSchema,
-  eventSchema,
-  subtitleCreatedSchema,
-} from './index';
+import { describe, expect, it } from 'vitest';
+import { eventSchema, subtitleCreatedSchema, subtitleDataSchema } from './index';
 
 describe('Subtitle Schema', () => {
   const mockMetadata = {
@@ -41,9 +37,9 @@ describe('Subtitle Schema', () => {
 
     it('should validate id as UUID', () => {
       // Test invalid UUID
-      expect(() =>
-        subtitleDataSchema.parse({ ...validSubtitleData, id: 'invalid-uuid' }),
-      ).toThrow('Invalid uuid');
+      expect(() => subtitleDataSchema.parse({ ...validSubtitleData, id: 'invalid-uuid' })).toThrow(
+        'Invalid uuid',
+      );
 
       // Test valid UUID
       expect(() =>
@@ -146,8 +142,7 @@ describe('Subtitle Schema', () => {
     });
 
     it('should require x-webhook-signature header', () => {
-      const { 'x-webhook-signature': _, ...invalidHeaders } =
-        validRequest.headers;
+      const { 'x-webhook-signature': _, ...invalidHeaders } = validRequest.headers;
       expect(() =>
         subtitleCreatedSchema.parse({
           ...validRequest,

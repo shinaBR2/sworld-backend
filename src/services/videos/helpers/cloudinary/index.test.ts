@@ -1,8 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { UploadApiResponse, v2 as cloudinary } from 'cloudinary';
+import { existsSync } from 'node:fs';
+import { v2 as cloudinary, type UploadApiResponse } from 'cloudinary';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { uploadFromLocalFilePath } from '.';
-import { existsSync } from 'fs';
-import { envConfig } from 'src/utils/envConfig';
 
 // Mock the cloudinary module
 vi.mock('cloudinary', () => ({
@@ -66,10 +65,7 @@ describe('uploadFromLocalFilePath', () => {
 
     const result = await uploadFromLocalFilePath(localFilePath, options);
 
-    expect(cloudinary.uploader.upload).toHaveBeenCalledWith(
-      localFilePath,
-      options,
-    );
+    expect(cloudinary.uploader.upload).toHaveBeenCalledWith(localFilePath, options);
     expect(result).toBe(mockUploadResponse.secure_url);
   });
 
@@ -97,9 +93,7 @@ describe('uploadFromLocalFilePath', () => {
     const mockError = new Error('Upload failed');
     vi.mocked(cloudinary.uploader.upload).mockRejectedValueOnce(mockError);
 
-    await expect(uploadFromLocalFilePath(localFilePath)).rejects.toThrow(
-      mockError,
-    );
+    await expect(uploadFromLocalFilePath(localFilePath)).rejects.toThrow(mockError);
   });
 
   it('should throw error when upload returns no result', async () => {

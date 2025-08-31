@@ -1,6 +1,6 @@
-import { graphql } from '../../generated-graphql';
-import { DeletePostMutation } from '../../generated-graphql/graphql';
 import { hasuraClient } from '../../client';
+import { graphql } from '../../generated-graphql';
+import type { DeletePostMutation } from '../../generated-graphql/graphql';
 
 const DELETE_POST = graphql(/* GraphQL */ `
   mutation DeletePost($hId: String!) {

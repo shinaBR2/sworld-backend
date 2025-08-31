@@ -1,13 +1,12 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import { Request, Response } from 'express';
-import { fixDurationHandler } from './index';
+import type { Request, Response } from 'express';
 import { sequelize } from 'src/database';
 import { completeTask } from 'src/database/queries/tasks';
 import { getVideoById, updateVideoDuration } from 'src/database/queries/videos';
 import { parseM3U8Content } from 'src/services/videos/helpers/m3u8/helpers';
-import { logger } from 'src/utils/logger';
 import { CustomError } from 'src/utils/custom-error';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { fixDurationHandler } from './index';
 
 // Mock dependencies
 vi.mock('src/database', () => ({
@@ -37,7 +36,7 @@ vi.mock('src/utils/logger', () => ({
 
 vi.mock('src/utils/custom-error', () => ({
   CustomError: {
-    medium: vi.fn().mockImplementation((message, options) => {
+    medium: vi.fn().mockImplementation((message, _options) => {
       throw new Error(message);
     }),
   },
@@ -77,10 +76,7 @@ describe('fixDurationHandler', () => {
     await fixDurationHandler(mockReq, mockRes);
 
     expect(getVideoById).toHaveBeenCalledWith('video-123');
-    expect(parseM3U8Content).toHaveBeenCalledWith(
-      'video-source',
-      expect.any(Array),
-    );
+    expect(parseM3U8Content).toHaveBeenCalledWith('video-source', expect.any(Array));
     expect(sequelize.transaction).toHaveBeenCalled();
     expect(updateVideoDuration).toHaveBeenCalledWith({
       id: 'video-123',

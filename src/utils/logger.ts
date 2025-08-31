@@ -13,7 +13,7 @@ const logger = pino({
 
 const httpLogger = pinoHttp({
   logger,
-  customProps: (req, res) => ({
+  customProps: (req, _res) => ({
     cloudEvent: {
       id: req.headers['ce-id'],
       type: req.headers['ce-type'],

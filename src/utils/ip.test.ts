@@ -1,11 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { getClientIP } from './ip';
 
 // Helper to build headers with correct types
 const buildHeaders = (headers: Record<string, string | undefined>) => {
-  return Object.fromEntries(
-    Object.entries(headers).filter(([_, v]) => v !== undefined),
-  ) as Record<string, string>;
+  return Object.fromEntries(Object.entries(headers).filter(([_, v]) => v !== undefined)) as Record<
+    string,
+    string
+  >;
 };
 
 describe('getClientIP', () => {
@@ -67,9 +68,7 @@ describe('getClientIP', () => {
     const headers = buildHeaders({
       'x-real-ip': '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
     });
-    expect(getClientIP(headers)).toBe(
-      '2001:0db8:85a3:0000:0000:8a2e:0370:7334',
-    );
+    expect(getClientIP(headers)).toBe('2001:0db8:85a3:0000:0000:8a2e:0370:7334');
   });
 
   it('returns "unknown" for invalid IPs in all headers', () => {

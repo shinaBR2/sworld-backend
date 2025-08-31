@@ -94,9 +94,7 @@ describe('deviceRequestCreateSchema', () => {
           'x-extra-header': 'some-value',
         },
       };
-      const result = deviceRequestCreateSchema.safeParse(
-        payloadWithExtraHeaders,
-      );
+      const result = deviceRequestCreateSchema.safeParse(payloadWithExtraHeaders);
       expect(result.success).toBe(true);
     });
   });

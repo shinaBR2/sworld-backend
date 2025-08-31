@@ -1,12 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import {
-  expressRequestHandler,
-  honoRequestHandler,
-  type BusinessHandler,
-} from './requestHandler';
 import type { Request, Response } from 'express';
 import type { Context } from 'hono';
-import { ServiceResponse } from './schema';
+import { describe, expect, it, vi } from 'vitest';
+import { type BusinessHandler, expressRequestHandler, honoRequestHandler } from './requestHandler';
 
 describe('requestHandler', () => {
   // Mock business handler that returns successful response
@@ -70,9 +65,7 @@ describe('requestHandler', () => {
       const mockRes = { json: vi.fn() } as unknown as Response;
 
       const handler = expressRequestHandler(mockErrorHandler);
-      await expect(handler(mockReq, mockRes)).rejects.toThrow(
-        'Business logic error',
-      );
+      await expect(handler(mockReq, mockRes)).rejects.toThrow('Business logic error');
       expect(mockRes.json).not.toHaveBeenCalled();
     });
   });
@@ -118,9 +111,7 @@ describe('requestHandler', () => {
       } as unknown as Context;
 
       const handler = honoRequestHandler(mockErrorHandler);
-      await expect(handler(mockContext)).rejects.toThrow(
-        'Business logic error',
-      );
+      await expect(handler(mockContext)).rejects.toThrow('Business logic error');
       expect(mockContext.json).not.toHaveBeenCalled();
     });
   });

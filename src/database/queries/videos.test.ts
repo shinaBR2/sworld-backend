@@ -1,5 +1,5 @@
-import { Op, Transaction } from 'sequelize';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Op, type Transaction } from 'sequelize';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import { Video } from '../models/video';
 import {
   getVideoById,
@@ -94,9 +94,7 @@ describe('getVideoMissingDuration', () => {
     vi.spyOn(Video, 'findAll').mockRejectedValue(mockError);
 
     // Expect the error to be thrown
-    await expect(getVideoMissingDuration()).rejects.toThrow(
-      'Database connection failed',
-    );
+    await expect(getVideoMissingDuration()).rejects.toThrow('Database connection failed');
   });
 });
 
@@ -185,9 +183,7 @@ describe('getVideoMissingThumbnail', () => {
     vi.spyOn(Video, 'findAll').mockRejectedValue(mockError);
 
     // Expect the error to be thrown
-    await expect(getVideoMissingThumbnail()).rejects.toThrow(
-      'Database connection failed',
-    );
+    await expect(getVideoMissingThumbnail()).rejects.toThrow('Database connection failed');
   });
 });
 
@@ -217,7 +213,7 @@ describe('getVideoById', () => {
 
 describe('updateVideoDuration', () => {
   it('should update video duration successfully', async () => {
-    const mockTransaction = {} as Transaction;
+    const _mockTransaction = {} as Transaction;
     (Video.update as Mock).mockResolvedValue([1]);
 
     const result = await updateVideoDuration({
@@ -269,7 +265,7 @@ describe('updateVideoDuration', () => {
 
 describe('updateVideoThumbnail', () => {
   it('should update video thumbnailUrl successfully', async () => {
-    const mockTransaction = {} as Transaction;
+    const _mockTransaction = {} as Transaction;
     (Video.update as Mock).mockResolvedValue([1]);
 
     const result = await updateVideoThumbnail({

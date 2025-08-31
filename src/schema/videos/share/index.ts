@@ -1,7 +1,5 @@
 import { hasuraEventMetadataSchema } from 'src/schema/hasura';
-import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 import { z } from 'zod';
-import { videoDataSchema } from '../convert';
 
 /**
  * Receive event from hasura
@@ -17,9 +15,7 @@ import { videoDataSchema } from '../convert';
  */
 const playlistSchema = z.object({
   id: z.string().uuid(),
-  shared_recipients_input: z
-    .array(z.string().email())
-    .min(1, 'At least one recipient is required'),
+  shared_recipients_input: z.array(z.string().email()).min(1, 'At least one recipient is required'),
 });
 
 const eventSchema = z.object({

@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 
 const generateSecureCode = (length: number) => {
   return randomBytes(length).toString('base64url');

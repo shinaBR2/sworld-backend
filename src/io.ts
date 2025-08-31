@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import './utils/instrument';
 import * as Sentry from '@sentry/node';
+import { app } from './apps/io';
 import { envConfig } from './utils/envConfig';
 import { logger } from './utils/logger';
-import { app } from './apps/io';
 
 const port = envConfig.port || 4000;
 

@@ -21,8 +21,8 @@ vi.mock('express', () => {
 });
 
 vi.mock('src/utils/validators/request', () => ({
-  validateRequest: vi.fn().mockImplementation((schema) => {
-    return (req: any, res: any, next: any) => {
+  validateRequest: vi.fn().mockImplementation((_schema) => {
+    return (req: any, _res: any, next: any) => {
       req.validatedData = {
         ...req.body,
         ip: 'fake-ip',
@@ -72,7 +72,7 @@ describe('authRouter', () => {
     const { authRouter } = await import('./index');
     const deviceRoute = routeHandlers.find((h) => h.path === '/device');
     expect(deviceRoute).toBeDefined();
-    const [validate, handler] = deviceRoute!.middlewares;
+    const [validate, handler] = deviceRoute?.middlewares;
 
     // Mock req/res/next
     const req: any = { body: { input: { input: { extensionId: 'ext-123' } } } };

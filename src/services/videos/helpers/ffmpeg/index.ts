@@ -1,8 +1,8 @@
+import { existsSync } from 'node:fs';
+import * as path from 'node:path';
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import ffprobeInstaller from '@ffprobe-installer/ffprobe';
-import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
-import { existsSync } from 'fs';
-import * as path from 'path';
+import ffmpeg, { type FfprobeData } from 'fluent-ffmpeg';
 import { logger } from 'src/utils/logger';
 import { videoConfig } from '../../config';
 
@@ -17,10 +17,7 @@ ffmpeg.setFfprobePath(ffprobeInstaller.path);
  * @throws {Error} If input file doesn't exist or conversion fails
  * @returns Promise that resolves when conversion is complete
  */
-const convertToHLS = async (
-  inputPath: string,
-  outputDir: string,
-): Promise<void> => {
+const convertToHLS = async (inputPath: string, outputDir: string): Promise<void> => {
   if (!existsSync(inputPath)) {
     const error = new Error(`Input file does not exist at "${inputPath}"`);
     logger.error(error, 'Conversion failed');
@@ -40,9 +37,7 @@ const convertToHLS = async (
   }
 
   const outputPath = path.join(outputDir, 'playlist.m3u8');
-  logger.debug(
-    `[convertToHLS] Converting to HLS: ${inputPath} -> ${outputPath}`,
-  );
+  logger.debug(`[convertToHLS] Converting to HLS: ${inputPath} -> ${outputPath}`);
 
   return new Promise((resolve, reject) => {
     ffmpeg(inputPath)
@@ -103,9 +98,7 @@ const getDuration = async (videoPath: string): Promise<number> => {
     const duration = metadata.format.duration;
 
     if (!duration) {
-      logger.warn(
-        `Could not determine video duration for ${videoPath}, using default`,
-      );
+      logger.warn(`Could not determine video duration for ${videoPath}, using default`);
       return DEFAULT_DURATION;
     }
 

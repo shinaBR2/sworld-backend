@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { pino } from 'pino';
 import pinoHttp from 'pino-http';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock pino and pino-http
 vi.mock('pino', () => ({
@@ -14,7 +14,7 @@ vi.mock('pino', () => ({
 vi.mock('pino-http', () => {
   const mockPinoHttp: any = vi.fn((options: any) => {
     mockPinoHttp.lastOptions = options;
-    return (req: any, res: any, next: any) => next();
+    return (_req: any, _res: any, next: any) => next();
   });
   return { default: mockPinoHttp };
 });

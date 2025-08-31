@@ -1,8 +1,8 @@
-import {
-  PublicKeyCredentialCreationOptionsJSON,
+import type {
+  AuthenticatorTransportFuture,
   Base64URLString,
   CredentialDeviceType,
-  AuthenticatorTransportFuture,
+  PublicKeyCredentialCreationOptionsJSON,
 } from '@simplewebauthn/types';
 
 export type UserModel = {

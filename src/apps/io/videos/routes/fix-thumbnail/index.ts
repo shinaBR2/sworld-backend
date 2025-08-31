@@ -1,10 +1,7 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { sequelize } from 'src/database';
 import { completeTask } from 'src/database/queries/tasks';
-import {
-  getVideoById,
-  updateVideoThumbnail,
-} from 'src/database/queries/videos';
+import { getVideoById, updateVideoThumbnail } from 'src/database/queries/videos';
 import { videoConfig } from 'src/services/videos/config';
 import { getDownloadUrl } from 'src/services/videos/helpers/gcp-cloud-storage';
 import { parseM3U8Content } from 'src/services/videos/helpers/m3u8/helpers';
@@ -36,10 +33,7 @@ const fixThumbnailHandler = async (req: Request, res: Response) => {
   }
 
   const { source, user_id: userId } = video;
-  const { segments } = await parseM3U8Content(
-    source,
-    videoConfig.excludePatterns,
-  );
+  const { segments } = await parseM3U8Content(source, videoConfig.excludePatterns);
 
   if (!segments.included.length) {
     throw CustomError.medium('Empty HLS content', {

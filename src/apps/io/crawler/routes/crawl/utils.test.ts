@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CrawlData, CrawlParams } from './type';
+import type { CrawlData, CrawlParams } from './type';
 import { buildVariables } from './utils';
 
 describe('buildVariables', () => {
@@ -18,10 +18,7 @@ describe('buildVariables', () => {
   });
 
   const mockResult: { data: CrawlData[] } = {
-    data: [
-      { videoUrl: 'https://example.com/video1' },
-      { videoUrl: 'https://example.com/video2' },
-    ],
+    data: [{ videoUrl: 'https://example.com/video1' }, { videoUrl: 'https://example.com/video2' }],
   };
 
   it('should build variables for single video with timestamp in slug', () => {

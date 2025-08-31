@@ -55,9 +55,7 @@ describe('streamHandlerSchema', () => {
     it('should reject request with missing required fields', () => {
       const { id: _, ...dataWithoutId } = validData;
       // @ts-expect-error
-      const result = streamHandlerSchema.safeParse(
-        createRequest({ data: dataWithoutId }),
-      );
+      const result = streamHandlerSchema.safeParse(createRequest({ data: dataWithoutId }));
       expect(result.success).toBe(false);
     });
 

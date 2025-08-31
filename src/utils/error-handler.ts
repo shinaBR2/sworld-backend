@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/node';
-import { ErrorRequestHandler } from 'express';
-import { Logger } from 'pino';
+import type { ErrorRequestHandler } from 'express';
+import type { Logger } from 'pino';
 import { CustomError } from './custom-error';
 
 const cleanStack = (stack?: string) => {
@@ -50,7 +50,7 @@ const reportError = (err: unknown) => {
 
 export const errorHandler = (logger: Logger): ErrorRequestHandler => {
   // next is required for nextjs
-  return (err, req, res, next) => {
+  return (err, req, res, _next) => {
     reportError(err);
 
     logger.error({
@@ -60,8 +60,7 @@ export const errorHandler = (logger: Logger): ErrorRequestHandler => {
       },
       stack: cleanStack(err.stack),
     });
-    const statusCode =
-      err instanceof CustomError && err.shouldRetry ? 500 : 200;
+    const statusCode = err instanceof CustomError && err.shouldRetry ? 500 : 200;
 
     return res.status(statusCode).json({
       error: 'Internal Server Error',

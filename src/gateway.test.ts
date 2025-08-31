@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as Sentry from '@sentry/node';
+import rateLimit from 'express-rate-limit';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { app } from '../src/apps/gateway';
 import { logger } from '../src/utils/logger';
-import rateLimit from 'express-rate-limit';
 
 vi.mock('@sentry/node');
 vi.mock('express-rate-limit', () => ({
@@ -11,7 +11,7 @@ vi.mock('express-rate-limit', () => ({
 vi.mock('../src/utils/logger');
 vi.mock('../src/apps/gateway', () => ({
   app: {
-    listen: vi.fn((port, cb) => {
+    listen: vi.fn((_port, cb) => {
       cb();
       return {
         close: vi.fn((cb) => cb()),
@@ -48,9 +48,7 @@ describe('Gateway Server', () => {
   });
 
   it('should handle shutdown signals gracefully', async () => {
-    const processExitSpy = vi
-      .spyOn(process, 'exit')
-      .mockImplementation(() => undefined as never);
+    const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
     const setTimeoutSpy = vi
       .spyOn(global, 'setTimeout')
       .mockImplementation(() => ({ unref: vi.fn() }) as any);

@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ZodError } from 'zod';
-import {
-  hasuraEventMetadataSchema,
-  transformEventMetadata,
-  hasuraWebhookSchema,
-} from './hasura';
+import { hasuraEventMetadataSchema, hasuraWebhookSchema, transformEventMetadata } from './hasura';
 
 describe('hasuraWebhookSchema', () => {
   const validRequest = {
@@ -49,9 +45,7 @@ describe('hasuraWebhookSchema', () => {
       },
     };
 
-    expect(() => hasuraWebhookSchema.parse(requestWithoutContentType)).toThrow(
-      ZodError,
-    );
+    expect(() => hasuraWebhookSchema.parse(requestWithoutContentType)).toThrow(ZodError);
   });
 
   it('should fail when x-webhook-signature header is missing', () => {
@@ -61,17 +55,13 @@ describe('hasuraWebhookSchema', () => {
       },
     };
 
-    expect(() => hasuraWebhookSchema.parse(requestWithoutSignature)).toThrow(
-      ZodError,
-    );
+    expect(() => hasuraWebhookSchema.parse(requestWithoutSignature)).toThrow(ZodError);
   });
 
   it('should fail when headers property is missing', () => {
     const requestWithoutHeaders = {};
 
-    expect(() => hasuraWebhookSchema.parse(requestWithoutHeaders)).toThrow(
-      ZodError,
-    );
+    expect(() => hasuraWebhookSchema.parse(requestWithoutHeaders)).toThrow(ZodError);
   });
 
   it('should handle null or undefined values appropriately', () => {
@@ -82,9 +72,7 @@ describe('hasuraWebhookSchema', () => {
       },
     };
 
-    expect(() => hasuraWebhookSchema.parse(requestWithNullValues)).toThrow(
-      ZodError,
-    );
+    expect(() => hasuraWebhookSchema.parse(requestWithNullValues)).toThrow(ZodError);
   });
 
   it('should fail when headers is null', () => {
@@ -92,9 +80,7 @@ describe('hasuraWebhookSchema', () => {
       headers: null,
     };
 
-    expect(() => hasuraWebhookSchema.parse(requestWithNullHeaders)).toThrow(
-      ZodError,
-    );
+    expect(() => hasuraWebhookSchema.parse(requestWithNullHeaders)).toThrow(ZodError);
   });
 
   it('should validate transformed output types', () => {

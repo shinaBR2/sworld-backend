@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -11,10 +11,9 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
   [SubKey in K]: Maybe<T[SubKey]>;
 };
-export type MakeEmpty<
-  T extends { [key: string]: unknown },
-  K extends keyof T,
-> = { [_ in K]?: never };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = {
+  [_ in K]?: never;
+};
 export type Incremental<T> =
   | T
   | {
@@ -3242,9 +3241,7 @@ export type Mutation_Root = {
   /** update single row of the table: "book_comments" */
   update_book_comments_by_pk?: Maybe<Book_Comments>;
   /** update multiples rows of table: "book_comments" */
-  update_book_comments_many?: Maybe<
-    Array<Maybe<Book_Comments_Mutation_Response>>
-  >;
+  update_book_comments_many?: Maybe<Array<Maybe<Book_Comments_Mutation_Response>>>;
   /** update data of the table: "books" */
   update_books?: Maybe<Books_Mutation_Response>;
   /** update single row of the table: "books" */
@@ -3256,33 +3253,25 @@ export type Mutation_Root = {
   /** update single row of the table: "crawl_requests" */
   update_crawl_requests_by_pk?: Maybe<Crawl_Requests>;
   /** update multiples rows of table: "crawl_requests" */
-  update_crawl_requests_many?: Maybe<
-    Array<Maybe<Crawl_Requests_Mutation_Response>>
-  >;
+  update_crawl_requests_many?: Maybe<Array<Maybe<Crawl_Requests_Mutation_Response>>>;
   /** update data of the table: "device_requests" */
   update_device_requests?: Maybe<Device_Requests_Mutation_Response>;
   /** update single row of the table: "device_requests" */
   update_device_requests_by_pk?: Maybe<Device_Requests>;
   /** update multiples rows of table: "device_requests" */
-  update_device_requests_many?: Maybe<
-    Array<Maybe<Device_Requests_Mutation_Response>>
-  >;
+  update_device_requests_many?: Maybe<Array<Maybe<Device_Requests_Mutation_Response>>>;
   /** update data of the table: "feature_flag" */
   update_feature_flag?: Maybe<Feature_Flag_Mutation_Response>;
   /** update single row of the table: "feature_flag" */
   update_feature_flag_by_pk?: Maybe<Feature_Flag>;
   /** update multiples rows of table: "feature_flag" */
-  update_feature_flag_many?: Maybe<
-    Array<Maybe<Feature_Flag_Mutation_Response>>
-  >;
+  update_feature_flag_many?: Maybe<Array<Maybe<Feature_Flag_Mutation_Response>>>;
   /** update data of the table: "finance_transactions" */
   update_finance_transactions?: Maybe<Finance_Transactions_Mutation_Response>;
   /** update single row of the table: "finance_transactions" */
   update_finance_transactions_by_pk?: Maybe<Finance_Transactions>;
   /** update multiples rows of table: "finance_transactions" */
-  update_finance_transactions_many?: Maybe<
-    Array<Maybe<Finance_Transactions_Mutation_Response>>
-  >;
+  update_finance_transactions_many?: Maybe<Array<Maybe<Finance_Transactions_Mutation_Response>>>;
   /** update data of the table: "journals" */
   update_journals?: Maybe<Journals_Mutation_Response>;
   /** update single row of the table: "journals" */
@@ -3294,9 +3283,7 @@ export type Mutation_Root = {
   /** update single row of the table: "notifications" */
   update_notifications_by_pk?: Maybe<Notifications>;
   /** update multiples rows of table: "notifications" */
-  update_notifications_many?: Maybe<
-    Array<Maybe<Notifications_Mutation_Response>>
-  >;
+  update_notifications_many?: Maybe<Array<Maybe<Notifications_Mutation_Response>>>;
   /** update data of the table: "playlist" */
   update_playlist?: Maybe<Playlist_Mutation_Response>;
   /** update single row of the table: "playlist" */
@@ -3308,9 +3295,7 @@ export type Mutation_Root = {
   /** update single row of the table: "playlist_videos" */
   update_playlist_videos_by_pk?: Maybe<Playlist_Videos>;
   /** update multiples rows of table: "playlist_videos" */
-  update_playlist_videos_many?: Maybe<
-    Array<Maybe<Playlist_Videos_Mutation_Response>>
-  >;
+  update_playlist_videos_many?: Maybe<Array<Maybe<Playlist_Videos_Mutation_Response>>>;
   /** update data of the table: "posts" */
   update_posts?: Maybe<Posts_Mutation_Response>;
   /** update single row of the table: "posts" */
@@ -3322,9 +3307,7 @@ export type Mutation_Root = {
   /** update single row of the table: "reading_progresses" */
   update_reading_progresses_by_pk?: Maybe<Reading_Progresses>;
   /** update multiples rows of table: "reading_progresses" */
-  update_reading_progresses_many?: Maybe<
-    Array<Maybe<Reading_Progresses_Mutation_Response>>
-  >;
+  update_reading_progresses_many?: Maybe<Array<Maybe<Reading_Progresses_Mutation_Response>>>;
   /** update data of the table: "shared_playlist_recipients" */
   update_shared_playlist_recipients?: Maybe<Shared_Playlist_Recipients_Mutation_Response>;
   /** update single row of the table: "shared_playlist_recipients" */
@@ -3370,9 +3353,7 @@ export type Mutation_Root = {
   /** update single row of the table: "user_video_history" */
   update_user_video_history_by_pk?: Maybe<User_Video_History>;
   /** update multiples rows of table: "user_video_history" */
-  update_user_video_history_many?: Maybe<
-    Array<Maybe<User_Video_History_Mutation_Response>>
-  >;
+  update_user_video_history_many?: Maybe<Array<Maybe<User_Video_History_Mutation_Response>>>;
   /** update data of the table: "users" */
   update_users?: Maybe<Users_Mutation_Response>;
   /** update single row of the table: "users" */
@@ -11753,9 +11734,7 @@ export type UpdatePostMutation = {
 };
 
 export type SharePlaylistMutationVariables = Exact<{
-  objects:
-    | Array<Shared_Playlist_Recipients_Insert_Input>
-    | Shared_Playlist_Recipients_Insert_Input;
+  objects: Array<Shared_Playlist_Recipients_Insert_Input> | Shared_Playlist_Recipients_Insert_Input;
   playlistId: Scalars['uuid']['input'];
   sharedRecipients: Scalars['jsonb']['input'];
 }>;
@@ -11774,9 +11753,7 @@ export type SharePlaylistMutation = {
 };
 
 export type ShareVideoMutationVariables = Exact<{
-  objects:
-    | Array<Shared_Video_Recipients_Insert_Input>
-    | Shared_Video_Recipients_Insert_Input;
+  objects: Array<Shared_Video_Recipients_Insert_Input> | Shared_Video_Recipients_Insert_Input;
   videoId: Scalars['uuid']['input'];
   sharedRecipients: Scalars['jsonb']['input'];
 }>;
@@ -11914,20 +11891,14 @@ export const DeletePostDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<
-  DeletePostMutation,
-  DeletePostMutationVariables
->;
+    `) as unknown as TypedDocumentString<DeletePostMutation, DeletePostMutationVariables>;
 export const InsertPostDocument = new TypedDocumentString(`
     mutation InsertPost($object: posts_insert_input!) {
   insert_posts_one(object: $object) {
     id
   }
 }
-    `) as unknown as TypedDocumentString<
-  InsertPostMutation,
-  InsertPostMutationVariables
->;
+    `) as unknown as TypedDocumentString<InsertPostMutation, InsertPostMutationVariables>;
 export const UpdatePostDocument = new TypedDocumentString(`
     mutation UpdatePost($hId: String!, $set: posts_set_input!) {
   update_posts(where: {hId: {_eq: $hId}}, _set: $set) {
@@ -11936,10 +11907,7 @@ export const UpdatePostDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<
-  UpdatePostMutation,
-  UpdatePostMutationVariables
->;
+    `) as unknown as TypedDocumentString<UpdatePostMutation, UpdatePostMutationVariables>;
 export const SharePlaylistDocument = new TypedDocumentString(`
     mutation sharePlaylist($objects: [shared_playlist_recipients_insert_input!]!, $playlistId: uuid!, $sharedRecipients: jsonb!) {
   insert_shared_playlist_recipients(
@@ -11958,10 +11926,7 @@ export const SharePlaylistDocument = new TypedDocumentString(`
     sharedRecipients
   }
 }
-    `) as unknown as TypedDocumentString<
-  SharePlaylistMutation,
-  SharePlaylistMutationVariables
->;
+    `) as unknown as TypedDocumentString<SharePlaylistMutation, SharePlaylistMutationVariables>;
 export const ShareVideoDocument = new TypedDocumentString(`
     mutation shareVideo($objects: [shared_video_recipients_insert_input!]!, $videoId: uuid!, $sharedRecipients: jsonb!) {
   insert_shared_video_recipients(
@@ -11980,10 +11945,7 @@ export const ShareVideoDocument = new TypedDocumentString(`
     sharedRecipients
   }
 }
-    `) as unknown as TypedDocumentString<
-  ShareVideoMutation,
-  ShareVideoMutationVariables
->;
+    `) as unknown as TypedDocumentString<ShareVideoMutation, ShareVideoMutationVariables>;
 export const InsertVideosDocument = new TypedDocumentString(`
     mutation InsertVideos($objects: [videos_insert_input!]!) {
   insert_videos(objects: $objects) {
@@ -11994,10 +11956,7 @@ export const InsertVideosDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<
-  InsertVideosMutation,
-  InsertVideosMutationVariables
->;
+    `) as unknown as TypedDocumentString<InsertVideosMutation, InsertVideosMutationVariables>;
 export const FinalizeVideoDocument = new TypedDocumentString(`
     mutation FinalizeVideo($taskId: uuid!, $notificationObject: notifications_insert_input!, $videoId: uuid!, $videoUpdates: videos_set_input!) {
   update_tasks(where: {task_id: {_eq: $taskId}}, _set: {status: "completed"}) {
@@ -12013,20 +11972,14 @@ export const FinalizeVideoDocument = new TypedDocumentString(`
     id
   }
 }
-    `) as unknown as TypedDocumentString<
-  FinalizeVideoMutation,
-  FinalizeVideoMutationVariables
->;
+    `) as unknown as TypedDocumentString<FinalizeVideoMutation, FinalizeVideoMutationVariables>;
 export const SaveSubtitleDocument = new TypedDocumentString(`
     mutation SaveSubtitle($id: uuid!, $object: subtitles_set_input!) {
   update_subtitles_by_pk(pk_columns: {id: $id}, _set: $object) {
     id
   }
 }
-    `) as unknown as TypedDocumentString<
-  SaveSubtitleMutation,
-  SaveSubtitleMutationVariables
->;
+    `) as unknown as TypedDocumentString<SaveSubtitleMutation, SaveSubtitleMutationVariables>;
 export const PlaylistDetailDocument = new TypedDocumentString(`
     query PlaylistDetail($id: uuid!, $emails: [String!]!) {
   playlist_by_pk(id: $id) {
@@ -12043,10 +11996,7 @@ export const PlaylistDetailDocument = new TypedDocumentString(`
     username
   }
 }
-    `) as unknown as TypedDocumentString<
-  PlaylistDetailQuery,
-  PlaylistDetailQueryVariables
->;
+    `) as unknown as TypedDocumentString<PlaylistDetailQuery, PlaylistDetailQueryVariables>;
 export const UsersDocument = new TypedDocumentString(`
     query Users($emails: [String!]!) {
   users(where: {email: {_in: $emails}}) {

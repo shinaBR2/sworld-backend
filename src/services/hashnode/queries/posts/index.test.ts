@@ -27,12 +27,9 @@ describe('getPost', () => {
 
     const result = await getPost(mockPost.id);
 
-    expect(mockRequest).toHaveBeenCalledWith(
-      expect.stringContaining('query GetPost'),
-      {
-        id: mockPost.id,
-      },
-    );
+    expect(mockRequest).toHaveBeenCalledWith(expect.stringContaining('query GetPost'), {
+      id: mockPost.id,
+    });
     expect(result).toEqual(mockPost);
   });
 

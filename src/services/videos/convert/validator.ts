@@ -1,8 +1,8 @@
 import { envConfig } from 'src/utils/envConfig';
 import {
-  FileType,
-  Platform,
+  type FileType,
   fileExtensionPatterns,
+  type Platform,
   urlPatterns,
 } from 'src/utils/patterns';
 

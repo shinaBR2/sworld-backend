@@ -1,4 +1,4 @@
-import { APIResponse } from 'playwright';
+import type { APIResponse } from 'playwright';
 import { CustomError } from 'src/utils/custom-error';
 import { CRAWL_ERRORS } from 'src/utils/error-codes';
 
@@ -8,7 +8,7 @@ const scrapeUrl = async (response: APIResponse): Promise<string | null> => {
   try {
     const data = await response.json();
     if (data?.file) {
-      videoUrl = data['file'];
+      videoUrl = data.file;
     }
   } catch (parseError) {
     throw CustomError.high('Invalid JSON', {

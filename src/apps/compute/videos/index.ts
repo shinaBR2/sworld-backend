@@ -1,10 +1,7 @@
-import express, { Router } from 'express';
+import express, { type Router } from 'express';
+import { type ConvertHandlerRequest, convertHandlerSchema } from 'src/schema/videos/convert';
 import { validateRequest } from 'src/utils/validator';
 import { convertHandler } from './routes/convert';
-import {
-  ConvertHandlerRequest,
-  convertHandlerSchema,
-} from 'src/schema/videos/convert';
 
 const videosRouter: Router = express.Router();
 

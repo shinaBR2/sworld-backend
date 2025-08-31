@@ -1,18 +1,15 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import { Request, Response } from 'express';
-import { fixThumbnailHandler } from './index';
+import type { Request, Response } from 'express';
 import { sequelize } from 'src/database';
 import { completeTask } from 'src/database/queries/tasks';
-import {
-  getVideoById,
-  updateVideoThumbnail,
-} from 'src/database/queries/videos';
+import { getVideoById, updateVideoThumbnail } from 'src/database/queries/videos';
+import { getDownloadUrl } from 'src/services/videos/helpers/gcp-cloud-storage';
 import { parseM3U8Content } from 'src/services/videos/helpers/m3u8/helpers';
 import { processThumbnail } from 'src/services/videos/helpers/thumbnail';
-import { getDownloadUrl } from 'src/services/videos/helpers/gcp-cloud-storage';
-import { logger } from 'src/utils/logger';
 import { CustomError } from 'src/utils/custom-error';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
+import { logger } from 'src/utils/logger';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { fixThumbnailHandler } from './index';
 
 // Mock dependencies
 vi.mock('src/database', () => ({
@@ -51,7 +48,7 @@ vi.mock('src/utils/logger', () => ({
 
 vi.mock('src/utils/custom-error', () => ({
   CustomError: {
-    medium: vi.fn().mockImplementation((message, options) => {
+    medium: vi.fn().mockImplementation((message, _options) => {
       throw new Error(message);
     }),
   },
@@ -97,10 +94,7 @@ describe('fixThumbnailHandler', () => {
     await fixThumbnailHandler(mockReq, mockRes);
 
     expect(getVideoById).toHaveBeenCalledWith('video-123');
-    expect(parseM3U8Content).toHaveBeenCalledWith(
-      'video-source',
-      expect.any(Array),
-    );
+    expect(parseM3U8Content).toHaveBeenCalledWith('video-source', expect.any(Array));
     expect(processThumbnail).toHaveBeenCalledWith({
       url: 'segment1.ts',
       duration: 10,
@@ -179,19 +173,16 @@ describe('fixThumbnailHandler', () => {
       },
       'Thumbnail is empty',
     );
-    expect(CustomError.medium).toHaveBeenCalledWith(
-      'Invalid generated thumbnail',
-      {
-        errorCode: VIDEO_ERRORS.FIX_THUMBNAIL_ERROR,
-        context: {
-          id: 'video-123',
-          taskId: 'task-456',
-          source: 'video-source',
-        },
-        shouldRetry: true,
-        source: 'apps/io/videos/routes/fix-thumbnail/index.ts',
+    expect(CustomError.medium).toHaveBeenCalledWith('Invalid generated thumbnail', {
+      errorCode: VIDEO_ERRORS.FIX_THUMBNAIL_ERROR,
+      context: {
+        id: 'video-123',
+        taskId: 'task-456',
+        source: 'video-source',
       },
-    );
+      shouldRetry: true,
+      source: 'apps/io/videos/routes/fix-thumbnail/index.ts',
+    });
   });
 
   it('should handle task completion error', async () => {
@@ -220,19 +211,16 @@ describe('fixThumbnailHandler', () => {
 
     await expect(fixThumbnailHandler(mockReq, mockRes)).rejects.toThrow();
 
-    expect(CustomError.medium).toHaveBeenCalledWith(
-      'Generate thumbnail failed',
-      {
-        originalError: taskError,
-        errorCode: VIDEO_ERRORS.FIX_THUMBNAIL_ERROR,
-        context: {
-          id: 'video-123',
-          taskId: 'task-456',
-        },
-        shouldRetry: true,
-        source: 'apps/io/videos/routes/fix-thumbnail/index.ts',
+    expect(CustomError.medium).toHaveBeenCalledWith('Generate thumbnail failed', {
+      originalError: taskError,
+      errorCode: VIDEO_ERRORS.FIX_THUMBNAIL_ERROR,
+      context: {
+        id: 'video-123',
+        taskId: 'task-456',
       },
-    );
+      shouldRetry: true,
+      source: 'apps/io/videos/routes/fix-thumbnail/index.ts',
+    });
 
     expect(mockTransaction.rollback).toHaveBeenCalled();
   });

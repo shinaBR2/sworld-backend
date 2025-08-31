@@ -8,12 +8,10 @@ const urlPatterns = {
   soundcloud: /(?:soundcloud\.com|snd\.sc)\/[^.]+$/,
   vimeo: /vimeo\.com\/(?!progressive_redirect).+/,
   mux: /stream\.mux\.com\/(?!\w+\.m3u8)(\w+)/,
-  facebook:
-    /^https?:\/\/(www\.)?facebook\.com.*\/(video(s)?|watch|story)(\.php?|\/).+$/,
+  facebook: /^https?:\/\/(www\.)?facebook\.com.*\/(video(s)?|watch|story)(\.php?|\/).+$/,
   facebookWatch: /^https?:\/\/fb\.watch\/.+$/,
   streamable: /streamable\.com\/([a-z0-9]+)$/,
-  wistia:
-    /(?:wistia\.(?:com|net)|wi\.st)\/(?:medias|embed)\/(?:iframe\/)?([^?]+)/,
+  wistia: /(?:wistia\.(?:com|net)|wi\.st)\/(?:medias|embed)\/(?:iframe\/)?([^?]+)/,
   twitchVideo: /(?:www\.|go\.)?twitch\.tv\/videos\/(\d+)($|\?)/,
   twitchChannel: /(?:www\.|go\.)?twitch\.tv\/([a-zA-Z0-9_]+)($|\?)/,
   dailymotion:

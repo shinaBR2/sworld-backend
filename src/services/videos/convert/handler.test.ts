@@ -1,5 +1,5 @@
-import { existsSync, readdirSync, statSync } from 'fs';
-import path from 'path';
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import path from 'node:path';
 import { finishVideoProcess } from 'src/services/hasura/mutations/videos/finalize';
 import { logger } from 'src/utils/logger';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -8,7 +8,7 @@ import * as cloudinaryHelpers from '../helpers/cloudinary';
 import * as ffmpegHelpers from '../helpers/ffmpeg';
 import * as fileHelpers from '../helpers/file';
 import * as gcpHelpers from '../helpers/gcp-cloud-storage';
-import { convertVideo, type ConversionVideo } from './handler';
+import { type ConversionVideo, convertVideo } from './handler';
 
 // Mock all external dependencies
 vi.mock('../helpers/file');
@@ -41,9 +41,7 @@ describe('convertVideo', () => {
     inputPath: path.join(tempDir, 'input.mp4'),
     // Update pattern to use actual video ID from mockData
     thumbnailPathPattern: new RegExp(
-      path
-        .join(tempDir, `${mockData.videoData.id}--\\d+\\.jpg`)
-        .replace(/\\/g, '\\\\'),
+      path.join(tempDir, `${mockData.videoData.id}--\\d+\\.jpg`).replace(/\\/g, '\\\\'),
     ),
   };
   const mockVideoDuration = 100;
@@ -95,12 +93,8 @@ describe('convertVideo', () => {
     const playableUrl = await convertVideo(mockData);
 
     // Verify directories were created
-    expect(fileHelpers.createDirectory).toHaveBeenCalledWith(
-      mockPaths.workingDir,
-    );
-    expect(fileHelpers.createDirectory).toHaveBeenCalledWith(
-      mockPaths.outputDir,
-    );
+    expect(fileHelpers.createDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
+    expect(fileHelpers.createDirectory).toHaveBeenCalledWith(mockPaths.outputDir);
 
     // Verify video download and verification
     expect(fileHelpers.downloadFile).toHaveBeenCalledWith(
@@ -161,9 +155,7 @@ describe('convertVideo', () => {
     });
 
     // Verify cleanup
-    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(
-      mockPaths.workingDir,
-    );
+    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
     expect(playableUrl).toBe('https://storage.googleapis.com/playlist.m3u8');
   });
 
@@ -185,9 +177,7 @@ describe('convertVideo', () => {
     await expect(convertVideo(mockData)).rejects.toThrow(
       'Video conversion failed: Hasura mutation failed',
     );
-    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(
-      mockPaths.workingDir,
-    );
+    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
     expect(logger.error).toHaveBeenCalled();
   });
 
@@ -198,9 +188,7 @@ describe('convertVideo', () => {
     await expect(convertVideo(mockData)).rejects.toThrow(
       'Video conversion failed: Screenshot failed',
     );
-    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(
-      mockPaths.workingDir,
-    );
+    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
     expect(logger.error).toHaveBeenCalled();
   });
 
@@ -213,24 +201,16 @@ describe('convertVideo', () => {
     await expect(convertVideo(mockData)).rejects.toThrow(
       'Video conversion failed: Screenshot file not created',
     );
-    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(
-      mockPaths.workingDir,
-    );
+    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
     expect(logger.error).toHaveBeenCalled();
   });
 
   it('should throw error if cloudinary upload fails', async () => {
     const error = new Error('Upload failed');
-    vi.mocked(cloudinaryHelpers.uploadFromLocalFilePath).mockRejectedValueOnce(
-      error,
-    );
+    vi.mocked(cloudinaryHelpers.uploadFromLocalFilePath).mockRejectedValueOnce(error);
 
-    await expect(convertVideo(mockData)).rejects.toThrow(
-      'Video conversion failed: Upload failed',
-    );
-    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(
-      mockPaths.workingDir,
-    );
+    await expect(convertVideo(mockData)).rejects.toThrow('Video conversion failed: Upload failed');
+    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
     expect(logger.error).toHaveBeenCalled();
   });
 
@@ -241,9 +221,7 @@ describe('convertVideo', () => {
     await expect(convertVideo(mockData)).rejects.toThrow(
       'Video conversion failed: GCP upload failed',
     );
-    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(
-      mockPaths.workingDir,
-    );
+    expect(fileHelpers.cleanupDirectory).toHaveBeenCalledWith(mockPaths.workingDir);
     expect(logger.error).toHaveBeenCalled();
   });
 

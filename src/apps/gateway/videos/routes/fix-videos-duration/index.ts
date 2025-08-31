@@ -1,13 +1,13 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { TaskEntityType, TaskType } from 'src/database/models/task';
 import { getVideoMissingDuration } from 'src/database/queries/videos';
+import type { HasuraWebhookRequest } from 'src/schema/hasura';
 import { verifySignature } from 'src/services/videos/convert/validator';
-import { CreateCloudTasksParams, createCloudTasks } from 'src/utils/cloud-task';
+import { type CreateCloudTasksParams, createCloudTasks } from 'src/utils/cloud-task';
 import { envConfig } from 'src/utils/envConfig';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
-import { ValidatedRequest } from 'src/utils/validator';
-import { HasuraWebhookRequest } from 'src/schema/hasura';
+import type { ValidatedRequest } from 'src/utils/validator';
 
 const fixVideosDuration = async (req: Request, res: Response) => {
   const { ioServiceUrl } = envConfig;
@@ -46,7 +46,7 @@ const fixVideosDuration = async (req: Request, res: Response) => {
     );
 
     return res.json(AppResponse(true, 'ok'));
-  } catch (error) {
+  } catch (_error) {
     return res.json(AppError('Failed to create task'));
   }
 };

@@ -1,5 +1,5 @@
+import type { Transaction } from 'sequelize';
 import { Task, TaskStatus } from '../models/task';
-import { Transaction } from 'sequelize';
 
 interface CreateTaskParams {
   taskId: string;
@@ -45,11 +45,7 @@ interface UpdateTaskParams {
   transaction?: Transaction;
 }
 
-const updateTaskStatus = async ({
-  taskId,
-  status,
-  transaction,
-}: UpdateTaskParams) => {
+const updateTaskStatus = async ({ taskId, status, transaction }: UpdateTaskParams) => {
   const [updatedCount] = await Task.update(
     { status },
     {

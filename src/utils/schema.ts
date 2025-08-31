@@ -21,11 +21,7 @@ const AppError = <T>(message: string, error?: T): ServiceResponse<T> => {
   return createResponse(false, message, error);
 };
 
-const AppResponse = <T>(
-  success: boolean,
-  message: string,
-  dataObject?: T,
-): ServiceResponse<T> => {
+const AppResponse = <T>(success: boolean, message: string, dataObject?: T): ServiceResponse<T> => {
   return createResponse(success, message, dataObject);
 };
 

@@ -1,5 +1,5 @@
-import { existsSync, readdirSync, statSync } from 'fs';
-import * as path from 'path';
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import * as path from 'node:path';
 import { finishVideoProcess } from 'src/services/hasura/mutations/videos/finalize';
 import { logger } from 'src/utils/logger';
 import { videoConfig } from '../config';
@@ -12,10 +12,7 @@ import {
   generateTempDir,
   verifyFileSize,
 } from '../helpers/file';
-import {
-  getDownloadUrl,
-  uploadFolderParallel,
-} from '../helpers/gcp-cloud-storage';
+import { getDownloadUrl, uploadFolderParallel } from '../helpers/gcp-cloud-storage';
 
 interface VideoData {
   id: string;
@@ -67,18 +64,11 @@ export const convertVideo = async (data: ConversionVideo) => {
       throw new Error('Input file missing after HLS conversion');
     }
     const stats = statSync(inputPath);
-    logger.debug(
-      `HLS conversion complete. Input file size: ${stats.size} bytes`,
-    );
+    logger.debug(`HLS conversion complete. Input file size: ${stats.size} bytes`);
 
     // Step 4: Generate and upload thumbnail
     const videoDuration = await getDuration(inputPath);
-    await takeScreenshot(
-      inputPath,
-      workingDir,
-      thumbnailFilename,
-      videoDuration,
-    );
+    await takeScreenshot(inputPath, workingDir, thumbnailFilename, videoDuration);
     if (!existsSync(thumbnailPath)) {
       throw new Error('Screenshot file not created');
     }
@@ -88,11 +78,7 @@ export const convertVideo = async (data: ConversionVideo) => {
     logger.debug(`Generated and uploaded thumbnail: ${thumbnailUrl}`);
 
     // Step 5: Upload converted video files to cloud storage
-    const outputPath = path
-      .join('videos', userId, id)
-      .split(path.sep)
-      .filter(Boolean)
-      .join('/');
+    const outputPath = path.join('videos', userId, id).split(path.sep).filter(Boolean).join('/');
 
     await uploadFolderParallel(outputDir, outputPath);
     const playlistUrl = getDownloadUrl(`${outputPath}/playlist.m3u8`);
@@ -123,10 +109,7 @@ export const convertVideo = async (data: ConversionVideo) => {
       await cleanupDirectory(workingDir);
       logger.debug(`Cleaned up working directory: ${workingDir}`);
     } catch (cleanupError) {
-      logger.error(
-        cleanupError,
-        `Failed to clean up working directory: ${workingDir}`,
-      );
+      logger.error(cleanupError, `Failed to clean up working directory: ${workingDir}`);
     }
   }
 };

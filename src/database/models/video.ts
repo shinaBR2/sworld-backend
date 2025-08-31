@@ -1,4 +1,4 @@
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, type Model } from 'sequelize';
 import { sequelize } from '../index';
 
 interface VideoTS extends Model {

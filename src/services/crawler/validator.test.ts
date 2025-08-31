@@ -57,9 +57,7 @@ describe('validateUrlInput', () => {
       throw new Error(`${message}: ${metadata.errorCode}`);
     });
 
-    expect(() => validateUrlInput(url)).toThrow(
-      'Invalid handler type: UNSUPPORTED_SITE',
-    );
+    expect(() => validateUrlInput(url)).toThrow('Invalid handler type: UNSUPPORTED_SITE');
     expect(CustomError.high).toHaveBeenCalledWith('Invalid handler type', {
       shouldRetry: false,
       errorCode: CRAWL_ERRORS.UNSUPPORTED_SITE,
@@ -77,9 +75,7 @@ describe('validateUrlInput', () => {
       throw new Error(`${message}: ${metadata.errorCode}`);
     });
 
-    expect(() => validateUrlInput(url)).toThrow(
-      'Missing selectors: UNSUPPORTED_SITE',
-    );
+    expect(() => validateUrlInput(url)).toThrow('Missing selectors: UNSUPPORTED_SITE');
     expect(CustomError.high).toHaveBeenCalledWith('Missing selectors', {
       shouldRetry: false,
       errorCode: CRAWL_ERRORS.UNSUPPORTED_SITE,

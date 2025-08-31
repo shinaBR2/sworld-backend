@@ -1,9 +1,6 @@
-import { graphql } from '../../generated-graphql';
-import {
-  InsertPostMutation,
-  Posts_Insert_Input,
-} from '../../generated-graphql/graphql';
 import { hasuraClient } from '../../client';
+import { graphql } from '../../generated-graphql';
+import type { InsertPostMutation, Posts_Insert_Input } from '../../generated-graphql/graphql';
 
 const INSERT_POST = graphql(/* GraphQL */ `
   mutation InsertPost($object: posts_insert_input!) {

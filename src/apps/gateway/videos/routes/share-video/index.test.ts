@@ -1,11 +1,11 @@
-import { describe, it, vi, expect, beforeEach } from 'vitest';
-import { Request, Response } from 'express';
-import { AppError, AppResponse } from 'src/utils/schema';
-import { VIDEO_ERRORS } from 'src/utils/error-codes';
+import type { Request, Response } from 'express';
+import { shareVideo } from 'src/services/hasura/mutations/share-videos';
+import { getUsers } from 'src/services/hasura/queries/share';
 import { verifySignature } from 'src/services/videos/convert/validator';
 import * as CustomErrorModule from 'src/utils/custom-error';
-import { getUsers } from 'src/services/hasura/queries/share';
-import { shareVideo } from 'src/services/hasura/mutations/share-videos';
+import { VIDEO_ERRORS } from 'src/utils/error-codes';
+import { AppError, AppResponse } from 'src/utils/schema';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { shareVideoHandler } from './index';
 
 vi.mock('src/utils/envConfig', () => ({
@@ -68,7 +68,7 @@ describe('shareVideoHandler', () => {
 
   it('should return error if no valid emails are provided', async () => {
     vi.mocked(verifySignature).mockReturnValue(true);
-    mockReq.validatedData!.event.data.sharedRecipientsInput = ['invalid-email'];
+    mockReq.validatedData?.event.data.sharedRecipientsInput = ['invalid-email'];
 
     await shareVideoHandler(mockReq as Request, mockRes as Response);
 
@@ -103,9 +103,9 @@ describe('shareVideoHandler', () => {
     const mockError = new Error('Database error');
     vi.mocked(shareVideo).mockRejectedValue(mockError);
 
-    await expect(
-      shareVideoHandler(mockReq as Request, mockRes as Response),
-    ).rejects.toThrow('Video share failed');
+    await expect(shareVideoHandler(mockReq as Request, mockRes as Response)).rejects.toThrow(
+      'Video share failed',
+    );
 
     expect(CustomErrorModule.CustomError.critical).toHaveBeenCalledWith(
       'Video share failed',

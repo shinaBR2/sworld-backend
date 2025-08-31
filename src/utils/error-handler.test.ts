@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Request, Response } from 'express';
-import { Logger } from 'pino';
 import * as Sentry from '@sentry/node';
-import { errorHandler } from './error-handler';
+import type { Request, Response } from 'express';
+import type { Logger } from 'pino';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CustomError } from './custom-error';
+import { errorHandler } from './error-handler';
 
 vi.mock('@sentry/node', () => ({
   withScope: vi.fn((callback) =>

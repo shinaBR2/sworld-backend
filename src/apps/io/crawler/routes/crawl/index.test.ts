@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { completeTask } from 'src/database/queries/tasks';
 import { crawl } from 'src/services/crawler';
 import { insertVideos } from 'src/services/hasura/mutations/videos/bulk-insert';
@@ -46,15 +46,8 @@ describe('crawlHandler', () => {
 
   it('should successfully process video crawling and insertion', async () => {
     const mockCrawlResult = {
-      data: [
-        { videoUrl: 'http://example.com/video1' },
-        { videoUrl: 'http://example.com/video2' },
-      ],
-      urls: [
-        'URL_ADDRESS.com/video1',
-        'URL_ADDRESS.com/video1',
-        'URL_ADDRESSe.com/video2',
-      ],
+      data: [{ videoUrl: 'http://example.com/video1' }, { videoUrl: 'http://example.com/video2' }],
+      urls: ['URL_ADDRESS.com/video1', 'URL_ADDRESS.com/video1', 'URL_ADDRESSe.com/video2'],
     };
     const mockVideos = [
       {
@@ -139,11 +132,7 @@ describe('crawlHandler', () => {
   it('should use empty string as default slugPrefix', async () => {
     const mockCrawlResult = {
       data: [{ videoUrl: 'http://example.com/video1' }],
-      urls: [
-        'URL_ADDRESS.com/video1',
-        'URL_ADDRESS.com/video1',
-        'URL_ADDRESSe.com/video2',
-      ],
+      urls: ['URL_ADDRESS.com/video1', 'URL_ADDRESS.com/video1', 'URL_ADDRESSe.com/video2'],
     };
     const mockVideos = [
       {
@@ -209,8 +198,8 @@ describe('crawlHandler', () => {
       },
     };
 
-    await expect(
-      crawlHandler(mockRequest as Request, mockResponse as Response),
-    ).rejects.toThrow('Crawl failed');
+    await expect(crawlHandler(mockRequest as Request, mockResponse as Response)).rejects.toThrow(
+      'Crawl failed',
+    );
   });
 });

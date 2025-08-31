@@ -1,12 +1,12 @@
-import { Request, Response } from 'express';
-import { AppError, AppResponse } from 'src/utils/schema';
-import { ValidatedRequest } from 'src/utils/validator';
-import { verifySignature } from 'src/services/videos/convert/validator';
-import { ShareRequest } from 'src/schema/videos/share';
-import { getUsers } from 'src/services/hasura/queries/share';
+import type { Request, Response } from 'express';
+import type { ShareRequest } from 'src/schema/videos/share';
 import { shareVideo } from 'src/services/hasura/mutations/share-videos';
+import { getUsers } from 'src/services/hasura/queries/share';
+import { verifySignature } from 'src/services/videos/convert/validator';
 import { CustomError } from 'src/utils/custom-error';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
+import { AppError, AppResponse } from 'src/utils/schema';
+import type { ValidatedRequest } from 'src/utils/validator';
 import { isValidEmail } from 'src/utils/validators/email';
 
 const shareVideoHandler = async (req: Request, res: Response) => {
@@ -30,9 +30,7 @@ const shareVideoHandler = async (req: Request, res: Response) => {
   // }
 
   // 1. Validate emails
-  const validEmails = sharedRecipientsInput.filter((email) =>
-    isValidEmail(email),
-  );
+  const validEmails = sharedRecipientsInput.filter((email) => isValidEmail(email));
   if (!validEmails.length) {
     // TODO send email
     return res.json(

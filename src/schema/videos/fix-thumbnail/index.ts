@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 import { videoDataSchema } from 'src/schema/videos/convert';
+import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
+import { z } from 'zod';
 
 const fixThumbnailHandlerSchema = z.object({
   body: z.object({
@@ -9,7 +9,5 @@ const fixThumbnailHandlerSchema = z.object({
   headers: taskHandlerHeaderSchema.passthrough(),
 });
 
-export type FixThumbnailHandlerRequest = z.infer<
-  typeof fixThumbnailHandlerSchema
->;
+export type FixThumbnailHandlerRequest = z.infer<typeof fixThumbnailHandlerSchema>;
 export { fixThumbnailHandlerSchema };

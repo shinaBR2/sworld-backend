@@ -1,10 +1,7 @@
-import express, { Router } from 'express';
+import express, { type Router } from 'express';
+import { type HashnodeWebhookRequest, hashnodeWebhookSchema } from 'src/schema/hashnode';
 import { validateRequest } from 'src/utils/validator';
 import { postEventsHandler } from './routes/posts';
-import {
-  HashnodeWebhookRequest,
-  hashnodeWebhookSchema,
-} from 'src/schema/hashnode';
 
 const hashnodeRouter: Router = express.Router();
 

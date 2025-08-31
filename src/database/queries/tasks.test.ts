@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import { Task } from '../models/task';
-import { createTask, updateTaskStatus, completeTask } from './tasks';
-import { TaskStatus } from '../models/task';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { Task, TaskStatus } from '../models/task';
+import { completeTask, createTask, updateTaskStatus } from './tasks';
 
 // Mock the Task model
 vi.mock('../models/task', () => ({
@@ -203,9 +202,7 @@ describe('Task Queries', () => {
       const mockError = new Error('Database error');
       (Task.update as Mock).mockRejectedValue(mockError);
 
-      await expect(updateTaskStatus(mockParams)).rejects.toThrow(
-        'Database error',
-      );
+      await expect(updateTaskStatus(mockParams)).rejects.toThrow('Database error');
     });
   });
 
@@ -264,9 +261,7 @@ describe('Task Queries', () => {
 
       // const result = await completeTask({ taskId });
 
-      await expect(completeTask({ taskId })).rejects.toThrow(
-        `Task with ID ${taskId} not found`,
-      );
+      await expect(completeTask({ taskId })).rejects.toThrow(`Task with ID ${taskId} not found`);
     });
 
     it('should handle database errors', async () => {

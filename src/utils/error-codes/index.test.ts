@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   CRAWL_ERRORS,
   DATABASE_ERRORS,
+  type ErrorCode,
   HTTP_ERRORS,
   VALIDATION_ERRORS,
   VIDEO_ERRORS,
-  type ErrorCode,
   type VideoErrorCode,
 } from './index';
 
@@ -72,11 +72,7 @@ describe('error-codes', () => {
   });
 
   it('should contain all expected crawl error codes', () => {
-    const expectedCodes = [
-      'UNSUPPORTED_SITE',
-      'MISSING_URL_SELECTOR',
-      'INVALID_JSON',
-    ];
+    const expectedCodes = ['UNSUPPORTED_SITE', 'MISSING_URL_SELECTOR', 'INVALID_JSON'];
 
     const actualCodes = Object.values(CRAWL_ERRORS);
     expect(actualCodes).toHaveLength(expectedCodes.length);

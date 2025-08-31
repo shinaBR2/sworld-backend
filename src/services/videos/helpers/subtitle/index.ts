@@ -1,9 +1,9 @@
 import { Readable } from 'node:stream';
 import type { ReadableStream } from 'node:stream/web';
-import { streamFile } from '../gcp-cloud-storage';
-import { fetchWithError } from 'src/utils/fetch';
 import { CustomError } from 'src/utils/custom-error';
 import { HTTP_ERRORS } from 'src/utils/error-codes';
+import { fetchWithError } from 'src/utils/fetch';
+import { streamFile } from '../gcp-cloud-storage';
 
 interface StreamSubtitleOptions {
   /** The URL of the subtitle file to download */
@@ -40,9 +40,7 @@ const streamSubtitleFile = async (options: StreamSubtitleOptions) => {
   }
 
   // Convert the web stream to a Node.js stream
-  const nodeStream = Readable.fromWeb(
-    subtitleStream as unknown as ReadableStream<Uint8Array>,
-  );
+  const nodeStream = Readable.fromWeb(subtitleStream as unknown as ReadableStream<Uint8Array>);
 
   // Stream the response directly to GCP
   return streamFile({
