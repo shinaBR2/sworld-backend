@@ -1,4 +1,4 @@
-import type { APIResponse } from 'playwright';
+import { APIResponse } from 'playwright';
 import { CRAWL_ERRORS } from 'src/utils/error-codes';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { scrapeUrl } from './scrapers';

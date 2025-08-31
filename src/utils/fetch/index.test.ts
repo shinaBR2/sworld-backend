@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
+import { fetchWithError } from './index';
 import { CustomError } from '../custom-error';
 import { HTTP_ERRORS } from '../error-codes';
-import { fetchWithError } from './index';
 
 describe('fetchWithError', () => {
   const mockUrl = 'https://api.example.com/data';
@@ -135,7 +135,9 @@ describe('fetchWithError', () => {
     abortError.name = 'AbortError';
     (fetch as Mock).mockRejectedValue(abortError);
 
-    await expect(fetchWithError(mockUrl, { timeout: 1000 })).rejects.toThrow(CustomError);
+    await expect(fetchWithError(mockUrl, { timeout: 1000 })).rejects.toThrow(
+      CustomError,
+    );
     try {
       await fetchWithError(mockUrl, { timeout: 1000 });
       expect.fail('Expected timeout to trigger a CustomError');

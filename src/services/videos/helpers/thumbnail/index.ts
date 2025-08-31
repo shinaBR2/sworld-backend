@@ -1,6 +1,6 @@
-import path from 'node:path';
-import { takeScreenshot } from '../ffmpeg';
+import path from 'path';
 import { createDirectory, downloadFile, generateTempDir } from '../file';
+import { takeScreenshot } from '../ffmpeg';
 import { uploadFile } from '../gcp-cloud-storage';
 
 interface ProcessThumbnailProps {
@@ -43,7 +43,13 @@ const processThumbnail = async (props: ProcessThumbnailProps) => {
   await downloadFile(url, inputPath);
 
   // Take screenshot and save to working directory
-  await takeScreenshot(inputPath, workingDir, thumbnailFilename, duration, isSegment);
+  await takeScreenshot(
+    inputPath,
+    workingDir,
+    thumbnailFilename,
+    duration,
+    isSegment,
+  );
 
   // Upload to storage and construct final path
   const finalStoragePath = `${storagePath}/${thumbnailFilename}`;

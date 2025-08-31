@@ -1,14 +1,16 @@
-import { existsSync } from 'node:fs';
-import { PassThrough, Readable } from 'node:stream';
-import { logger } from 'src/utils/logger';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { readdir } from 'fs/promises';
+import path from 'path';
 import {
-  DEFAULT_UPLOAD_OPTIONS,
   getDownloadUrl,
-  streamFile,
   uploadFile,
+  DEFAULT_UPLOAD_OPTIONS,
+  streamFile,
   uploadFolderParallel,
 } from '.';
+import { existsSync } from 'fs';
+import { PassThrough, Readable } from 'node:stream';
+import { logger } from 'src/utils/logger';
 
 const mockReadable = {
   on: vi.fn().mockImplementation((event, handler) => {
@@ -54,10 +56,10 @@ const mockFile = {
 
 vi.mock('@google-cloud/storage', () => {
   return {
-    Storage: () => {
+    Storage: function () {
       storageMock();
       return {
-        bucket: (name: string) => {
+        bucket: function (name: string) {
           bucketMock(name);
           return {
             name: 'test-bucket',
@@ -67,7 +69,9 @@ vi.mock('@google-cloud/storage', () => {
         },
       };
     },
-    TransferManager: () => mockTransferManager,
+    TransferManager: function () {
+      return mockTransferManager;
+    },
   };
 });
 
@@ -87,7 +91,8 @@ describe('gcp-cloud-storage-helpers', () => {
   describe('getDownloadUrl', () => {
     it('should return correct download URL', () => {
       const outputPath = 'videos/test-123/playlist.m3u8';
-      const expected = 'https://storage.googleapis.com/test-bucket/videos/test-123/playlist.m3u8';
+      const expected =
+        'https://storage.googleapis.com/test-bucket/videos/test-123/playlist.m3u8';
 
       expect(getDownloadUrl(outputPath)).toBe(expected);
       expect(storageMock).toHaveBeenCalled();
@@ -133,7 +138,9 @@ describe('gcp-cloud-storage-helpers', () => {
       const error = new Error('Upload failed');
       uploadMock.mockRejectedValueOnce(error);
 
-      await expect(uploadFile('/tmp/test.mp4', 'videos/test.mp4')).rejects.toThrow('Upload failed');
+      await expect(
+        uploadFile('/tmp/test.mp4', 'videos/test.mp4'),
+      ).rejects.toThrow('Upload failed');
     });
   });
 
@@ -152,7 +159,8 @@ describe('gcp-cloud-storage-helpers', () => {
       );
 
       // Test the destination builder
-      const { customDestinationBuilder } = mockTransferManager.uploadManyFiles.mock.calls[0][1];
+      const { customDestinationBuilder } =
+        mockTransferManager.uploadManyFiles.mock.calls[0][1];
       const testFilePath = '/local/path/subfolder/file.txt';
       const destinationPath = customDestinationBuilder(testFilePath);
       expect(destinationPath).toBe('remote/path/subfolder/file.txt');
@@ -165,10 +173,12 @@ describe('gcp-cloud-storage-helpers', () => {
     });
 
     it('should handle upload errors', async () => {
-      mockTransferManager.uploadManyFiles.mockRejectedValueOnce(new Error('Upload failed'));
-      await expect(uploadFolderParallel('/local/path', 'remote/path')).rejects.toThrow(
-        'Upload failed',
+      mockTransferManager.uploadManyFiles.mockRejectedValueOnce(
+        new Error('Upload failed'),
       );
+      await expect(
+        uploadFolderParallel('/local/path', 'remote/path'),
+      ).rejects.toThrow('Upload failed');
     });
   });
 
@@ -275,7 +285,9 @@ describe('gcp-cloud-storage-helpers', () => {
         return mockReadable;
       });
 
-      await expect(streamFile(testParams)).rejects.toThrow('Network connection lost');
+      await expect(streamFile(testParams)).rejects.toThrow(
+        'Network connection lost',
+      );
     });
 
     it('should handle network timeout', async () => {
@@ -298,7 +310,9 @@ describe('gcp-cloud-storage-helpers', () => {
       // Advance timers to trigger timeout
       vi.advanceTimersByTime(100);
 
-      await expect(uploadPromise).rejects.toThrow('Upload timed out after 100ms');
+      await expect(uploadPromise).rejects.toThrow(
+        'Upload timed out after 100ms',
+      );
 
       // Clean up
       vi.useRealTimers();
@@ -338,7 +352,9 @@ describe('gcp-cloud-storage-helpers', () => {
       };
 
       // @ts-expect-error
-      await expect(streamFile(params)).rejects.toThrow('Invalid stream provided');
+      await expect(streamFile(params)).rejects.toThrow(
+        'Invalid stream provided',
+      );
     });
 
     it('should stream file to Cloud Storage', async () => {
@@ -382,7 +398,9 @@ describe('gcp-cloud-storage-helpers', () => {
         return mockReadable;
       });
 
-      await expect(streamFile(testParams)).rejects.toThrow('Write stream error');
+      await expect(streamFile(testParams)).rejects.toThrow(
+        'Write stream error',
+      );
     });
 
     it('should successfully complete file upload', async () => {
@@ -413,7 +431,9 @@ describe('gcp-cloud-storage-helpers', () => {
         stream: mockReadable as any,
       };
 
-      await expect(streamFile(params)).rejects.toThrow('Stream piping error: string error');
+      await expect(streamFile(params)).rejects.toThrow(
+        'Stream piping error: string error',
+      );
     });
 
     it('should log error with Error instance for deleteError', () => {
@@ -433,7 +453,10 @@ describe('gcp-cloud-storage-helpers', () => {
           logger.error(
             {
               storagePath: mockStoragePath,
-              deleteError: deleteError instanceof Error ? deleteError.message : String(deleteError),
+              deleteError:
+                deleteError instanceof Error
+                  ? deleteError.message
+                  : String(deleteError),
               originalError: mockOriginalError?.message,
             },
             'Failed to delete partial file after upload error',
@@ -469,7 +492,9 @@ describe('gcp-cloud-storage-helpers', () => {
           {
             storagePath: mockStoragePath,
             deleteError:
-              mockDeleteError instanceof Error ? mockDeleteError.message : String(mockDeleteError),
+              mockDeleteError instanceof Error
+                ? mockDeleteError.message
+                : String(mockDeleteError),
             originalError: mockOriginalError?.message,
           },
           'Failed to delete partial file after upload error',
@@ -503,7 +528,9 @@ describe('gcp-cloud-storage-helpers', () => {
           {
             storagePath: mockStoragePath,
             deleteError:
-              mockDeleteError instanceof Error ? mockDeleteError.message : String(mockDeleteError),
+              mockDeleteError instanceof Error
+                ? mockDeleteError.message
+                : String(mockDeleteError),
             originalError: undefined,
           },
           'Failed to delete partial file after upload error',

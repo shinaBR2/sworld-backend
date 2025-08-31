@@ -1,10 +1,14 @@
-import path from 'node:path';
+import path from 'path';
 import { CustomError } from 'src/utils/custom-error';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
 import { logger } from 'src/utils/logger';
 import { getDownloadUrl } from '../gcp-cloud-storage';
 import { processThumbnail } from '../thumbnail';
-import { parseM3U8Content, streamPlaylistFile, streamSegments } from './helpers';
+import {
+  parseM3U8Content,
+  streamPlaylistFile,
+  streamSegments,
+} from './helpers';
 
 interface ProcessOptions {
   excludePatterns?: RegExp[];
@@ -40,7 +44,11 @@ interface ProcessOptions {
  * @throws {Error} Propagates any errors encountered during streaming process
  * - Logs detailed error information before throwing
  */
-const streamM3U8 = async (m3u8Url: string, storagePath: string, options: ProcessOptions = {}) => {
+const streamM3U8 = async (
+  m3u8Url: string,
+  storagePath: string,
+  options: ProcessOptions = {},
+) => {
   const context = {
     m3u8Url,
     storagePath,
@@ -110,7 +118,10 @@ const streamM3U8 = async (m3u8Url: string, storagePath: string, options: Process
       thumbnailUrl,
     };
 
-    logger.info({ playlistUrl: result.playlistUrl }, 'M3U8 streaming completed');
+    logger.info(
+      { playlistUrl: result.playlistUrl },
+      'M3U8 streaming completed',
+    );
     return result;
   } catch (error) {
     throw CustomError.medium('Failed to stream file to storage', {
@@ -123,4 +134,4 @@ const streamM3U8 = async (m3u8Url: string, storagePath: string, options: Process
   }
 };
 
-export { type ProcessOptions, streamM3U8 };
+export { ProcessOptions, streamM3U8 };

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { AppError, AppResponse } from './schema';
 
 describe('Schema Utils', () => {
@@ -144,7 +144,10 @@ describe('Schema Utils', () => {
 
       // These should compile without type errors
       const successResponse = AppResponse<User>(true, 'Success', user);
-      const errorResponse = AppError<Error>('Error occurred', new Error('Test error'));
+      const errorResponse = AppError<Error>(
+        'Error occurred',
+        new Error('Test error'),
+      );
 
       expect(successResponse.dataObject?.id).toBe(1);
       expect(successResponse.dataObject?.name).toBe('Test');

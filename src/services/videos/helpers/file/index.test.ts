@@ -1,16 +1,16 @@
-import crypto from 'node:crypto';
-import { createWriteStream, stat, unlink } from 'node:fs';
-import { mkdir, rm } from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import {
-  cleanupDirectory,
-  createDirectory,
-  downloadFile,
   generateTempDir,
+  downloadFile,
+  createDirectory,
+  cleanupDirectory,
   verifyFileSize,
 } from '.';
+import { createWriteStream, unlink, stat } from 'fs';
+import { mkdir, rm } from 'fs/promises';
+import path from 'path';
+import os from 'os';
+import crypto from 'crypto';
 
 // Mock all filesystem-related modules
 vi.mock('fs');
@@ -81,7 +81,9 @@ describe('File Handlers', () => {
       vi.mocked(crypto.randomBytes).mockImplementation(() => {
         return Buffer.from('a'.repeat(16));
       });
-      vi.mocked(path.basename).mockImplementation((p) => p.split('/').pop() || '');
+      vi.mocked(path.basename).mockImplementation(
+        (p) => p.split('/').pop() || '',
+      );
 
       const result = generateTempDir();
       const dirName = path.basename(result);
@@ -147,7 +149,9 @@ describe('File Handlers', () => {
         headers: new Headers({ 'content-length': '5000000000' }),
       });
 
-      await expect(downloadFile(mockUrl, mockPath)).rejects.toThrow('File too large');
+      await expect(downloadFile(mockUrl, mockPath)).rejects.toThrow(
+        'File too large',
+      );
     });
 
     it('handles failed fetch', async () => {
@@ -156,7 +160,9 @@ describe('File Handlers', () => {
         statusText: 'Not Found',
       });
 
-      await expect(downloadFile(mockUrl, mockPath)).rejects.toThrow('Failed to fetch');
+      await expect(downloadFile(mockUrl, mockPath)).rejects.toThrow(
+        'Failed to fetch',
+      );
     });
 
     it('handles missing response body', async () => {
@@ -166,7 +172,9 @@ describe('File Handlers', () => {
         body: null,
       });
 
-      await expect(downloadFile(mockUrl, mockPath)).rejects.toThrow('No response body');
+      await expect(downloadFile(mockUrl, mockPath)).rejects.toThrow(
+        'No response body',
+      );
       expect(unlink).toHaveBeenCalled();
     });
 
@@ -212,12 +220,16 @@ describe('File Handlers', () => {
 
   describe('cleanupDirectory', () => {
     beforeEach(() => {
-      vi.mocked(stat).mockImplementation((_, callback) => callback(null, { isFile: () => false }));
+      vi.mocked(stat).mockImplementation((_, callback) =>
+        callback(null, { isFile: () => false }),
+      );
       vi.mocked(unlink).mockImplementation((_, callback) => callback(null));
     });
 
     it('removes directory successfully', async () => {
-      vi.mocked(stat).mockImplementation((_, callback) => callback(null, { isFile: () => false }));
+      vi.mocked(stat).mockImplementation((_, callback) =>
+        callback(null, { isFile: () => false }),
+      );
       vi.mocked(rm).mockResolvedValue(undefined);
 
       await cleanupDirectory('/test/dir');
@@ -229,7 +241,9 @@ describe('File Handlers', () => {
     });
 
     it('removes file successfully', async () => {
-      vi.mocked(stat).mockImplementation((_, callback) => callback(null, { isFile: () => true }));
+      vi.mocked(stat).mockImplementation((_, callback) =>
+        callback(null, { isFile: () => true }),
+      );
 
       await cleanupDirectory('/test/file.mp4');
 
@@ -253,13 +267,19 @@ describe('File Handlers', () => {
 
   describe('verifyFileSize', () => {
     it('accepts file within size limit', async () => {
-      vi.mocked(stat).mockImplementation((_, callback) => callback(null, { size: 1000 } as any));
+      vi.mocked(stat).mockImplementation((_, callback) =>
+        callback(null, { size: 1000 } as any),
+      );
 
-      await expect(verifyFileSize('/test/file.mp4', 2000)).resolves.not.toThrow();
+      await expect(
+        verifyFileSize('/test/file.mp4', 2000),
+      ).resolves.not.toThrow();
     });
 
     it('rejects file exceeding size limit', async () => {
-      vi.mocked(stat).mockImplementation((_, callback) => callback(null, { size: 3000 } as any));
+      vi.mocked(stat).mockImplementation((_, callback) =>
+        callback(null, { size: 3000 } as any),
+      );
 
       await expect(verifyFileSize('/test/file.mp4', 2000)).rejects.toThrow(
         'Downloaded file too large for processing',
@@ -268,9 +288,13 @@ describe('File Handlers', () => {
 
     it('handles stat error', async () => {
       const error = new Error('File not found');
-      vi.mocked(stat).mockImplementation((_, callback) => callback(error, null as any));
+      vi.mocked(stat).mockImplementation((_, callback) =>
+        callback(error, null as any),
+      );
 
-      await expect(verifyFileSize('/test/file.mp4', 2000)).rejects.toThrow(error);
+      await expect(verifyFileSize('/test/file.mp4', 2000)).rejects.toThrow(
+        error,
+      );
     });
   });
 });

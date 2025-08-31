@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { CustomError, ERROR_SEVERITY } from './index';
 
 describe('CustomError', () => {
@@ -167,7 +167,8 @@ describe('CustomError', () => {
         expect(error.contexts).toHaveLength(3); // High-level, Mid-level, Original error
 
         // Check context details
-        const [controllerContext, databaseContext, originalErrorContext] = error.contexts;
+        const [controllerContext, databaseContext, originalErrorContext] =
+          error.contexts;
 
         // High-level context
         expect(controllerContext.source).toBe('UserController');
@@ -185,7 +186,9 @@ describe('CustomError', () => {
 
         // Original error context
         expect(originalErrorContext.source).toBe('OriginalError');
-        expect(originalErrorContext.data.message).toBe('Database connection failed');
+        expect(originalErrorContext.data.message).toBe(
+          'Database connection failed',
+        );
 
         // Verify no circular reference
         expect(error.originalError).not.toBeInstanceOf(CustomError);

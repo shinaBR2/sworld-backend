@@ -94,7 +94,9 @@ describe('app', () => {
     const hashnodeRouterCallIndex = calls.findIndex(
       (call) => call[0] === '/hashnode' && call[1] === 'mockHashnodeRouter',
     );
-    const errorHandlerCallIndex = calls.findIndex((call) => call[0] === 'mockErrorHandler');
+    const errorHandlerCallIndex = calls.findIndex(
+      (call) => call[0] === 'mockErrorHandler',
+    );
 
     // All middleware should be found
     expect(videosRouterCallIndex).not.toBe(-1);
@@ -121,6 +123,8 @@ describe('app', () => {
     });
 
     // The import should now fail
-    await expect(() => import('./index')).rejects.toThrow('Base app creation failed');
+    await expect(() => import('./index')).rejects.toThrow(
+      'Base app creation failed',
+    );
   });
 });

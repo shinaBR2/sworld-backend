@@ -90,7 +90,9 @@ describe('finishVideoProcess', () => {
     const error = new Error('Database error');
     vi.mocked(hasuraClient.request).mockRejectedValueOnce(error);
 
-    await expect(finishVideoProcess(mockVariables)).rejects.toThrow('Database error');
+    await expect(finishVideoProcess(mockVariables)).rejects.toThrow(
+      'Database error',
+    );
   });
 
   // Add new test case for short ID generation
@@ -114,7 +116,7 @@ describe('finishVideoProcess', () => {
     };
     vi.mocked(hasuraClient.request).mockResolvedValueOnce(mockResponse);
 
-    const _result = await finishVideoProcess(mockVariables);
+    const result = await finishVideoProcess(mockVariables);
 
     expect(nanoid).toHaveBeenCalledWith(11);
     expect(hasuraClient.request).toHaveBeenCalledWith(

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { importHandlerSchema } from './index';
 
 describe('ImportHandlerSchema', () => {
@@ -54,7 +54,9 @@ describe('ImportHandlerSchema', () => {
     it('should reject request with missing required fields', () => {
       const { id: _, ...dataWithoutId } = validData;
       // @ts-expect-error
-      const result = importHandlerSchema.safeParse(createRequest({ data: dataWithoutId }));
+      const result = importHandlerSchema.safeParse(
+        createRequest({ data: dataWithoutId }),
+      );
       expect(result.success).toBe(false);
     });
 

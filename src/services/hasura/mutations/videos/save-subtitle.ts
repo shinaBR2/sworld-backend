@@ -1,10 +1,10 @@
-import { hasuraClient } from '../../client';
 import { graphql } from '../../generated-graphql';
-import type {
+import {
   SaveSubtitleMutation,
   SaveSubtitleMutationVariables,
   Subtitles_Set_Input,
 } from '../../generated-graphql/graphql';
+import { hasuraClient } from '../../client';
 
 const SAVE_SUBTITLE = graphql(/* GraphQL */ `
   mutation SaveSubtitle($id: uuid!, $object: subtitles_set_input!) {
@@ -15,7 +15,10 @@ const SAVE_SUBTITLE = graphql(/* GraphQL */ `
 `);
 
 const saveSubtitle = async (id: string, input: Subtitles_Set_Input) => {
-  const response = await hasuraClient.request<SaveSubtitleMutation, SaveSubtitleMutationVariables>({
+  const response = await hasuraClient.request<
+    SaveSubtitleMutation,
+    SaveSubtitleMutationVariables
+  >({
     document: SAVE_SUBTITLE.toString(),
     variables: {
       id,

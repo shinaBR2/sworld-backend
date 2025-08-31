@@ -1,6 +1,6 @@
-import { videoDataSchema } from 'src/schema/videos/convert';
-import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 import { z } from 'zod';
+import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
+import { videoDataSchema } from 'src/schema/videos/convert';
 
 const fixDurationHandlerSchema = z.object({
   body: z.object({
@@ -9,5 +9,7 @@ const fixDurationHandlerSchema = z.object({
   headers: taskHandlerHeaderSchema.passthrough(),
 });
 
-export type FixDurationHandlerRequest = z.infer<typeof fixDurationHandlerSchema>;
+export type FixDurationHandlerRequest = z.infer<
+  typeof fixDurationHandlerSchema
+>;
 export { fixDurationHandlerSchema };

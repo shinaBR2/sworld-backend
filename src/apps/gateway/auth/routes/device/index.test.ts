@@ -1,7 +1,8 @@
-import { createDeviceRequest as createDeviceRequestMutation } from 'src/services/hasura/mutations/auth/device';
-import { generateHumanCode, generateSecureCode } from 'src/utils/string';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createDeviceRequest } from './index';
+import { generateHumanCode, generateSecureCode } from 'src/utils/string';
+import { createDeviceRequest as createDeviceRequestMutation } from 'src/services/hasura/mutations/auth/device';
+import { envConfig } from 'src/utils/envConfig';
 
 // Mock dependencies
 vi.mock('src/utils/string', () => ({
@@ -31,7 +32,9 @@ describe('createDeviceRequest', () => {
 
   beforeEach(() => {
     // Mock Date.now() to return a fixed timestamp
-    dateNowSpy = vi.spyOn(Date, 'now').mockImplementation(() => mockDate.getTime());
+    dateNowSpy = vi
+      .spyOn(Date, 'now')
+      .mockImplementation(() => mockDate.getTime());
 
     // Reset all mocks
     vi.clearAllMocks();
@@ -59,7 +62,7 @@ describe('createDeviceRequest', () => {
     expect(generateHumanCode).toHaveBeenCalled();
 
     // Verify database call
-    const _expectedExpiry = new Date(mockDate.getTime() + 10 * 60 * 1000);
+    const expectedExpiry = new Date(mockDate.getTime() + 10 * 60 * 1000);
     expect(createDeviceRequestMutation).toHaveBeenCalledWith({
       deviceCode: 'mock-device-code',
       userCode: 'MOCK-123',
@@ -71,7 +74,8 @@ describe('createDeviceRequest', () => {
     });
 
     // Verify expiry date is approximately 10 minutes from now
-    const actualExpiry = vi.mocked(createDeviceRequestMutation).mock.calls[0]?.[0]?.expiresAt;
+    const actualExpiry = vi.mocked(createDeviceRequestMutation).mock
+      .calls[0]?.[0]?.expiresAt;
     expect(actualExpiry).toBeInstanceOf(Date);
     const timeDiff = actualExpiry.getTime() - mockDate.getTime();
     expect(timeDiff).toBeGreaterThanOrEqual(9.9 * 60 * 1000); // 9.9 minutes
@@ -93,14 +97,18 @@ describe('createDeviceRequest', () => {
 
     const result = await createDeviceRequest(mockInput);
 
-    expect(result.verification_uri_complete).toBe('https://watch.sworld.dev/pair?code=TEST-456');
+    expect(result.verification_uri_complete).toBe(
+      'https://watch.sworld.dev/pair?code=TEST-456',
+    );
   });
 
   it('should handle database errors gracefully', async () => {
     const error = new Error('Database error');
     vi.mocked(createDeviceRequestMutation).mockRejectedValueOnce(error);
 
-    await expect(createDeviceRequest(mockInput)).rejects.toThrow('Database error');
+    await expect(createDeviceRequest(mockInput)).rejects.toThrow(
+      'Database error',
+    );
   });
 
   it('should generate different device codes for different requests', async () => {

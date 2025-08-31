@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import {
   hasuraEventMetadataSchema,
   headersSchema,
@@ -5,7 +6,6 @@ import {
   transformHeaders,
 } from 'src/schema/hasura';
 import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
-import { z } from 'zod';
 
 const CrawlRequestSchema = z.object({
   id: z.string().uuid(),
@@ -67,6 +67,11 @@ const crawlHandlerSchema = z.object({
   }),
 });
 
-export { CrawlEventSchema, CrawlRequestSchema, crawlSchema, crawlHandlerSchema };
+export {
+  CrawlEventSchema,
+  CrawlRequestSchema,
+  crawlSchema,
+  crawlHandlerSchema,
+};
 export type CrawlRequest = z.infer<typeof crawlSchema>;
 export type CrawlHandlerRequest = z.infer<typeof crawlHandlerSchema>;

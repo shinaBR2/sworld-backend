@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { fixDurationHandlerSchema } from './index';
 
 describe('FixDurationHandlerSchema', () => {
@@ -40,6 +40,8 @@ describe('FixDurationHandlerSchema', () => {
       body: validRequest.body,
     };
 
-    expect(() => fixDurationHandlerSchema.parse(requestWithoutHeaders)).toThrow();
+    expect(() =>
+      fixDurationHandlerSchema.parse(requestWithoutHeaders),
+    ).toThrow();
   });
 });

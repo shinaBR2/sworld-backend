@@ -1,53 +1,53 @@
-import type { VerifiedRegistrationResponse } from '@simplewebauthn/server';
-import type {
+import { VerifiedRegistrationResponse } from '@simplewebauthn/server';
+// import { dbAddDocWithId, dbRead, dbUpdateDoc } from '../singleton/db';
+import { Passkey, UserModel } from './types';
+import {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/types';
-// import { dbAddDocWithId, dbRead, dbUpdateDoc } from '../singleton/db';
-import type { Passkey, UserModel } from './types';
 
-const getUserPasskeys = async (_userId: string): Promise<Passkey[]> => {
+const getUserPasskeys = async (userId: string): Promise<Passkey[]> => {
   // const existingPasskeysSnapshot = await dbRead(`passkeys/${userId}/items`);
 
   const existingPasskeysSnapshot = {};
 
-  // @ts-expect-error
+  // @ts-ignore
   if (!existingPasskeysSnapshot.exists) {
     return [];
   }
-  // @ts-expect-error
+  // @ts-ignore
   const existingPasskeys = existingPasskeysSnapshot.data();
 
   return existingPasskeys;
 };
 
 const getUserPasskey = async (
-  _userId: string,
-  _passkeyId: string,
+  userId: string,
+  passkeyId: string,
 ): Promise<Passkey | undefined> => {
   // TODO implement
   const passkeySnapshot = {};
   // const passkeySnapshot = await dbRead(`passkeys/${userId}/items/${passkeyId}`);
 
-  // @ts-expect-error
+  // @ts-ignore
   if (!passkeySnapshot.exists) {
     return undefined;
   }
 
-  // @ts-expect-error
+  // @ts-ignore
   const passkey = passkeySnapshot.data();
 
   return passkey;
 };
 
-const getUser = async (_userId: string) => {
+const getUser = async (userId: string) => {
   return {};
   // return await dbRead(`users/${userId}`);
 };
 
 const setCurrentRegistrationOptions = async (
-  _userId: string,
-  _options: PublicKeyCredentialCreationOptionsJSON,
+  userId: string,
+  options: PublicKeyCredentialCreationOptionsJSON,
 ) => {
   // TODO implement
   // await dbUpdateDoc(`users/${userId}`, {
@@ -56,10 +56,10 @@ const setCurrentRegistrationOptions = async (
 };
 
 const setCurrentAuthenticationOptions = async (
-  _userId: string,
+  userId: string,
   options: PublicKeyCredentialRequestOptionsJSON,
 ) => {
-  const _cleanOptions = JSON.parse(JSON.stringify(options));
+  const cleanOptions = JSON.parse(JSON.stringify(options));
   // TODO implement
   // await dbUpdateDoc(`users/${userId}`, {
   //   passkeyAuthenticationOptions: cleanOptions,
@@ -67,7 +67,7 @@ const setCurrentAuthenticationOptions = async (
 };
 
 const saveNewPasskey = async (
-  _firebaseUserId: string,
+  firebaseUserId: string,
   user: UserModel,
   verification: VerifiedRegistrationResponse,
 ) => {
@@ -75,15 +75,15 @@ const saveNewPasskey = async (
   const { registrationInfo } = verification;
 
   const {
-    // @ts-expect-error
+    // @ts-ignore
     credential,
-    // @ts-expect-error
+    // @ts-ignore
     credentialDeviceType: deviceType,
-    // @ts-expect-error
+    // @ts-ignore
     credentialBackedUp: backedUp,
   } = registrationInfo;
 
-  const _newPasskey: Passkey = {
+  const newPasskey: Passkey = {
     // `user` here is from Step 2
     user,
     // Created by `generateRegistrationOptions()` in Step 1
@@ -111,9 +111,9 @@ const saveNewPasskey = async (
 };
 
 const saveUpdatedCounter = async (
-  _firebaseUserId: string,
-  _passkeyId: string,
-  _counter: number,
+  firebaseUserId: string,
+  passkeyId: string,
+  counter: number,
 ) => {
   // TODO implement
   // await dbUpdateDoc(`passkeys/${firebaseUserId}/items/${passkeyId}`, {

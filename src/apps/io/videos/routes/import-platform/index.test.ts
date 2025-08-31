@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { finishVideoProcess } from 'src/services/hasura/mutations/videos/finalize';
 import { CustomError } from 'src/utils/custom-error';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
 import { logger } from 'src/utils/logger';
-import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { importPlatformHandler } from './index';
 
 vi.mock('src/utils/logger', () => ({
@@ -138,9 +138,9 @@ describe('importPlatformHandler', () => {
   ) => {
     setupMocks();
 
-    await expect(importPlatformHandler(context.mockRequest, context.mockResponse)).rejects.toThrow(
-      'Import from platform failed',
-    );
+    await expect(
+      importPlatformHandler(context.mockRequest, context.mockResponse),
+    ).rejects.toThrow('Import from platform failed');
 
     expect(CustomError.critical).toHaveBeenCalledWith(
       'Import from platform failed',
@@ -165,7 +165,10 @@ describe('importPlatformHandler', () => {
   it('should handle Hasura mutation failure', async () => {
     const errorMessage = 'Hasura failure';
     await testErrorScenario(
-      () => vi.mocked(finishVideoProcess).mockRejectedValueOnce(new Error(errorMessage)),
+      () =>
+        vi
+          .mocked(finishVideoProcess)
+          .mockRejectedValueOnce(new Error(errorMessage)),
       errorMessage,
       () => {},
     );
@@ -192,7 +195,10 @@ describe('importPlatformHandler', () => {
       videoUrl: 'https://example.com/custom.mp4',
       userId: 'custom-user',
     };
-    const customRequest = createMockRequest(customData, context.defaultMetadata);
+    const customRequest = createMockRequest(
+      customData,
+      context.defaultMetadata,
+    );
 
     await testSuccessfulImport(customRequest);
   });

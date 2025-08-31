@@ -1,6 +1,6 @@
 import { CRAWL_ERRORS, HTTP_ERRORS } from 'src/utils/error-codes';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { type HandlerOptions, SelectorName } from '../types';
+import { HandlerOptions, SelectorName } from '../types';
 import { hh3dHandler } from './index';
 
 // Create simple mocks
@@ -28,7 +28,7 @@ vi.mock('src/utils/logger', () => ({
 }));
 
 // Import the mocked dependencies
-import type { Page } from 'playwright';
+import { Page } from 'playwright';
 import { CustomError } from 'src/utils/custom-error';
 import { scrapeUrl } from './scrapers';
 
@@ -45,7 +45,7 @@ const createMocks = (options = {}) => {
 
   const mockPage = {
     goto: vi.fn().mockResolvedValue(undefined),
-    route: vi.fn().mockImplementation((_pattern, handler) => {
+    route: vi.fn().mockImplementation((pattern, handler) => {
       setTimeout(() => handler(mockRoute), 0);
     }),
     waitForSelector: vi.fn().mockResolvedValue(undefined),
@@ -195,20 +195,21 @@ describe('hh3dHandler', () => {
       });
 
       const { handler } = hh3dHandler(defaultOptions);
-      const { mockRequest, mockRoute, mockPage, mockEnqueueLinks } = createMocks({
-        route: {
-          fetch: vi.fn().mockRejectedValue(networkError),
-        },
-        page: {
-          goto: vi.fn().mockResolvedValue(undefined),
-          route: vi.fn().mockImplementation((_pattern, handler) => {
-            mockPage.routeHandler = handler;
-          }),
-          waitForSelector: vi.fn(),
-          routeHandler: null,
-          unroute: vi.fn().mockResolvedValue(undefined),
-        },
-      });
+      const { mockRequest, mockRoute, mockPage, mockEnqueueLinks } =
+        createMocks({
+          route: {
+            fetch: vi.fn().mockRejectedValue(networkError),
+          },
+          page: {
+            goto: vi.fn().mockResolvedValue(undefined),
+            route: vi.fn().mockImplementation((pattern, handler) => {
+              mockPage.routeHandler = handler;
+            }),
+            waitForSelector: vi.fn(),
+            routeHandler: null,
+            unroute: vi.fn().mockResolvedValue(undefined),
+          },
+        });
 
       handler({
         page: mockPage,
@@ -223,7 +224,7 @@ describe('hh3dHandler', () => {
         await mockPage.routeHandler(mockRoute);
         // If it doesn't throw, fail the test
         expect('should throw').toBe('but did not');
-      } catch (_error) {
+      } catch (error) {
         // Expected to throw
       }
 

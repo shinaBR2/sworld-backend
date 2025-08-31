@@ -1,9 +1,14 @@
-import { Configuration, PlaywrightCrawler, type PlaywrightCrawlerOptions } from 'crawlee';
-import type { CrawlInputs, SelectorConfig } from './types';
+import {
+  Configuration,
+  PlaywrightCrawler,
+  PlaywrightCrawlerOptions,
+} from 'crawlee';
+import { CrawlInputs, SelectorConfig } from './types';
 import { createRequestHandler } from './utils';
 import { validateUrlInput } from './validator';
 
-interface BaseCrawlOptions extends Omit<PlaywrightCrawlerOptions, 'requestHandler'> {
+interface BaseCrawlOptions
+  extends Omit<PlaywrightCrawlerOptions, 'requestHandler'> {
   selectors?: SelectorConfig[];
   handlerType?: string;
 }

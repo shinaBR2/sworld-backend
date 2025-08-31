@@ -27,5 +27,7 @@ const deviceRequestCreateSchema = z
     contentTypeHeader: req.headers['content-type'],
   }));
 
-export type DeviceRequestCreateRequest = z.infer<typeof deviceRequestCreateSchema>;
+export type DeviceRequestCreateRequest = z.infer<
+  typeof deviceRequestCreateSchema
+>;
 export { deviceRequestCreateSchema };

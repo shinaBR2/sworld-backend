@@ -1,13 +1,13 @@
-import { hasuraClient } from '../../client';
 import { graphql } from '../../generated-graphql';
-import type {
-  Shared_Playlist_Recipients_Insert_Input,
-  Shared_Video_Recipients_Insert_Input,
+import {
   SharePlaylistMutation,
   SharePlaylistMutationVariables,
   ShareVideoMutation,
   ShareVideoMutationVariables,
+  Shared_Playlist_Recipients_Insert_Input,
+  Shared_Video_Recipients_Insert_Input,
 } from '../../generated-graphql/graphql';
+import { hasuraClient } from '../../client';
 
 const SHARE_PLAYLIST_MUTATION = graphql(/* GraphQL */ `
   mutation sharePlaylist(
@@ -68,15 +68,22 @@ const sharePlaylist = async (
     document: SHARE_PLAYLIST_MUTATION.toString(),
     variables: variables,
   });
-  if (!response.insert_shared_playlist_recipients || !response.update_playlist_by_pk) {
-    throw new Error('Failed to insert shared playlist recipients or update playlist');
+  if (
+    !response.insert_shared_playlist_recipients ||
+    !response.update_playlist_by_pk
+  ) {
+    throw new Error(
+      'Failed to insert shared playlist recipients or update playlist',
+    );
   }
 
   return {
     insert_shared_playlist_recipients: {
-      returning: response.insert_shared_playlist_recipients.returning.map((record) => ({
-        id: String(record.id),
-      })),
+      returning: response.insert_shared_playlist_recipients.returning.map(
+        (record) => ({
+          id: String(record.id),
+        }),
+      ),
     },
     update_playlist_by_pk: {
       id: response.update_playlist_by_pk.id,
@@ -99,19 +106,27 @@ const shareVideo = async (
     sharedRecipients: emails,
   };
 
-  const response = await hasuraClient.request<ShareVideoMutation, ShareVideoMutationVariables>({
+  const response = await hasuraClient.request<
+    ShareVideoMutation,
+    ShareVideoMutationVariables
+  >({
     document: SHARE_VIDEO_MUTATION.toString(),
     variables: variables,
   });
-  if (!response.insert_shared_video_recipients || !response.update_videos_by_pk) {
+  if (
+    !response.insert_shared_video_recipients ||
+    !response.update_videos_by_pk
+  ) {
     throw new Error('Failed to insert shared video recipients or update video');
   }
 
   return {
     insert_shared_video_recipients: {
-      returning: response.insert_shared_video_recipients.returning.map((record) => ({
-        id: String(record.id),
-      })),
+      returning: response.insert_shared_video_recipients.returning.map(
+        (record) => ({
+          id: String(record.id),
+        }),
+      ),
     },
     update_videos_by_pk: {
       id: response.update_videos_by_pk.id,

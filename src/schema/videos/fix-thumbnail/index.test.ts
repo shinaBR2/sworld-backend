@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { fixThumbnailHandlerSchema } from './index';
 
 describe('FixThumbnailHandlerSchema', () => {
@@ -40,6 +40,8 @@ describe('FixThumbnailHandlerSchema', () => {
       body: validRequest.body,
     };
 
-    expect(() => fixThumbnailHandlerSchema.parse(requestWithoutHeaders)).toThrow();
+    expect(() =>
+      fixThumbnailHandlerSchema.parse(requestWithoutHeaders),
+    ).toThrow();
   });
 });

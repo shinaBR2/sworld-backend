@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { isValidEmail } from './email';
 
 describe('isValidEmail', () => {
@@ -8,7 +8,9 @@ describe('isValidEmail', () => {
     expect(isValidEmail('user+tag@example.com')).toBe(true);
     expect(isValidEmail('123@domain.com')).toBe(true);
     expect(isValidEmail('very.common@example.com')).toBe(true);
-    expect(isValidEmail('disposable.style.email.with+tag@example.com')).toBe(true);
+    expect(isValidEmail('disposable.style.email.with+tag@example.com')).toBe(
+      true,
+    );
     expect(isValidEmail('other.email-with-hyphen@example.com')).toBe(true);
   });
 
@@ -31,11 +33,11 @@ describe('isValidEmail', () => {
 
   it('should enforce length limits', () => {
     // Local part > 64 chars
-    expect(isValidEmail(`${'a'.repeat(65)}@example.com`)).toBe(false);
+    expect(isValidEmail('a'.repeat(65) + '@example.com')).toBe(false);
     // Domain part > 255 chars
-    expect(isValidEmail(`user@${'a'.repeat(250)}.com`)).toBe(false);
+    expect(isValidEmail('user@' + 'a'.repeat(250) + '.com')).toBe(false);
     // Domain label > 63 chars
-    expect(isValidEmail(`user@${'a'.repeat(64)}.com`)).toBe(false);
+    expect(isValidEmail('user@' + 'a'.repeat(64) + '.com')).toBe(false);
   });
 
   it('should handle special characters in local part', () => {

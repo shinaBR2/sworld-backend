@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  InsertPostMutation,
+  Posts_Insert_Input,
+} from '../../generated-graphql/graphql';
 import { hasuraClient } from '../../client';
-import type { InsertPostMutation, Posts_Insert_Input } from '../../generated-graphql/graphql';
 import { insertPost } from './insert';
 
 // Mock GraphQL client

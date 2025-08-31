@@ -1,7 +1,7 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Express } from 'express';
 import express from 'express';
 import helmet from 'helmet';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createBaseApp } from './base-app';
 
 // Define types for our mocked Express

@@ -1,7 +1,12 @@
-import { transformEventMetadata, transformHeaders } from 'src/schema/hasura';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { CrawlEventSchema, CrawlRequestSchema, crawlHandlerSchema, crawlSchema } from './index';
+import {
+  CrawlEventSchema,
+  CrawlRequestSchema,
+  crawlHandlerSchema,
+  crawlSchema,
+} from './index';
+import { transformEventMetadata, transformHeaders } from 'src/schema/hasura';
 
 vi.mock('src/utils/cloud-task/schema', () => ({
   taskHandlerHeaderSchema: z.object({
@@ -87,7 +92,9 @@ describe('CrawlRequestSchema', () => {
     };
 
     // Act & Assert
-    expect(() => CrawlRequestSchema.parse(validRequestWithoutSlugPrefix)).not.toThrow();
+    expect(() =>
+      CrawlRequestSchema.parse(validRequestWithoutSlugPrefix),
+    ).not.toThrow();
   });
 });
 
@@ -250,7 +257,9 @@ describe('CrawlSchema', () => {
     crawlSchema.parse(validRequest);
 
     // Assert
-    expect(transformEventMetadata).toHaveBeenCalledWith(validRequest.body.event.metadata);
+    expect(transformEventMetadata).toHaveBeenCalledWith(
+      validRequest.body.event.metadata,
+    );
     expect(transformHeaders).toHaveBeenCalledWith(validRequest);
   });
 

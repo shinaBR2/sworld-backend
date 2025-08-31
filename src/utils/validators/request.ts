@@ -1,8 +1,8 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import type { Context, Next } from 'hono';
-import type { ZodError, ZodSchema, z } from 'zod';
+import { type ZodError, type ZodSchema, z } from 'zod';
+import { ServiceResponse } from '../schema';
 import { getClientIP } from '../ip';
-import type { ServiceResponse } from '../schema';
 
 // Framework-agnostic validation context
 interface ValidationContext {
@@ -122,7 +122,7 @@ const honoValidateRequest = <T>(schema: ZodSchema<T, any, any>) => {
         };
         return c.json(serviceResponse, 200);
       }
-    } catch (_err) {
+    } catch (err) {
       const serviceResponse: ServiceResponse<null> = {
         success: false,
         message: 'Failed to parse request',

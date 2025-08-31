@@ -157,7 +157,8 @@ describe('convertSchema', () => {
     if (!result.success) {
       expect(
         result.error.issues.some(
-          (issue) => issue.path.includes('id') || issue.path.includes('user_id'),
+          (issue) =>
+            issue.path.includes('id') || issue.path.includes('user_id'),
         ),
       ).toBe(true);
     }
@@ -262,7 +263,9 @@ describe('convertHandlerSchema', () => {
   it('should reject request with missing required fields', () => {
     const { id: _, ...dataWithoutId } = validData;
     // @ts-expect-error
-    const result = convertHandlerSchema.safeParse(createRequest({ data: dataWithoutId }));
+    const result = convertHandlerSchema.safeParse(
+      createRequest({ data: dataWithoutId }),
+    );
     expect(result.success).toBe(false);
   });
 

@@ -7,7 +7,9 @@ const mockValidateRequest = vi.fn().mockReturnValue('mockMiddleware');
 
 // Mock dependencies
 vi.mock('express', () => {
-  const mockExpress = () => ({});
+  const mockExpress = function () {
+    return {};
+  };
   mockExpress.Router = () => mockRouter;
 
   return {
@@ -37,6 +39,10 @@ describe('crawlerRouter', () => {
     // Basic verification
     expect(crawlerRouter).toBe(mockRouter);
     expect(mockValidateRequest).toHaveBeenCalledWith('mockSchema');
-    expect(mockPost).toHaveBeenCalledWith('/crawl-handler', 'mockMiddleware', 'mockCrawlHandler');
+    expect(mockPost).toHaveBeenCalledWith(
+      '/crawl-handler',
+      'mockMiddleware',
+      'mockCrawlHandler',
+    );
   });
 });

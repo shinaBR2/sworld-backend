@@ -1,6 +1,6 @@
-import { createBaseApp } from 'src/utils/base-app';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { errorHandler } from '../../utils/error-handler';
+import { createBaseApp } from 'src/utils/base-app';
 
 // Mock dependencies
 vi.mock('../../utils/error-handler', () => ({
@@ -52,7 +52,9 @@ describe('app', () => {
     await import('./index');
     expect(errorHandler).toHaveBeenCalledWith('mockLogger');
     // Find the error handler middleware registration
-    const errorHandlerCall = mockUse.mock.calls.find((call) => call[0] === 'mockErrorHandler');
+    const errorHandlerCall = mockUse.mock.calls.find(
+      (call) => call[0] === 'mockErrorHandler',
+    );
     expect(errorHandlerCall).toBeTruthy();
   });
 
@@ -64,7 +66,9 @@ describe('app', () => {
     const videosRouterCallIndex = calls.findIndex(
       (call) => call[0] === '/videos' && call[1] === 'mockVideosRouter',
     );
-    const errorHandlerCallIndex = calls.findIndex((call) => call[0] === 'mockErrorHandler');
+    const errorHandlerCallIndex = calls.findIndex(
+      (call) => call[0] === 'mockErrorHandler',
+    );
 
     // Both middleware should be found
     expect(videosRouterCallIndex).not.toBe(-1);
@@ -87,6 +91,8 @@ describe('app', () => {
     });
 
     // The import should now fail
-    await expect(() => import('./index')).rejects.toThrow('Base app creation failed');
+    await expect(() => import('./index')).rejects.toThrow(
+      'Base app creation failed',
+    );
   });
 });

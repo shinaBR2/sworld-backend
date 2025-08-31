@@ -1,6 +1,6 @@
-import { DataTypes } from 'sequelize';
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { Video } from './video';
+import { DataTypes } from 'sequelize';
 
 describe('Video Model', () => {
   const attributes = Video.rawAttributes;

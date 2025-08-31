@@ -1,10 +1,10 @@
-import type { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { finishVideoProcess } from 'src/services/hasura/mutations/videos/finalize';
 import { videoConfig } from 'src/services/videos/config';
 import { streamM3U8 } from 'src/services/videos/helpers/m3u8';
 import { CustomError } from 'src/utils/custom-error';
 import { HTTP_ERRORS, VIDEO_ERRORS } from 'src/utils/error-codes';
-import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
+import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { streamHLSHandler } from './index';
 
 vi.mock('src/services/videos/helpers/m3u8', () => ({
@@ -137,7 +137,9 @@ describe('streamHLSHandler', () => {
 
     // Find the call that matches our error
     const matchingCall = criticalCalls.find(
-      (call) => call[0] === expectedErrorMessage && call[1]?.errorCode === expectedErrorCode,
+      (call) =>
+        call[0] === expectedErrorMessage &&
+        call[1]?.errorCode === expectedErrorCode,
     );
     expect(matchingCall).toBeTruthy();
 
@@ -206,7 +208,10 @@ describe('streamHLSHandler', () => {
       videoUrl: 'https://example.com/custom.mp4',
       userId: 'custom-user',
     };
-    const customRequest = createMockRequest(customData, context.defaultMetadata);
+    const customRequest = createMockRequest(
+      customData,
+      context.defaultMetadata,
+    );
 
     vi.mocked(streamM3U8).mockResolvedValueOnce({
       playlistUrl: 'some-url',

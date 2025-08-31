@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  SaveSubtitleMutation,
+  Subtitles_Set_Input,
+} from '../../generated-graphql/graphql';
 import { hasuraClient } from '../../client';
-import type { SaveSubtitleMutation, Subtitles_Set_Input } from '../../generated-graphql/graphql';
 import { saveSubtitle } from './save-subtitle';
 
 // Mock GraphQL client
@@ -52,6 +55,8 @@ describe('saveSubtitle', () => {
     const mockError = new Error('GraphQL request failed');
     vi.mocked(hasuraClient.request).mockRejectedValueOnce(mockError);
 
-    await expect(saveSubtitle(mockSubtitleId, mockSubtitleInput)).rejects.toThrow(mockError);
+    await expect(
+      saveSubtitle(mockSubtitleId, mockSubtitleInput),
+    ).rejects.toThrow(mockError);
   });
 });

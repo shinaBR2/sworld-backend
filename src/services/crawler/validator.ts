@@ -1,7 +1,7 @@
 import { CustomError } from 'src/utils/custom-error';
+import { getHandlerType, getSelectors } from './utils';
 import { CRAWL_ERRORS } from 'src/utils/error-codes';
 import { crawlConfig } from 'src/utils/systemConfig';
-import { getHandlerType, getSelectors } from './utils';
 
 const validateUrlInput = (url: string) => {
   const { defaultWaitForSelectorTimeout } = crawlConfig;
@@ -29,7 +29,8 @@ const validateUrlInput = (url: string) => {
     handlerType,
     selectors: selectors.map((selector) => ({
       ...selector,
-      waitForSelectorTimeout: selector.waitForSelectorTimeout || defaultWaitForSelectorTimeout,
+      waitForSelectorTimeout:
+        selector.waitForSelectorTimeout || defaultWaitForSelectorTimeout,
     })),
   };
 };

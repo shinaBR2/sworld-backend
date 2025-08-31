@@ -1,11 +1,11 @@
-import { getVideoMissingDuration } from 'src/database/queries/videos';
-import { verifySignature } from 'src/services/videos/convert/validator';
-import { createCloudTasks } from 'src/utils/cloud-task';
-import { envConfig } from 'src/utils/envConfig';
-import { AppError } from 'src/utils/schema';
-import { queues } from 'src/utils/systemConfig';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fixVideosDuration } from './index';
+import { getVideoMissingDuration } from 'src/database/queries/videos';
+import { createCloudTasks } from 'src/utils/cloud-task';
+import { verifySignature } from 'src/services/videos/convert/validator';
+import { envConfig } from 'src/utils/envConfig';
+import { queues } from 'src/utils/systemConfig';
+import { AppError } from 'src/utils/schema';
 
 // Mock dependencies
 vi.mock('src/database/queries/videos');
@@ -80,7 +80,9 @@ describe('fixVideosDuration', () => {
     expect(createCloudTasks).not.toHaveBeenCalled();
 
     // Verify error response
-    expect(mockResponse.json).toHaveBeenCalledWith(AppError('Invalid webhook signature for event'));
+    expect(mockResponse.json).toHaveBeenCalledWith(
+      AppError('Invalid webhook signature for event'),
+    );
   });
 
   it('should handle missing environment variable', async () => {
@@ -92,15 +94,21 @@ describe('fixVideosDuration', () => {
     expect(createCloudTasks).not.toHaveBeenCalled();
 
     // Verify error response
-    expect(mockResponse.json).toHaveBeenCalledWith(AppError('Missing environment variable'));
+    expect(mockResponse.json).toHaveBeenCalledWith(
+      AppError('Missing environment variable'),
+    );
   });
 
   it('should handle task creation failure', async () => {
-    vi.mocked(createCloudTasks).mockRejectedValue(new Error('Task creation failed'));
+    vi.mocked(createCloudTasks).mockRejectedValue(
+      new Error('Task creation failed'),
+    );
 
     await fixVideosDuration(mockRequest, mockResponse);
 
     // Verify error response
-    expect(mockResponse.json).toHaveBeenCalledWith(AppError('Failed to create task'));
+    expect(mockResponse.json).toHaveBeenCalledWith(
+      AppError('Failed to create task'),
+    );
   });
 });

@@ -1,5 +1,5 @@
-import { existsSync } from 'node:fs';
 import { v2 as cloudinary } from 'cloudinary';
+import { existsSync } from 'fs';
 import { envConfig } from 'src/utils/envConfig';
 import { logger } from 'src/utils/logger';
 

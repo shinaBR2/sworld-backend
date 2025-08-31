@@ -1,4 +1,4 @@
-import type { PlaywrightRequestHandler } from 'crawlee';
+import { PlaywrightRequestHandler } from 'crawlee';
 
 interface SelectorConfig {
   selector: string;
@@ -34,4 +34,10 @@ enum SelectorName {
 }
 
 export { SelectorName };
-export type { SelectorConfig, CrawlInputs, HandlerOptions, HandlerState, RequestHandlerWithState };
+export type {
+  SelectorConfig,
+  CrawlInputs,
+  HandlerOptions,
+  HandlerState,
+  RequestHandlerWithState,
+};

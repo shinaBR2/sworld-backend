@@ -1,5 +1,5 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as Sentry from '@sentry/node';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { app } from '../src/apps/compute';
 import { logger } from '../src/utils/logger';
 
@@ -7,7 +7,7 @@ vi.mock('@sentry/node');
 vi.mock('../src/utils/logger');
 vi.mock('../src/apps/compute', () => ({
   app: {
-    listen: vi.fn((_port, cb) => {
+    listen: vi.fn((port, cb) => {
       cb();
       return {
         close: vi.fn((cb) => cb()),
@@ -34,11 +34,15 @@ describe('Compute Server', () => {
     await import('../src/compute');
 
     expect(Sentry.setupExpressErrorHandler).toHaveBeenCalledWith(app);
-    expect(logger.info).toHaveBeenCalledWith('Compute service is running on port 4000');
+    expect(logger.info).toHaveBeenCalledWith(
+      'Compute service is running on port 4000',
+    );
   });
 
   it('should handle shutdown signals gracefully', async () => {
-    const processExitSpy = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never);
+    const processExitSpy = vi
+      .spyOn(process, 'exit')
+      .mockImplementation(() => undefined as never);
     const setTimeoutSpy = vi
       .spyOn(global, 'setTimeout')
       .mockImplementation(() => ({ unref: vi.fn() }) as any);

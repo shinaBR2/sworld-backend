@@ -1,13 +1,13 @@
-import type { Request, Response } from 'express';
-import { TaskEntityType, TaskType } from 'src/database/models/task';
-import { getVideoMissingThumbnail } from 'src/database/queries/videos';
-import type { HasuraWebhookRequest } from 'src/schema/hasura';
-import { verifySignature } from 'src/services/videos/convert/validator';
-import { type CreateCloudTasksParams, createCloudTasks } from 'src/utils/cloud-task';
+import { Request, Response } from 'express';
 import { envConfig } from 'src/utils/envConfig';
+import { ValidatedRequest } from 'src/utils/validator';
+import { HasuraWebhookRequest } from 'src/schema/hasura';
+import { verifySignature } from 'src/services/videos/convert/validator';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
-import type { ValidatedRequest } from 'src/utils/validator';
+import { CreateCloudTasksParams, createCloudTasks } from 'src/utils/cloud-task';
+import { TaskEntityType, TaskType } from 'src/database/models/task';
+import { getVideoMissingThumbnail } from 'src/database/queries/videos';
 
 const fixVideosThumbnail = async (req: Request, res: Response) => {
   const { ioServiceUrl } = envConfig;
@@ -45,7 +45,7 @@ const fixVideosThumbnail = async (req: Request, res: Response) => {
     );
 
     return res.json(AppResponse(true, 'ok'));
-  } catch (_error) {
+  } catch (error) {
     return res.json(AppError('Failed to create task'));
   }
 };

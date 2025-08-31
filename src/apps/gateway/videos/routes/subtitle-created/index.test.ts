@@ -1,9 +1,9 @@
-import type { SubtitleCreatedRequest } from 'src/schema/videos/subtitle-created';
-import { saveSubtitle } from 'src/services/hasura/mutations/videos/save-subtitle';
-import { getDownloadUrl } from 'src/services/videos/helpers/gcp-cloud-storage';
-import { streamSubtitleFile } from 'src/services/videos/helpers/subtitle';
-import { beforeEach, describe, expect, it, type MockedFunction, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, MockedFunction } from 'vitest';
 import { subtitleCreatedHandler } from './index';
+import { streamSubtitleFile } from 'src/services/videos/helpers/subtitle';
+import { getDownloadUrl } from 'src/services/videos/helpers/gcp-cloud-storage';
+import { saveSubtitle } from 'src/services/hasura/mutations/videos/save-subtitle';
+import { SubtitleCreatedRequest } from 'src/schema/videos/subtitle-created';
 
 // Mock dependencies with proper typing
 vi.mock('src/services/videos/helpers/subtitle', () => ({
@@ -13,7 +13,9 @@ vi.mock('src/services/videos/helpers/subtitle', () => ({
 vi.mock('src/services/videos/helpers/gcp-cloud-storage', () => ({
   getDownloadUrl: vi
     .fn()
-    .mockImplementation((path: string) => `https://storage.googleapis.com/test-bucket/${path}`),
+    .mockImplementation(
+      (path: string) => `https://storage.googleapis.com/test-bucket/${path}`,
+    ),
 }));
 
 vi.mock('src/services/hasura/mutations/videos/save-subtitle', () => ({
@@ -21,8 +23,12 @@ vi.mock('src/services/hasura/mutations/videos/save-subtitle', () => ({
 }));
 
 // Type the mocks for better type safety
-const mockStreamSubtitleFile = streamSubtitleFile as MockedFunction<typeof streamSubtitleFile>;
-const mockGetDownloadUrl = getDownloadUrl as MockedFunction<typeof getDownloadUrl>;
+const mockStreamSubtitleFile = streamSubtitleFile as MockedFunction<
+  typeof streamSubtitleFile
+>;
+const mockGetDownloadUrl = getDownloadUrl as MockedFunction<
+  typeof getDownloadUrl
+>;
 const mockSaveSubtitle = saveSubtitle as MockedFunction<typeof saveSubtitle>;
 
 describe('subtitleCreatedHandler', () => {

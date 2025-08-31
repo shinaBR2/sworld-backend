@@ -1,5 +1,5 @@
-import { validateMediaURL } from 'src/services/videos/convert/validator';
 import { z } from 'zod';
+import { validateMediaURL } from 'src/services/videos/convert/validator';
 
 const videoUrlSchema = z
   .string()

@@ -1,10 +1,10 @@
 import 'dotenv/config';
 import './utils/instrument';
 import * as Sentry from '@sentry/node';
-import rateLimit from 'express-rate-limit';
-import { app } from './apps/gateway';
 import { envConfig } from './utils/envConfig';
+import rateLimit from 'express-rate-limit';
 import { logger } from './utils/logger';
+import { app } from './apps/gateway';
 
 const port = envConfig.port || 4000;
 

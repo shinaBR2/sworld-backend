@@ -6,7 +6,7 @@ const getClientIP = (headers: Record<string, string>) => {
     headers['cf-connecting-ip'], // Cloudflare
     headers['x-client-ip'],
     headers['x-forwarded'],
-    headers.forwarded?.match(/for=([^;,]+)/)?.[1],
+    headers['forwarded']?.match(/for=([^;,]+)/)?.[1],
   ];
 
   return candidates.find((ip) => ip && isValidIP(ip)) || 'unknown';

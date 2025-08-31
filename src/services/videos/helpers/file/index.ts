@@ -1,10 +1,10 @@
-import * as crypto from 'node:crypto';
-import { createWriteStream, stat, unlink } from 'node:fs';
-import { mkdir, rm } from 'node:fs/promises';
-import * as os from 'node:os';
-import path from 'node:path';
-import { promisify } from 'node:util';
+import * as os from 'os';
+import { createWriteStream, unlink, stat } from 'fs';
+import { promisify } from 'util';
+import * as crypto from 'crypto';
+import { mkdir, rm } from 'fs/promises';
 import { logger } from 'src/utils/logger';
+import path from 'path';
 import { videoConfig } from '../../config';
 
 // Helper to generate unique temporary directory names
@@ -35,7 +35,7 @@ const downloadFile = async (url: string, localPath: string) => {
   // Get content length if available
   const contentLength = response.headers.get('content-length');
   if (contentLength) {
-    const size = parseInt(contentLength, 10);
+    const size = parseInt(contentLength);
     // Check if we have enough space (leaving some buffer)
     if (size > videoConfig.maxFileSize) {
       // 4GB limit
@@ -57,7 +57,7 @@ const downloadFile = async (url: string, localPath: string) => {
         const reader = response.body?.getReader();
 
         while (true) {
-          //@ts-expect-error
+          //@ts-ignore
           const { done, value } = await reader?.read();
           if (done) break;
 
@@ -103,7 +103,10 @@ const cleanupDirectory = async (dirPath: string): Promise<void> => {
   }
 };
 
-const verifyFileSize = async (filePath: string, maxSize: number): Promise<void> => {
+const verifyFileSize = async (
+  filePath: string,
+  maxSize: number,
+): Promise<void> => {
   const statAsync = promisify(stat);
   const stats = await statAsync(filePath);
   if (stats.size > maxSize) {
@@ -111,4 +114,10 @@ const verifyFileSize = async (filePath: string, maxSize: number): Promise<void> 
   }
 };
 
-export { generateTempDir, downloadFile, createDirectory, cleanupDirectory, verifyFileSize };
+export {
+  generateTempDir,
+  downloadFile,
+  createDirectory,
+  cleanupDirectory,
+  verifyFileSize,
+};

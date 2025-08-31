@@ -1,10 +1,18 @@
-import { existsSync } from 'node:fs';
-import * as path from 'node:path';
-import ffmpeg, { type FfprobeData } from 'fluent-ffmpeg';
+import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
+import { existsSync } from 'fs';
+import * as path from 'path';
 import { logger } from 'src/utils/logger';
-import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
-import { videoConfig } from '../../config';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from 'vitest';
 import { convertToHLS, getDuration, takeScreenshot } from '.';
+import { videoConfig } from '../../config';
 
 // Mock all external dependencies
 vi.mock('fluent-ffmpeg');
@@ -57,15 +65,17 @@ describe('FFmpeg Helpers', () => {
     it('should throw error if input file does not exist', async () => {
       vi.mocked(existsSync).mockReturnValueOnce(false);
 
-      await expect(convertToHLS(inputPath, outputDir)).rejects.toThrow('Input file does not exist');
+      await expect(convertToHLS(inputPath, outputDir)).rejects.toThrow(
+        'Input file does not exist',
+      );
       expect(ffmpeg).not.toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalled();
     });
 
     it('should throw error if inputPath is not absolute', async () => {
-      await expect(convertToHLS('relative/path.mp4', outputDir)).rejects.toThrow(
-        'inputPath must be absolute',
-      );
+      await expect(
+        convertToHLS('relative/path.mp4', outputDir),
+      ).rejects.toThrow('inputPath must be absolute');
       expect(ffmpeg).not.toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalled();
     });
@@ -90,8 +100,12 @@ describe('FFmpeg Helpers', () => {
       await expect(convertToHLS(inputPath, outputDir)).resolves.not.toThrow();
 
       expect(ffmpeg).toHaveBeenCalledWith(inputPath);
-      expect(mockFFmpeg.outputOptions).toHaveBeenCalledWith(videoConfig.ffmpegCommands);
-      expect(mockFFmpeg.output).toHaveBeenCalledWith(path.join(outputDir, 'playlist.m3u8'));
+      expect(mockFFmpeg.outputOptions).toHaveBeenCalledWith(
+        videoConfig.ffmpegCommands,
+      );
+      expect(mockFFmpeg.output).toHaveBeenCalledWith(
+        path.join(outputDir, 'playlist.m3u8'),
+      );
       expect(mockFFmpeg.run).toHaveBeenCalled();
       expect(logger.info).toHaveBeenCalledWith(
         '[convertToHLS] HLS conversion completed successfully',
@@ -107,7 +121,9 @@ describe('FFmpeg Helpers', () => {
         return mockFFmpeg;
       });
 
-      await expect(convertToHLS(inputPath, outputDir)).rejects.toThrow('Conversion failed');
+      await expect(convertToHLS(inputPath, outputDir)).rejects.toThrow(
+        'Conversion failed',
+      );
       expect(ffmpeg).toHaveBeenCalled();
       expect(mockFFmpeg.run).toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalled();
@@ -126,7 +142,10 @@ describe('FFmpeg Helpers', () => {
       });
 
       await convertToHLS(inputPath, outputDir);
-      expect(logger.debug).toHaveBeenCalledWith(progress, '[convertToHLS] Conversion progress:');
+      expect(logger.debug).toHaveBeenCalledWith(
+        progress,
+        '[convertToHLS] Conversion progress:',
+      );
     });
   });
 
@@ -135,13 +154,15 @@ describe('FFmpeg Helpers', () => {
 
     it('should throw error if videoPath is not absolute', async () => {
       const relativePath = 'videos/video.mp4';
-      await expect(getDuration(relativePath)).rejects.toThrow('videoPath must be absolute');
+      await expect(getDuration(relativePath)).rejects.toThrow(
+        'videoPath must be absolute',
+      );
       expect(ffmpeg.ffprobe).not.toHaveBeenCalled();
     });
 
     it('should return duration for valid video', async () => {
       const mockDuration = 123.456;
-      const _mockFfprobe = vi.fn().mockResolvedValueOnce({
+      const mockFfprobe = vi.fn().mockResolvedValueOnce({
         format: { duration: mockDuration },
       } as FfprobeData);
 
@@ -240,9 +261,9 @@ describe('FFmpeg Helpers', () => {
         return mockFFmpeg;
       });
 
-      await expect(takeScreenshot(videoPath, outputDir, filename, videoDuration)).rejects.toThrow(
-        'FFmpeg error: Screenshot failed',
-      );
+      await expect(
+        takeScreenshot(videoPath, outputDir, filename, videoDuration),
+      ).rejects.toThrow('FFmpeg error: Screenshot failed');
       expect(logger.error).toHaveBeenCalled();
     });
 
@@ -284,7 +305,12 @@ describe('FFmpeg Helpers', () => {
         const absoluteVideoPath = '/absolute/path/to/video.ts';
         const absoluteOutputDir = '/absolute/path/to/output';
 
-        await takeScreenshot(absoluteVideoPath, absoluteOutputDir, filename, videoDuration);
+        await takeScreenshot(
+          absoluteVideoPath,
+          absoluteOutputDir,
+          filename,
+          videoDuration,
+        );
 
         expect(vi.mocked(ffmpeg)).toHaveBeenCalledWith(absoluteVideoPath);
         expect(mockFFmpeg.screenshot).toHaveBeenCalledWith({
@@ -298,7 +324,12 @@ describe('FFmpeg Helpers', () => {
         const relativeVideoPath = 'workspace/123/input.ts';
         const relativeOutputDir = 'workspace/123/output';
 
-        await takeScreenshot(relativeVideoPath, relativeOutputDir, filename, videoDuration);
+        await takeScreenshot(
+          relativeVideoPath,
+          relativeOutputDir,
+          filename,
+          videoDuration,
+        );
 
         expect(vi.mocked(ffmpeg)).toHaveBeenCalledWith(relativeVideoPath);
         expect(mockFFmpeg.screenshot).toHaveBeenCalledWith({
@@ -312,7 +343,12 @@ describe('FFmpeg Helpers', () => {
         const absoluteVideoPath = '/absolute/path/to/video.ts';
         const relativeOutputDir = 'workspace/123/output';
 
-        await takeScreenshot(absoluteVideoPath, relativeOutputDir, filename, videoDuration);
+        await takeScreenshot(
+          absoluteVideoPath,
+          relativeOutputDir,
+          filename,
+          videoDuration,
+        );
 
         expect(vi.mocked(ffmpeg)).toHaveBeenCalledWith(absoluteVideoPath);
         expect(mockFFmpeg.screenshot).toHaveBeenCalledWith({

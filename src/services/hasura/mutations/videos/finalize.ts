@@ -1,10 +1,10 @@
 import { nanoid } from 'nanoid';
-import { hasuraClient } from '../../client';
 import { graphql } from '../../generated-graphql';
-import type {
+import {
   FinalizeVideoMutation,
   FinalizeVideoMutationVariables,
 } from '../../generated-graphql/graphql';
+import { hasuraClient } from '../../client';
 
 const FINALIZE_VIDEO = graphql(/* GraphQL */ `
   mutation FinalizeVideo(
@@ -33,7 +33,9 @@ const FINALIZE_VIDEO = graphql(/* GraphQL */ `
   }
 `);
 
-const finishVideoProcess = async (variables: FinalizeVideoMutationVariables): Promise<string> => {
+const finishVideoProcess = async (
+  variables: FinalizeVideoMutationVariables,
+): Promise<string> => {
   const shortId = nanoid(11);
   const response = await hasuraClient.request<
     FinalizeVideoMutation,

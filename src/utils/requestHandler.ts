@@ -1,7 +1,7 @@
 // src/utils/request-handler.ts
 import type { Request, Response } from 'express';
 import type { Context } from 'hono';
-import type { ServiceResponse } from './schema';
+import { ServiceResponse } from './schema';
 
 // Framework-agnostic handler interface
 // Extend Request and Context to include validatedData
@@ -23,7 +23,9 @@ type BusinessHandler<T = any, R = any> = (
 ) => Promise<ServiceResponse<R>>;
 
 // Express wrapper
-const expressRequestHandler = <T = any, R = any>(handler: BusinessHandler<T, R>) => {
+const expressRequestHandler = <T = any, R = any>(
+  handler: BusinessHandler<T, R>,
+) => {
   return async (req: Request, res: Response) => {
     const context: HandlerContext<T> = {
       validatedData: (req as ValidatedRequest<T>).validatedData,
@@ -35,7 +37,9 @@ const expressRequestHandler = <T = any, R = any>(handler: BusinessHandler<T, R>)
 };
 
 // Hono wrapper
-const honoRequestHandler = <T = any, R = any>(handler: BusinessHandler<T, R>) => {
+const honoRequestHandler = <T = any, R = any>(
+  handler: BusinessHandler<T, R>,
+) => {
   return async (c: Context) => {
     const context: HandlerContext<T> = {
       validatedData: (c as ValidatedContext<T>).validatedData,

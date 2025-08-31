@@ -1,5 +1,11 @@
-import path from 'node:path';
-import { type CreateWriteStreamOptions, Storage, TransferManager } from '@google-cloud/storage';
+import {
+  Storage,
+  TransferManager,
+  CreateWriteStreamOptions,
+} from '@google-cloud/storage';
+import { existsSync } from 'fs';
+import { readdir } from 'fs/promises';
+import path from 'path';
 import { envConfig } from 'src/utils/envConfig';
 import { logger } from 'src/utils/logger';
 import { systemConfig } from 'src/utils/systemConfig';
@@ -170,7 +176,10 @@ const streamFile = async (params: StreamFileParams) => {
 
     // Handle write stream errors
     writeStream.on('error', (writeError) => {
-      handleError(`Cloud storage write error: ${writeError.message}`, writeError);
+      handleError(
+        `Cloud storage write error: ${writeError.message}`,
+        writeError,
+      );
     });
 
     // Successful completion
@@ -192,4 +201,10 @@ const streamFile = async (params: StreamFileParams) => {
   });
 };
 
-export { DEFAULT_UPLOAD_OPTIONS, getDownloadUrl, uploadFile, uploadFolderParallel, streamFile };
+export {
+  DEFAULT_UPLOAD_OPTIONS,
+  getDownloadUrl,
+  uploadFile,
+  uploadFolderParallel,
+  streamFile,
+};

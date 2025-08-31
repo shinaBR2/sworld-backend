@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { TaskEntityType, TaskType } from 'src/database/models/task';
 import { verifySignature } from 'src/services/videos/convert/validator';
 import { createCloudTasks } from 'src/utils/cloud-task';

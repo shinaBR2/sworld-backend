@@ -1,5 +1,4 @@
-import type { Request, Response } from 'express';
-import type { HashnodeWebhookRequest } from 'src/schema/hashnode';
+import { Request, Response } from 'express';
 import { getPost } from 'src/services/hashnode/queries/posts';
 import { deletePost } from 'src/services/hasura/mutations/posts/delete';
 import { insertPost } from 'src/services/hasura/mutations/posts/insert';
@@ -8,7 +7,8 @@ import { CustomError } from 'src/utils/custom-error';
 import { envConfig } from 'src/utils/envConfig';
 import { HTTP_ERRORS, VALIDATION_ERRORS } from 'src/utils/error-codes';
 import { AppResponse } from 'src/utils/schema';
-import type { ValidatedRequest } from 'src/utils/validator';
+import { ValidatedRequest } from 'src/utils/validator';
+import { HashnodeWebhookRequest } from 'src/schema/hashnode';
 import { validateSignature } from '../../validator';
 
 const fetchPost = async (hId: string) => {

@@ -1,11 +1,19 @@
-import { webcrypto } from 'node:crypto';
-import { generateRegistrationOptions, verifyRegistrationResponse } from '@simplewebauthn/server';
-import { logger } from 'src/utils/logger';
-import { EXPECTED_ORIGINS, EXPECTED_RP_IDS, RP_ID, RP_NAME } from './config';
+import type { PublicKeyCredentialCreationOptionsJSON } from '@simplewebauthn/types';
+import { webcrypto } from 'crypto';
+import {
+  generateRegistrationOptions,
+  verifyRegistrationResponse,
+} from '@simplewebauthn/server';
 // import { dbRead } from '../singleton/db';
-import { getUser, getUserPasskeys, setCurrentRegistrationOptions } from './userHelpers';
+import {
+  getUser,
+  getUserPasskeys,
+  setCurrentRegistrationOptions,
+} from './userHelpers';
+import { EXPECTED_ORIGINS, EXPECTED_RP_IDS, RP_ID, RP_NAME } from './config';
+import { logger } from 'src/utils/logger';
 
-// @ts-expect-error
+// @ts-ignore
 if (!global.crypto) global.crypto = webcrypto;
 
 const generateOptions = async (userId: string) => {
@@ -15,11 +23,11 @@ const generateOptions = async (userId: string) => {
   const userSnapshot = {};
   // const userSnapshot = await dbRead(`users/${userId}`);
 
-  // @ts-expect-error
+  // @ts-ignore
   if (!userSnapshot.exists) {
     return undefined;
   }
-  // @ts-expect-error
+  // @ts-ignore
   const user = userSnapshot.data();
   // logger.info('user data', user);
   // logger.info('user data key', user.ref.id);
@@ -60,17 +68,17 @@ const generateOptions = async (userId: string) => {
 };
 
 const verify = async (userId: string, credential: any) => {
-  const isVerified = false;
+  let isVerified = false;
   const userSnapshot = await getUser(userId);
 
-  // @ts-expect-error
+  // @ts-ignore
   if (!userSnapshot.exists) {
     return {
       isVerified,
     };
   }
 
-  // @ts-expect-error
+  // @ts-ignore
   const user = userSnapshot.data();
   logger.info('user data', user);
   const { passkeyRegistrationOptions: currentOptions } = user;

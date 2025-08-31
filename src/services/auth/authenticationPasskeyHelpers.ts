@@ -1,16 +1,16 @@
 import {
-  generateAuthenticationOptions,
-  verifyAuthenticationResponse,
-} from '@simplewebauthn/server';
-import { logger } from 'src/utils/logger';
-import { EXPECTED_ORIGINS, EXPECTED_RP_IDS, RP_ID } from './config';
-import {
   getUser,
   getUserPasskey,
   getUserPasskeys,
   saveUpdatedCounter,
   setCurrentAuthenticationOptions,
 } from './userHelpers';
+import {
+  generateAuthenticationOptions,
+  verifyAuthenticationResponse,
+} from '@simplewebauthn/server';
+import { EXPECTED_ORIGINS, EXPECTED_RP_IDS, RP_ID } from './config';
+import { logger } from 'src/utils/logger';
 
 const generateOptions = async (userId: string) => {
   const userPasskeys = await getUserPasskeys(userId);
@@ -31,17 +31,17 @@ const generateOptions = async (userId: string) => {
 };
 
 const verify = async (userId: string, credential: any) => {
-  const isVerified = false;
+  let isVerified = false;
   const userSnapshot = await getUser(userId);
 
-  // @ts-expect-error
+  // @ts-ignore
   if (!userSnapshot.exists) {
     return {
       isVerified,
     };
   }
 
-  // @ts-expect-error
+  // @ts-ignore
   const user = userSnapshot.data();
   logger.info('user data', user);
   logger.info('user id', userId);
@@ -50,7 +50,9 @@ const verify = async (userId: string, credential: any) => {
   const passkey = await getUserPasskey(userId, credential.id);
 
   if (!passkey) {
-    throw new Error(`Could not find passkey ${credential.id} for user ${user.id}`);
+    throw new Error(
+      `Could not find passkey ${credential.id} for user ${user.id}`,
+    );
   }
 
   let verification;

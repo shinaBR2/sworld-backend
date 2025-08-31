@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { fileExtensionPatterns, urlPatterns } from './index';
+import { describe, it, expect } from 'vitest';
+import { urlPatterns, fileExtensionPatterns } from './index';
 
 describe('urlPatterns', () => {
   describe('youtube', () => {

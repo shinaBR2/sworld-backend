@@ -1,6 +1,6 @@
-import path from 'node:path';
-import { Readable } from 'node:stream';
 import { Parser } from 'm3u8-parser';
+import { Readable } from 'node:stream';
+import path from 'path';
 import { CustomError } from 'src/utils/custom-error';
 import { HTTP_ERRORS } from 'src/utils/error-codes';
 import { fetchWithError } from 'src/utils/fetch';
@@ -166,7 +166,11 @@ const chunks = <T>(array: T[], size: number): T[][] => {
  * ], '/tmp/123', 1024 * 1024);
  * ```
  */
-const downloadSegments = async (segments: string[], tempDir: string, maxSegmentSize?: number) => {
+const downloadSegments = async (
+  segments: string[],
+  tempDir: string,
+  maxSegmentSize?: number,
+) => {
   const batches = chunks(segments, BATCH_SIZE);
 
   for (const batch of batches) {
@@ -273,7 +277,10 @@ const streamSegments = async (params: StreamSegmentsParams) => {
     await Promise.all(
       batch.map(async (segment) => {
         const segmentFileName = segment.name;
-        const segmentStoragePath = path.join(baseStoragePath, segmentFileName as string);
+        const segmentStoragePath = path.join(
+          baseStoragePath,
+          segmentFileName as string,
+        );
 
         await streamSegmentFile(segment.url, segmentStoragePath);
       }),

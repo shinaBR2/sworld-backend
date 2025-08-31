@@ -1,6 +1,9 @@
-import { hasuraClient } from '../../client';
 import { graphql } from '../../generated-graphql';
-import type { InsertVideosMutation, Videos_Insert_Input } from '../../generated-graphql/graphql';
+import {
+  InsertVideosMutation,
+  Videos_Insert_Input,
+} from '../../generated-graphql/graphql';
+import { hasuraClient } from '../../client';
 
 const BULK_INSERT_VIDEOS = graphql(/* GraphQL */ `
   mutation InsertVideos($objects: [videos_insert_input!]!) {
@@ -31,11 +34,14 @@ const insertVideos = async (videos: VideoInput[]): Promise<any> => {
     objects: videos,
   };
 
-  const response = await hasuraClient.request<InsertVideosMutation, BulkInsertsVariables>({
+  const response = await hasuraClient.request<
+    InsertVideosMutation,
+    BulkInsertsVariables
+  >({
     document: BULK_INSERT_VIDEOS.toString(),
     variables: variables,
   });
   return response.insert_videos;
 };
 
-export { type VideoInput, insertVideos };
+export { VideoInput, insertVideos };

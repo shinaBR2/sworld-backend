@@ -1,14 +1,14 @@
-import type { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { TaskEntityType, TaskType } from 'src/database/models/task';
-import type { ConvertRequest } from 'src/schema/videos/convert';
+import { ConvertRequest } from 'src/schema/videos/convert';
 import { verifySignature } from 'src/services/videos/convert/validator';
-import { type CreateCloudTasksParams, createCloudTasks } from 'src/utils/cloud-task';
+import { CreateCloudTasksParams, createCloudTasks } from 'src/utils/cloud-task';
 import { envConfig } from 'src/utils/envConfig';
 import { logger } from 'src/utils/logger';
-import { type Platform, urlPatterns } from 'src/utils/patterns';
+import { Platform, urlPatterns } from 'src/utils/patterns';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
-import type { ValidatedRequest } from 'src/utils/validator';
+import { ValidatedRequest } from 'src/utils/validator';
 
 const VIDEO_HANDLERS = {
   HLS: '/videos/stream-hls-handler',
@@ -75,7 +75,10 @@ const streamToStorage = async (req: Request, res: Response) => {
         break;
       case 'video':
         taskConfig.audience = computeServiceUrl;
-        taskConfig.url = buildHandlerUrl(computeServiceUrl, VIDEO_HANDLERS.CONVERT);
+        taskConfig.url = buildHandlerUrl(
+          computeServiceUrl,
+          VIDEO_HANDLERS.CONVERT,
+        );
         taskConfig.queue = convertVideoQueue;
         taskConfig.type = TaskType.CONVERT;
         break;
@@ -83,7 +86,10 @@ const streamToStorage = async (req: Request, res: Response) => {
         // TODO enhance list of allowed platform in the future
         if (platform && allowedPlatforms.includes(platform)) {
           taskConfig.audience = ioServiceUrl;
-          taskConfig.url = buildHandlerUrl(ioServiceUrl, VIDEO_HANDLERS.PLATFORM_IMPORT);
+          taskConfig.url = buildHandlerUrl(
+            ioServiceUrl,
+            VIDEO_HANDLERS.PLATFORM_IMPORT,
+          );
           taskConfig.type = TaskType.IMPORT_PLATFORM;
         } else {
           logger.error({ metadata }, 'Invalid source');

@@ -1,6 +1,6 @@
-import { randomBytes } from 'node:crypto';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { generateHumanCode, generateSecureCode } from './string';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { randomBytes } from 'crypto';
+import { generateSecureCode, generateHumanCode } from './string';
 
 // Mock crypto module
 vi.mock('crypto', () => ({
@@ -53,7 +53,9 @@ describe('generateSecureCode', () => {
     const mockBuffer1 = Buffer.from([1, 2, 3, 4]);
     const mockBuffer2 = Buffer.from([5, 6, 7, 8]);
 
-    mockedRandomBytes.mockReturnValueOnce(mockBuffer1).mockReturnValueOnce(mockBuffer2);
+    mockedRandomBytes
+      .mockReturnValueOnce(mockBuffer1)
+      .mockReturnValueOnce(mockBuffer2);
 
     const result1 = generateSecureCode(4);
     const result2 = generateSecureCode(4);
@@ -92,10 +94,14 @@ describe('generateHumanCode', () => {
     for (let i = 0; i < 20; i++) {
       // Mock different values for variety
       const wordIndex = i % validWords.length;
-      const wordBuffer = Buffer.from([Math.floor((wordIndex / validWords.length) * 255)]);
+      const wordBuffer = Buffer.from([
+        Math.floor((wordIndex / validWords.length) * 255),
+      ]);
       const numberBuffer = Buffer.from([i, i + 1]);
 
-      mockedRandomBytes.mockReturnValueOnce(numberBuffer).mockReturnValueOnce(wordBuffer);
+      mockedRandomBytes
+        .mockReturnValueOnce(numberBuffer)
+        .mockReturnValueOnce(wordBuffer);
 
       results.push(generateHumanCode());
     }
@@ -118,7 +124,9 @@ describe('generateHumanCode', () => {
       const wordBuffer = Buffer.from([0]); // BIRD
       const numberBuffer = Buffer.from(bytes);
 
-      mockedRandomBytes.mockReturnValueOnce(numberBuffer).mockReturnValueOnce(wordBuffer);
+      mockedRandomBytes
+        .mockReturnValueOnce(numberBuffer)
+        .mockReturnValueOnce(wordBuffer);
 
       const result = generateHumanCode();
       const [, number] = result.split('-');
@@ -132,7 +140,9 @@ describe('generateHumanCode', () => {
     const wordBuffer = Buffer.from([0]);
     const numberBuffer = Buffer.from([0, 0]);
 
-    mockedRandomBytes.mockReturnValueOnce(numberBuffer).mockReturnValueOnce(wordBuffer);
+    mockedRandomBytes
+      .mockReturnValueOnce(numberBuffer)
+      .mockReturnValueOnce(wordBuffer);
 
     generateHumanCode();
 
@@ -149,7 +159,9 @@ describe('generateHumanCode', () => {
       const wordBuffer = Buffer.from([i * 25]);
       const numberBuffer = Buffer.from([i * 10, i * 20]);
 
-      mockedRandomBytes.mockReturnValueOnce(numberBuffer).mockReturnValueOnce(wordBuffer);
+      mockedRandomBytes
+        .mockReturnValueOnce(numberBuffer)
+        .mockReturnValueOnce(wordBuffer);
 
       results.add(generateHumanCode());
     }
@@ -169,7 +181,9 @@ describe('generateHumanCode', () => {
       const wordBuffer = Buffer.from([byteValue]);
       const numberBuffer = Buffer.from([0, 0]);
 
-      mockedRandomBytes.mockReturnValueOnce(numberBuffer).mockReturnValueOnce(wordBuffer);
+      mockedRandomBytes
+        .mockReturnValueOnce(numberBuffer)
+        .mockReturnValueOnce(wordBuffer);
 
       const result = generateHumanCode();
       const [word] = result.split('-');
@@ -187,7 +201,9 @@ describe('generateHumanCode', () => {
         Math.floor(Math.random() * 255),
       ]);
 
-      mockedRandomBytes.mockReturnValueOnce(numberBuffer).mockReturnValueOnce(wordBuffer);
+      mockedRandomBytes
+        .mockReturnValueOnce(numberBuffer)
+        .mockReturnValueOnce(wordBuffer);
 
       const result = generateHumanCode();
 

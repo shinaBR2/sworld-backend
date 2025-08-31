@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { videosRouter } from './index';
 
 vi.mock('express', () => {
@@ -39,7 +39,9 @@ describe('videosRouter', () => {
         method: Object.keys(layer.route.methods)[0],
       }));
 
-    const convertHandlerRoute = routes.find((r) => r.path === '/convert-handler');
+    const convertHandlerRoute = routes.find(
+      (r) => r.path === '/convert-handler',
+    );
 
     expect(convertHandlerRoute).toBeDefined();
     expect(convertHandlerRoute?.method).toBe('post');

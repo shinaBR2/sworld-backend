@@ -1,4 +1,4 @@
-import crypto from 'node:crypto';
+import crypto from 'crypto';
 import { describe, expect, test, vi } from 'vitest';
 import {
   compareSignatures,

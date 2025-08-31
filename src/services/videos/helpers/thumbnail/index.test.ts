@@ -1,9 +1,9 @@
-import type path from 'node:path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { takeScreenshot } from '../ffmpeg';
-import { createDirectory, downloadFile, generateTempDir } from '../file';
-import { uploadFile } from '../gcp-cloud-storage';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import path from 'path';
 import { processThumbnail } from './';
+import { createDirectory, downloadFile, generateTempDir } from '../file';
+import { takeScreenshot } from '../ffmpeg';
+import { uploadFile } from '../gcp-cloud-storage';
 
 // Mock all dependencies
 vi.mock('path', async () => {
@@ -55,7 +55,10 @@ describe('processThumbnail', () => {
     expect(createDirectory).toHaveBeenCalledWith(mockWorkingDir);
 
     // Verify video download
-    expect(downloadFile).toHaveBeenCalledWith(mockProps.url, 'temp/123456/input_video_file');
+    expect(downloadFile).toHaveBeenCalledWith(
+      mockProps.url,
+      'temp/123456/input_video_file',
+    );
 
     // Verify screenshot generation
     expect(takeScreenshot).toHaveBeenCalledWith(
@@ -80,7 +83,9 @@ describe('processThumbnail', () => {
     const error = new Error('Download failed');
     vi.mocked(downloadFile).mockRejectedValue(error);
 
-    await expect(processThumbnail(mockProps)).rejects.toThrow('Download failed');
+    await expect(processThumbnail(mockProps)).rejects.toThrow(
+      'Download failed',
+    );
     expect(takeScreenshot).not.toHaveBeenCalled();
     expect(uploadFile).not.toHaveBeenCalled();
   });
@@ -89,7 +94,9 @@ describe('processThumbnail', () => {
     const error = new Error('Screenshot failed');
     vi.mocked(takeScreenshot).mockRejectedValue(error);
 
-    await expect(processThumbnail(mockProps)).rejects.toThrow('Screenshot failed');
+    await expect(processThumbnail(mockProps)).rejects.toThrow(
+      'Screenshot failed',
+    );
     expect(uploadFile).not.toHaveBeenCalled();
   });
 

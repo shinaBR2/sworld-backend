@@ -21,7 +21,11 @@ describe('hashnodeWebhookSchema', () => {
   };
 
   it('should validate valid request with different event types', () => {
-    const eventTypes = ['post_published', 'post_updated', 'post_deleted'] as const;
+    const eventTypes = [
+      'post_published',
+      'post_updated',
+      'post_deleted',
+    ] as const;
 
     eventTypes.forEach((eventType) => {
       const request = {

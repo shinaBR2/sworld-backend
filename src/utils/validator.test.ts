@@ -1,6 +1,6 @@
-import type { NextFunction, Request, Response } from 'express';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { z } from 'zod';
+import type { Request, Response, NextFunction } from 'express';
 import { validateRequest } from './validator';
 
 describe('validateRequest', () => {

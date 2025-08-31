@@ -1,8 +1,8 @@
-import { createBaseApp } from 'src/utils/base-app';
 import { errorHandler } from '../../utils/error-handler';
 import { logger } from '../../utils/logger';
-import { crawlerRouter } from './crawler';
+import { createBaseApp } from 'src/utils/base-app';
 import { videosRouter } from './videos';
+import { crawlerRouter } from './crawler';
 
 const app = createBaseApp();
 
