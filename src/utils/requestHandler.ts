@@ -1,7 +1,7 @@
 // src/utils/request-handler.ts
 import type { Request, Response } from 'express';
 import type { Context } from 'hono';
-import { ServiceResponse } from './schema';
+import type { ServiceResponse } from './schema';
 
 // Framework-agnostic handler interface
 // Extend Request and Context to include validatedData

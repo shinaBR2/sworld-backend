@@ -1,5 +1,5 @@
-import { Op, Transaction } from 'sequelize';
-import { Video, VideoTS } from '../models/video';
+import { Op, type Transaction } from 'sequelize';
+import { Video, type VideoTS } from '../models/video';
 
 const getVideoMissingDuration = async () => {
   const query = {

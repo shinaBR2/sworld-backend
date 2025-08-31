@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { AppError, AppResponse } from 'src/utils/schema';
-import { ValidatedRequest } from 'src/utils/validator';
+import type { ValidatedRequest } from 'src/utils/validator';
 import { verifySignature } from 'src/services/videos/convert/validator';
-import { ShareRequest } from 'src/schema/videos/share';
+import type { ShareRequest } from 'src/schema/videos/share';
 import { getPlaylistVideos } from 'src/services/hasura/queries/share';
 import { sharePlaylist } from 'src/services/hasura/mutations/share-videos';
 import { CustomError } from 'src/utils/custom-error';

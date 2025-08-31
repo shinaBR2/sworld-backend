@@ -1,7 +1,7 @@
-import { VerifiedRegistrationResponse } from '@simplewebauthn/server';
+import type { VerifiedRegistrationResponse } from '@simplewebauthn/server';
 // import { dbAddDocWithId, dbRead, dbUpdateDoc } from '../singleton/db';
-import { Passkey, UserModel } from './types';
-import {
+import type { Passkey, UserModel } from './types';
+import type {
   PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON,
 } from '@simplewebauthn/types';
@@ -11,11 +11,11 @@ const getUserPasskeys = async (userId: string): Promise<Passkey[]> => {
 
   const existingPasskeysSnapshot = {};
 
-  // @ts-ignore
+  // @ts-expect-error
   if (!existingPasskeysSnapshot.exists) {
     return [];
   }
-  // @ts-ignore
+  // @ts-expect-error
   const existingPasskeys = existingPasskeysSnapshot.data();
 
   return existingPasskeys;
@@ -29,12 +29,12 @@ const getUserPasskey = async (
   const passkeySnapshot = {};
   // const passkeySnapshot = await dbRead(`passkeys/${userId}/items/${passkeyId}`);
 
-  // @ts-ignore
+  // @ts-expect-error
   if (!passkeySnapshot.exists) {
     return undefined;
   }
 
-  // @ts-ignore
+  // @ts-expect-error
   const passkey = passkeySnapshot.data();
 
   return passkey;
@@ -75,11 +75,11 @@ const saveNewPasskey = async (
   const { registrationInfo } = verification;
 
   const {
-    // @ts-ignore
+    // @ts-expect-error
     credential,
-    // @ts-ignore
+    // @ts-expect-error
     credentialDeviceType: deviceType,
-    // @ts-ignore
+    // @ts-expect-error
     credentialBackedUp: backedUp,
   } = registrationInfo;
 

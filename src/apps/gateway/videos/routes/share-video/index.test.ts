@@ -1,5 +1,5 @@
 import { describe, it, vi, expect, beforeEach } from 'vitest';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
 import { verifySignature } from 'src/services/videos/convert/validator';

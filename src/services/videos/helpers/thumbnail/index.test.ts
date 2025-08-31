@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import path from 'path';
+import type path from 'path';
 import { processThumbnail } from './';
 import { createDirectory, downloadFile, generateTempDir } from '../file';
 import { takeScreenshot } from '../ffmpeg';

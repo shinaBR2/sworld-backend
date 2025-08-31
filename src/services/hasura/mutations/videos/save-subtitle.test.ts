@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
+import type {
   SaveSubtitleMutation,
   Subtitles_Set_Input,
 } from '../../generated-graphql/graphql';

@@ -1,23 +1,23 @@
-import express, { Router } from 'express';
+import express, { type Router } from 'express';
 import { validateRequest } from 'src/utils/validator';
 import { fixDurationHandler } from './routes/fix-duration';
 import { fixThumbnailHandler } from './routes/fix-thumbnail';
 import { importPlatformHandler } from './routes/import-platform';
 import { streamHLSHandler } from './routes/stream-hls';
 import {
-  StreamHandlerRequest,
+  type StreamHandlerRequest,
   streamHandlerSchema,
 } from 'src/schema/videos/stream-hls';
 import {
-  ImportHandlerRequest,
+  type ImportHandlerRequest,
   importHandlerSchema,
 } from 'src/schema/videos/import-platform';
 import {
-  FixDurationHandlerRequest,
+  type FixDurationHandlerRequest,
   fixDurationHandlerSchema,
 } from 'src/schema/videos/fix-duration';
 import {
-  FixThumbnailHandlerRequest,
+  type FixThumbnailHandlerRequest,
   fixThumbnailHandlerSchema,
 } from 'src/schema/videos/fix-thumbnail';
 

@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { finishVideoProcess } from 'src/services/hasura/mutations/videos/finalize';
 import { videoConfig } from 'src/services/videos/config';
 import { streamM3U8 } from 'src/services/videos/helpers/m3u8';
 import { CustomError } from 'src/utils/custom-error';
 import { HTTP_ERRORS, VIDEO_ERRORS } from 'src/utils/error-codes';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { streamHLSHandler } from './index';
 
 vi.mock('src/services/videos/helpers/m3u8', () => ({

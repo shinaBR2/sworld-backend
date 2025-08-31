@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/node';
-import { ErrorRequestHandler } from 'express';
-import { Logger } from 'pino';
+import type { ErrorRequestHandler } from 'express';
+import type { Logger } from 'pino';
 import { CustomError } from './custom-error';
 
 const cleanStack = (stack?: string) => {

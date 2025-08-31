@@ -118,7 +118,7 @@ const validateSignature = (
     payload,
     secret,
   });
-  let isSignatureValid = compareSignatures(signature, incomingSignature);
+  const isSignatureValid = compareSignatures(signature, incomingSignature);
 
   if (!isSignatureValid) {
     return { isValid: false, reason: 'Invalid signature' };

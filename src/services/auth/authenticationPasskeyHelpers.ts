@@ -31,17 +31,17 @@ const generateOptions = async (userId: string) => {
 };
 
 const verify = async (userId: string, credential: any) => {
-  let isVerified = false;
+  const isVerified = false;
   const userSnapshot = await getUser(userId);
 
-  // @ts-ignore
+  // @ts-expect-error
   if (!userSnapshot.exists) {
     return {
       isVerified,
     };
   }
 
-  // @ts-ignore
+  // @ts-expect-error
   const user = userSnapshot.data();
   logger.info('user data', user);
   logger.info('user id', userId);

@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { finishVideoProcess } from 'src/services/hasura/mutations/videos/finalize';
 import { CustomError } from 'src/utils/custom-error';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
 import { logger } from 'src/utils/logger';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { importPlatformHandler } from './index';
 
 vi.mock('src/utils/logger', () => ({

@@ -1,9 +1,9 @@
 import {
   Configuration,
   PlaywrightCrawler,
-  PlaywrightCrawlerOptions,
+  type PlaywrightCrawlerOptions,
 } from 'crawlee';
-import { CrawlInputs, SelectorConfig } from './types';
+import type { CrawlInputs, SelectorConfig } from './types';
 import { createRequestHandler } from './utils';
 import { validateUrlInput } from './validator';
 

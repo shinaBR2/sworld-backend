@@ -1,4 +1,4 @@
-import { SelectorConfig, SelectorName } from '../types';
+import { type SelectorConfig, SelectorName } from '../types';
 
 /**
  * Data

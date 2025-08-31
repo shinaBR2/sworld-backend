@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { graphql } from '../../generated-graphql';
-import {
+import type {
   FinalizeVideoMutation,
   FinalizeVideoMutationVariables,
 } from '../../generated-graphql/graphql';

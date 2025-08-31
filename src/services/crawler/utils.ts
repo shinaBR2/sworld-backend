@@ -1,7 +1,7 @@
-import { Page } from 'playwright';
+import type { Page } from 'playwright';
 import { hh3dHandler } from './hh3d';
 import { selectors } from './hh3d/selectors';
-import {
+import type {
   HandlerOptions,
   RequestHandlerWithState,
   SelectorConfig,

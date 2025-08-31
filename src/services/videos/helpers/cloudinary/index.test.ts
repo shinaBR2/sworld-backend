@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { UploadApiResponse, v2 as cloudinary } from 'cloudinary';
+import { type UploadApiResponse, v2 as cloudinary } from 'cloudinary';
 import { uploadFromLocalFilePath } from '.';
 import { existsSync } from 'fs';
 import { envConfig } from 'src/utils/envConfig';

@@ -7,9 +7,7 @@ const mockValidateRequest = vi.fn().mockReturnValue('mockMiddleware');
 
 // Mock dependencies
 vi.mock('express', () => {
-  const mockExpress = function () {
-    return {};
-  };
+  const mockExpress = () => ({});
   mockExpress.Router = () => mockRouter;
 
   return {

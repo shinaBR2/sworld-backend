@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { validateMediaURL, verifySignature } from './validator';
-import { FileType, Platform } from 'src/utils/patterns';
+import type { FileType, Platform } from 'src/utils/patterns';
 
 const mockWebhookSecret = 'test-secret';
 

@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { hasuraClient } from 'src/services/hasura/client';
 import { createDeviceRequest } from './index';
 import {
-  CreateDeviceRequestMutation,
+  type CreateDeviceRequestMutation,
   CreateDeviceRequestMutationVariables,
-  Device_Requests_Insert_Input,
+  type Device_Requests_Insert_Input,
 } from '../../../generated-graphql/graphql';
 
 // Mock the hasura client

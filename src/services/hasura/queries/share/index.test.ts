@@ -3,7 +3,7 @@ import { hasuraClient } from '../../client';
 import { getPlaylistVideos, getUsers } from './index';
 import {
   PlaylistDetailQuery,
-  UsersQuery,
+  type UsersQuery,
 } from '../../generated-graphql/graphql';
 
 // Mock the hasura client

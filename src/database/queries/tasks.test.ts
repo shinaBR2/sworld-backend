@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { Task } from '../models/task';
 import { createTask, updateTaskStatus, completeTask } from './tasks';
 import { TaskStatus } from '../models/task';

@@ -1,8 +1,8 @@
-import express, { Router } from 'express';
+import express, { type Router } from 'express';
 import { validateRequest } from 'src/utils/validator';
 import { postEventsHandler } from './routes/posts';
 import {
-  HashnodeWebhookRequest,
+  type HashnodeWebhookRequest,
   hashnodeWebhookSchema,
 } from 'src/schema/hashnode';
 

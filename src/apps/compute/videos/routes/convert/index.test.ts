@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { completeTask } from 'src/database/queries/tasks';
 import { convertVideo } from 'src/services/videos/convert/handler';
 import { CustomError } from 'src/utils/custom-error';
 import { VIDEO_ERRORS } from 'src/utils/error-codes';
 import { logger } from 'src/utils/logger';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { convertHandler } from './index';
 
 interface MockResponse extends Response {

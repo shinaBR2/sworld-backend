@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
-import { Request, Response } from 'express';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import type { Request, Response } from 'express';
 import { fixDurationHandler } from './index';
 import { sequelize } from 'src/database';
 import { completeTask } from 'src/database/queries/tasks';

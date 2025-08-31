@@ -1,4 +1,4 @@
-import { PlaywrightRequestHandler } from 'crawlee';
+import type { PlaywrightRequestHandler } from 'crawlee';
 
 interface SelectorConfig {
   selector: string;

@@ -1,14 +1,17 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { TaskEntityType, TaskType } from 'src/database/models/task';
-import { ConvertRequest } from 'src/schema/videos/convert';
+import type { ConvertRequest } from 'src/schema/videos/convert';
 import { verifySignature } from 'src/services/videos/convert/validator';
-import { CreateCloudTasksParams, createCloudTasks } from 'src/utils/cloud-task';
+import {
+  type CreateCloudTasksParams,
+  createCloudTasks,
+} from 'src/utils/cloud-task';
 import { envConfig } from 'src/utils/envConfig';
 import { logger } from 'src/utils/logger';
-import { Platform, urlPatterns } from 'src/utils/patterns';
+import { type Platform, urlPatterns } from 'src/utils/patterns';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
-import { ValidatedRequest } from 'src/utils/validator';
+import type { ValidatedRequest } from 'src/utils/validator';
 
 const VIDEO_HANDLERS = {
   HLS: '/videos/stream-hls-handler',

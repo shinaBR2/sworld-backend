@@ -1,8 +1,8 @@
-import express, { Router } from 'express';
+import express, { type Router } from 'express';
 import { validateRequest } from 'src/utils/validator';
 import { convertHandler } from './routes/convert';
 import {
-  ConvertHandlerRequest,
+  type ConvertHandlerRequest,
   convertHandlerSchema,
 } from 'src/schema/videos/convert';
 

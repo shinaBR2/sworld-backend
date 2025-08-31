@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { hasuraClient } from '../../client';
 import { sharePlaylist, shareVideo } from './index';
-import {
+import type {
   SharePlaylistMutation,
   ShareVideoMutation,
 } from '../../generated-graphql/graphql';

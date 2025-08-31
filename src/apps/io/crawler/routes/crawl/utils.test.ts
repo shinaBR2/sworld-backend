@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CrawlData, CrawlParams } from './type';
+import type { CrawlData, CrawlParams } from './type';
 import { buildVariables } from './utils';
 
 describe('buildVariables', () => {

@@ -4,7 +4,7 @@ import { HTTP_ERRORS } from 'src/utils/error-codes';
 import { fetchWithError } from 'src/utils/fetch';
 import { logger } from 'src/utils/logger';
 import { systemConfig } from 'src/utils/systemConfig';
-import { Mock, beforeEach, describe, expect, test, vi } from 'vitest';
+import { type Mock, beforeEach, describe, expect, test, vi } from 'vitest';
 import { downloadFile, verifyFileSize } from '../file';
 import { streamFile } from '../gcp-cloud-storage';
 import {

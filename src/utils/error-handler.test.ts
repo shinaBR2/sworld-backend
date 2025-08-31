@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Request, Response } from 'express';
-import { Logger } from 'pino';
+import type { Request, Response } from 'express';
+import type { Logger } from 'pino';
 import * as Sentry from '@sentry/node';
 import { errorHandler } from './error-handler';
 import { CustomError } from './custom-error';

@@ -62,11 +62,11 @@ type ErrorCode =
 export {
   CRAWL_ERRORS,
   DATABASE_ERRORS,
-  DbErrorCode,
-  ErrorCode,
+  type DbErrorCode,
+  type ErrorCode,
   HTTP_ERRORS,
-  HttpErrorCode,
+  type HttpErrorCode,
   VALIDATION_ERRORS,
   VIDEO_ERRORS,
-  VideoErrorCode,
+  type VideoErrorCode,
 };

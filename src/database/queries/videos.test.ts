@@ -1,5 +1,5 @@
-import { Op, Transaction } from 'sequelize';
-import { Mock, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Op, type Transaction } from 'sequelize';
+import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Video } from '../models/video';
 import {
   getVideoById,

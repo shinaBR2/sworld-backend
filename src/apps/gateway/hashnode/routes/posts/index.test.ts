@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { getPost } from 'src/services/hashnode/queries/posts';
 import { deletePost } from 'src/services/hasura/mutations/posts/delete';
 import { insertPost } from 'src/services/hasura/mutations/posts/insert';

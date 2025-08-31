@@ -1,6 +1,6 @@
 import { CRAWL_ERRORS, HTTP_ERRORS } from 'src/utils/error-codes';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { HandlerOptions, SelectorName } from '../types';
+import { type HandlerOptions, SelectorName } from '../types';
 import { hh3dHandler } from './index';
 
 // Create simple mocks
@@ -28,7 +28,7 @@ vi.mock('src/utils/logger', () => ({
 }));
 
 // Import the mocked dependencies
-import { Page } from 'playwright';
+import type { Page } from 'playwright';
 import { CustomError } from 'src/utils/custom-error';
 import { scrapeUrl } from './scrapers';
 

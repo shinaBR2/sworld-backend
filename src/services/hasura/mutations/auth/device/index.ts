@@ -1,6 +1,6 @@
 import { hasuraClient } from 'src/services/hasura/client';
 import { graphql } from '../../../generated-graphql';
-import {
+import type {
   CreateDeviceRequestMutation,
   CreateDeviceRequestMutationVariables,
   Device_Requests_Insert_Input,

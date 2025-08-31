@@ -1,5 +1,5 @@
 import { graphql } from '../../generated-graphql';
-import {
+import type {
   Posts_Set_Input,
   UpdatePostMutation,
 } from '../../generated-graphql/graphql';

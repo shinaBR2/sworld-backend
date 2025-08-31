@@ -1,5 +1,5 @@
 import { graphql } from '../../generated-graphql';
-import {
+import type {
   SaveSubtitleMutation,
   SaveSubtitleMutationVariables,
   Subtitles_Set_Input,

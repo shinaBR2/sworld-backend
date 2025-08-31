@@ -1,7 +1,7 @@
-import express, { Router } from 'express';
+import express, { type Router } from 'express';
 import { validateRequest } from 'src/utils/validators/request';
 import {
-  DeviceRequestCreateRequest,
+  type DeviceRequestCreateRequest,
   deviceRequestCreateSchema,
 } from 'src/schema/auth/device';
 import { createDeviceRequest } from './routes/device';

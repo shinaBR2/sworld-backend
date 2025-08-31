@@ -1,6 +1,6 @@
 import { getHashnodeClient } from '../../client';
 import { graphql } from '../../generated-graphql';
-import { GetPostQuery } from '../../generated-graphql/graphql';
+import type { GetPostQuery } from '../../generated-graphql/graphql';
 
 const GET_POST = graphql(/* GraphQL */ `
   query GetPost($id: ID!) {

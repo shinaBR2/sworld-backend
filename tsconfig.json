@@ -3,6 +3,9 @@
     "target": "ESNext",
     "module": "ES2020",
     "baseUrl": ".",
+    "paths": {
+      "src/*": ["./src/*"]
+    },
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "outDir": "dist",

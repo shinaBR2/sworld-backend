@@ -1,6 +1,6 @@
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import ffprobeInstaller from '@ffprobe-installer/ffprobe';
-import ffmpeg, { FfprobeData } from 'fluent-ffmpeg';
+import ffmpeg, { type FfprobeData } from 'fluent-ffmpeg';
 import { existsSync } from 'fs';
 import * as path from 'path';
 import { logger } from 'src/utils/logger';

@@ -1,5 +1,5 @@
 import { graphql } from '../../generated-graphql';
-import {
+import type {
   InsertVideosMutation,
   Videos_Insert_Input,
 } from '../../generated-graphql/graphql';
@@ -44,4 +44,4 @@ const insertVideos = async (videos: VideoInput[]): Promise<any> => {
   return response.insert_videos;
 };
 
-export { VideoInput, insertVideos };
+export { type VideoInput, insertVideos };

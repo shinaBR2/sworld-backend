@@ -9,9 +9,7 @@ vi.mock('crawlee', () => ({
   PlaywrightCrawler: vi.fn((options, config) => ({
     run: vi.fn().mockResolvedValue(undefined),
   })),
-  Configuration: vi.fn(function (options) {
-    return options;
-  }),
+  Configuration: vi.fn((options) => options),
 }));
 
 vi.mock('./utils', () => ({

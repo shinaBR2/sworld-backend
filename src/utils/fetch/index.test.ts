@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { fetchWithError } from './index';
 import { CustomError } from '../custom-error';
 import { HTTP_ERRORS } from '../error-codes';

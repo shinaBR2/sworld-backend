@@ -1,7 +1,7 @@
 import {
   Storage,
   TransferManager,
-  CreateWriteStreamOptions,
+  type CreateWriteStreamOptions,
 } from '@google-cloud/storage';
 import { existsSync } from 'fs';
 import { readdir } from 'fs/promises';

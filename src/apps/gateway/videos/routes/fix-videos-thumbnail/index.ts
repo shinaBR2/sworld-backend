@@ -1,11 +1,14 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { envConfig } from 'src/utils/envConfig';
-import { ValidatedRequest } from 'src/utils/validator';
-import { HasuraWebhookRequest } from 'src/schema/hasura';
+import type { ValidatedRequest } from 'src/utils/validator';
+import type { HasuraWebhookRequest } from 'src/schema/hasura';
 import { verifySignature } from 'src/services/videos/convert/validator';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
-import { CreateCloudTasksParams, createCloudTasks } from 'src/utils/cloud-task';
+import {
+  type CreateCloudTasksParams,
+  createCloudTasks,
+} from 'src/utils/cloud-task';
 import { TaskEntityType, TaskType } from 'src/database/models/task';
 import { getVideoMissingThumbnail } from 'src/database/queries/videos';
 

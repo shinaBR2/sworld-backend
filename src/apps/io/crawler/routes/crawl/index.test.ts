@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { completeTask } from 'src/database/queries/tasks';
 import { crawl } from 'src/services/crawler';
 import { insertVideos } from 'src/services/hasura/mutations/videos/bulk-insert';

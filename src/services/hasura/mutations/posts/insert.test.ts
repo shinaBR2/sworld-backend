@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
+import type {
   InsertPostMutation,
   Posts_Insert_Input,
 } from '../../generated-graphql/graphql';

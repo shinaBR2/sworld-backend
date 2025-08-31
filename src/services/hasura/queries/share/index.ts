@@ -1,6 +1,6 @@
 import { hasuraClient } from '../../client';
 import { graphql } from '../../generated-graphql';
-import {
+import type {
   PlaylistDetailQuery,
   PlaylistDetailQueryVariables,
   UsersQuery,

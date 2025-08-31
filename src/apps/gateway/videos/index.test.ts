@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { validateRequest } from 'src/utils/validator';
 import { validateRequest as newValidateRequest } from 'src/utils/validators/request';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

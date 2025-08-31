@@ -1,9 +1,16 @@
-import { describe, it, expect, vi, beforeEach, MockedFunction } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  type MockedFunction,
+} from 'vitest';
 import { subtitleCreatedHandler } from './index';
 import { streamSubtitleFile } from 'src/services/videos/helpers/subtitle';
 import { getDownloadUrl } from 'src/services/videos/helpers/gcp-cloud-storage';
 import { saveSubtitle } from 'src/services/hasura/mutations/videos/save-subtitle';
-import { SubtitleCreatedRequest } from 'src/schema/videos/subtitle-created';
+import type { SubtitleCreatedRequest } from 'src/schema/videos/subtitle-created';
 
 // Mock dependencies with proper typing
 vi.mock('src/services/videos/helpers/subtitle', () => ({

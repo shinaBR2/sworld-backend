@@ -1,8 +1,8 @@
-import { Page } from 'playwright';
+import type { Page } from 'playwright';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as hh3dModule from './hh3d';
 import { selectors } from './hh3d/selectors';
-import { SelectorConfig } from './types';
+import type { SelectorConfig } from './types';
 import {
   createRequestHandler,
   getHandlerType,
@@ -156,14 +156,14 @@ describe('getSelectors', () => {
   });
 
   it('should throw error for undefined handler type', () => {
-    // @ts-ignore
+    // @ts-expect-error
     expect(() => getSelectors(undefined)).toThrow(
       'Unsupported handler type: undefined',
     );
   });
 
   it('should throw error for null handler type', () => {
-    // @ts-ignore
+    // @ts-expect-error
     expect(() => getSelectors(null)).toThrow('Unsupported handler type: null');
   });
 });

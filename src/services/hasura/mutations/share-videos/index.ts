@@ -1,5 +1,5 @@
 import { graphql } from '../../generated-graphql';
-import {
+import type {
   SharePlaylistMutation,
   SharePlaylistMutationVariables,
   ShareVideoMutation,

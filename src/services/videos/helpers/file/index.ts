@@ -57,7 +57,7 @@ const downloadFile = async (url: string, localPath: string) => {
         const reader = response.body?.getReader();
 
         while (true) {
-          //@ts-ignore
+          //@ts-expect-error
           const { done, value } = await reader?.read();
           if (done) break;
 

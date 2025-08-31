@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/useArrowFunction: it breaks the test */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { readdir } from 'fs/promises';
 import path from 'path';

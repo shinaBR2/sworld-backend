@@ -1,5 +1,5 @@
-import { VideoInput } from 'src/services/hasura/mutations/videos/bulk-insert';
-import { CrawlData, CrawlParams } from './type';
+import type { VideoInput } from 'src/services/hasura/mutations/videos/bulk-insert';
+import type { CrawlData, CrawlParams } from './type';
 
 const buildVariables = (
   result: { data: CrawlData[] },

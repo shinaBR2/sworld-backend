@@ -134,4 +134,4 @@ const streamM3U8 = async (
   }
 };
 
-export { ProcessOptions, streamM3U8 };
+export { type ProcessOptions, streamM3U8 };
