@@ -135,8 +135,12 @@ const validateRequest = expressValidateRequest; // Start with Express
 // const validateRequest = honoValidateRequest // Switch to Hono later
 
 // Types for compatibility
-type ValidatedRequest<T extends z.ZodType> = Request & { validatedData: z.infer<T> };
-type ValidatedContext<T extends z.ZodType> = Context & { validatedData: z.infer<T> };
+type ValidatedRequest<T extends z.ZodType> = Request & {
+  validatedData: z.infer<T>;
+};
+type ValidatedContext<T extends z.ZodType> = Context & {
+  validatedData: z.infer<T>;
+};
 
 export {
   validateRequest,

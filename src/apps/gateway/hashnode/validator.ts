@@ -19,7 +19,10 @@ const parseSignatureHeader = (header: string) => {
     return { success: false as const, data: null };
   }
 
-  return { success: true as const, data: { timestamp: parseInt(timestamp, 10), signature } };
+  return {
+    success: true as const,
+    data: { timestamp: parseInt(timestamp, 10), signature },
+  };
 };
 
 type CreateSignatureOptions = {
@@ -90,7 +93,11 @@ const validateSignature = (options: ValidateSignatureOptions): ValidateSignature
 
   const { timestamp: incomingSignatureTimestamp, signature: incomingSignature } = parseSignatureHeaderData;
 
-  const signature = createSignature({ timestamp: incomingSignatureTimestamp, payload, secret });
+  const signature = createSignature({
+    timestamp: incomingSignatureTimestamp,
+    payload,
+    secret,
+  });
   let isSignatureValid = compareSignatures(signature, incomingSignature);
 
   if (!isSignatureValid) {

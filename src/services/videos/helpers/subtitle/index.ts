@@ -30,7 +30,12 @@ const streamSubtitleFile = async (options: StreamSubtitleOptions) => {
     throw new CustomError('Failed to fetch subtitle', {
       errorCode: HTTP_ERRORS.EMPTY_RESPONSE,
       shouldRetry: false,
-      context: { url, storagePath, responseStatus: response.statusText, statusCode: response.status },
+      context: {
+        url,
+        storagePath,
+        responseStatus: response.statusText,
+        statusCode: response.status,
+      },
     });
   }
 

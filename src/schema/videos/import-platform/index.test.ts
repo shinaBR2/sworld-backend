@@ -65,7 +65,10 @@ describe('ImportHandlerSchema', () => {
     it('should reject non-HTTPS video URL', () => {
       const result = importHandlerSchema.safeParse(
         createRequest({
-          data: { ...validData, videoUrl: 'http://storage.example.com/video.mp4' },
+          data: {
+            ...validData,
+            videoUrl: 'http://storage.example.com/video.mp4',
+          },
         })
       );
       expect(result.success).toBe(false);
@@ -74,7 +77,10 @@ describe('ImportHandlerSchema', () => {
     it('should reject non-video file URL', () => {
       const result = importHandlerSchema.safeParse(
         createRequest({
-          data: { ...validData, videoUrl: 'https://storage.example.com/image.jpg' },
+          data: {
+            ...validData,
+            videoUrl: 'https://storage.example.com/image.jpg',
+          },
         })
       );
       expect(result.success).toBe(false);

@@ -66,7 +66,10 @@ describe('streamHandlerSchema', () => {
     it('should reject non-HTTPS video URL', () => {
       const result = streamHandlerSchema.safeParse(
         createRequest({
-          data: { ...validData, videoUrl: 'http://storage.example.com/video.mp4' },
+          data: {
+            ...validData,
+            videoUrl: 'http://storage.example.com/video.mp4',
+          },
         })
       );
       expect(result.success).toBe(false);
@@ -75,7 +78,10 @@ describe('streamHandlerSchema', () => {
     it('should reject non-video file URL', () => {
       const result = streamHandlerSchema.safeParse(
         createRequest({
-          data: { ...validData, videoUrl: 'https://storage.example.com/image.jpg' },
+          data: {
+            ...validData,
+            videoUrl: 'https://storage.example.com/image.jpg',
+          },
         })
       );
       expect(result.success).toBe(false);

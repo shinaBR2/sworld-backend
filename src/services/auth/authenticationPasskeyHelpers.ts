@@ -5,10 +5,7 @@ import {
   saveUpdatedCounter,
   setCurrentAuthenticationOptions,
 } from './userHelpers';
-import {
-  generateAuthenticationOptions,
-  verifyAuthenticationResponse,
-} from '@simplewebauthn/server';
+import { generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
 import { EXPECTED_ORIGINS, EXPECTED_RP_IDS, RP_ID } from './config';
 import { logger } from 'src/utils/logger';
 
@@ -50,9 +47,7 @@ const verify = async (userId: string, credential: any) => {
   const passkey = await getUserPasskey(userId, credential.id);
 
   if (!passkey) {
-    throw new Error(
-      `Could not find passkey ${credential.id} for user ${user.id}`
-    );
+    throw new Error(`Could not find passkey ${credential.id} for user ${user.id}`);
   }
 
   let verification;

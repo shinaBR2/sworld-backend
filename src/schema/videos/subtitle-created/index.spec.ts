@@ -48,7 +48,12 @@ describe('Subtitle Schema', () => {
 
     it('should validate videoId as UUID', () => {
       // Test invalid UUID
-      expect(() => subtitleDataSchema.parse({ ...validSubtitleData, videoId: 'invalid-uuid' })).toThrow('Invalid uuid');
+      expect(() =>
+        subtitleDataSchema.parse({
+          ...validSubtitleData,
+          videoId: 'invalid-uuid',
+        })
+      ).toThrow('Invalid uuid');
 
       // Test valid UUID
       expect(() =>
@@ -61,7 +66,12 @@ describe('Subtitle Schema', () => {
 
     it('should validate userId as UUID', () => {
       // Test invalid UUID
-      expect(() => subtitleDataSchema.parse({ ...validSubtitleData, userId: 'invalid-uuid' })).toThrow('Invalid uuid');
+      expect(() =>
+        subtitleDataSchema.parse({
+          ...validSubtitleData,
+          userId: 'invalid-uuid',
+        })
+      ).toThrow('Invalid uuid');
 
       // Test valid UUID
       expect(() =>
@@ -119,12 +129,22 @@ describe('Subtitle Schema', () => {
 
     it('should require content-type header', () => {
       const { 'content-type': _, ...invalidHeaders } = validRequest.headers;
-      expect(() => subtitleCreatedSchema.parse({ ...validRequest, headers: invalidHeaders })).toThrow();
+      expect(() =>
+        subtitleCreatedSchema.parse({
+          ...validRequest,
+          headers: invalidHeaders,
+        })
+      ).toThrow();
     });
 
     it('should require x-webhook-signature header', () => {
       const { 'x-webhook-signature': _, ...invalidHeaders } = validRequest.headers;
-      expect(() => subtitleCreatedSchema.parse({ ...validRequest, headers: invalidHeaders })).toThrow();
+      expect(() =>
+        subtitleCreatedSchema.parse({
+          ...validRequest,
+          headers: invalidHeaders,
+        })
+      ).toThrow();
     });
 
     it('should transform request correctly', () => {

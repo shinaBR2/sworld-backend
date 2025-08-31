@@ -50,8 +50,18 @@ describe('crawlHandler', () => {
       urls: ['URL_ADDRESS.com/video1', 'URL_ADDRESS.com/video1', 'URL_ADDRESSe.com/video2'],
     };
     const mockVideos = [
-      { title: 'Test Video 1', slug: 'test-1', video_url: 'http://example.com/video1', user_id: 'user123' },
-      { title: 'Test Video 2', slug: 'test-2', video_url: 'http://example.com/video2', user_id: 'user123' },
+      {
+        title: 'Test Video 1',
+        slug: 'test-1',
+        video_url: 'http://example.com/video1',
+        user_id: 'user123',
+      },
+      {
+        title: 'Test Video 2',
+        slug: 'test-2',
+        video_url: 'http://example.com/video2',
+        user_id: 'user123',
+      },
     ];
 
     vi.mocked(crawl).mockResolvedValue(mockCrawlResult);
@@ -124,7 +134,14 @@ describe('crawlHandler', () => {
       data: [{ videoUrl: 'http://example.com/video1' }],
       urls: ['URL_ADDRESS.com/video1', 'URL_ADDRESS.com/video1', 'URL_ADDRESSe.com/video2'],
     };
-    const mockVideos = [{ title: 'Test Video', slug: '1', video_url: 'http://example.com/video1', user_id: 'user123' }];
+    const mockVideos = [
+      {
+        title: 'Test Video',
+        slug: '1',
+        video_url: 'http://example.com/video1',
+        user_id: 'user123',
+      },
+    ];
 
     vi.mocked(crawl).mockResolvedValue(mockCrawlResult);
     vi.mocked(buildVariables).mockReturnValue(mockVideos);

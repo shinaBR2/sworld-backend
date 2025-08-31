@@ -166,7 +166,10 @@ describe('Task Queries', () => {
 
     it('should update task status with a transaction', async () => {
       const mockTransaction = {} as any;
-      const paramsWithTransaction = { ...mockParams, transaction: mockTransaction };
+      const paramsWithTransaction = {
+        ...mockParams,
+        transaction: mockTransaction,
+      };
 
       // Mock update to return update result
       (Task.update as Mock).mockResolvedValue([1]); // Simulate one row updated
@@ -228,7 +231,10 @@ describe('Task Queries', () => {
       // Mock update to return update result
       (Task.update as Mock).mockResolvedValue([1]); // Simulate one row updated
 
-      const result = await completeTask({ taskId, transaction: mockTransaction });
+      const result = await completeTask({
+        taskId,
+        transaction: mockTransaction,
+      });
 
       expect(Task.update).toHaveBeenCalledWith(
         {

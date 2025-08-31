@@ -194,9 +194,15 @@ describe('CustomError', () => {
     });
 
     it('should preserve shouldRetry through error propagation', () => {
-      const lowLevelError = new CustomError('Low level error', { shouldRetry: true });
-      const midLevelError = new CustomError('Mid level error', { originalError: lowLevelError });
-      const highLevelError = new CustomError('High level error', { originalError: midLevelError });
+      const lowLevelError = new CustomError('Low level error', {
+        shouldRetry: true,
+      });
+      const midLevelError = new CustomError('Mid level error', {
+        originalError: lowLevelError,
+      });
+      const highLevelError = new CustomError('High level error', {
+        originalError: midLevelError,
+      });
 
       expect(highLevelError.shouldRetry).toBe(true);
     });

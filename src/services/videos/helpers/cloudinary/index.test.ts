@@ -44,9 +44,7 @@ describe('uploadFromLocalFilePath', () => {
     const mockUploadResponse = {
       secure_url: 'https://cloudinary.com/test-video.mp4',
     };
-    vi.mocked(cloudinary.uploader.upload).mockResolvedValueOnce(
-      mockUploadResponse as UploadApiResponse
-    );
+    vi.mocked(cloudinary.uploader.upload).mockResolvedValueOnce(mockUploadResponse as UploadApiResponse);
 
     const result = await uploadFromLocalFilePath(localFilePath);
 
@@ -60,25 +58,18 @@ describe('uploadFromLocalFilePath', () => {
     const mockUploadResponse = {
       secure_url: 'https://cloudinary.com/test-video.mp4',
     };
-    vi.mocked(cloudinary.uploader.upload).mockResolvedValueOnce(
-      mockUploadResponse as UploadApiResponse
-    );
+    vi.mocked(cloudinary.uploader.upload).mockResolvedValueOnce(mockUploadResponse as UploadApiResponse);
 
     const result = await uploadFromLocalFilePath(localFilePath, options);
 
-    expect(cloudinary.uploader.upload).toHaveBeenCalledWith(
-      localFilePath,
-      options
-    );
+    expect(cloudinary.uploader.upload).toHaveBeenCalledWith(localFilePath, options);
     expect(result).toBe(mockUploadResponse.secure_url);
   });
 
   it('should throw error when file path is missing', async () => {
     const localFilePath = '';
 
-    await expect(uploadFromLocalFilePath(localFilePath)).rejects.toThrow(
-      'Invalid or missing file path'
-    );
+    await expect(uploadFromLocalFilePath(localFilePath)).rejects.toThrow('Invalid or missing file path');
     expect(cloudinary.uploader.upload).not.toHaveBeenCalled();
   });
 
@@ -86,9 +77,7 @@ describe('uploadFromLocalFilePath', () => {
     const localFilePath = '/path/to/nonexistent.mp4';
     vi.mocked(existsSync).mockReturnValue(false);
 
-    await expect(uploadFromLocalFilePath(localFilePath)).rejects.toThrow(
-      'Invalid or missing file path'
-    );
+    await expect(uploadFromLocalFilePath(localFilePath)).rejects.toThrow('Invalid or missing file path');
     expect(cloudinary.uploader.upload).not.toHaveBeenCalled();
   });
 
@@ -97,19 +86,13 @@ describe('uploadFromLocalFilePath', () => {
     const mockError = new Error('Upload failed');
     vi.mocked(cloudinary.uploader.upload).mockRejectedValueOnce(mockError);
 
-    await expect(uploadFromLocalFilePath(localFilePath)).rejects.toThrow(
-      mockError
-    );
+    await expect(uploadFromLocalFilePath(localFilePath)).rejects.toThrow(mockError);
   });
 
   it('should throw error when upload returns no result', async () => {
     const localFilePath = '/path/to/file.mp4';
-    vi.mocked(cloudinary.uploader.upload).mockResolvedValueOnce(
-      undefined as unknown as UploadApiResponse
-    );
+    vi.mocked(cloudinary.uploader.upload).mockResolvedValueOnce(undefined as unknown as UploadApiResponse);
 
-    await expect(uploadFromLocalFilePath(localFilePath)).rejects.toThrow(
-      'Upload failed: No result returned'
-    );
+    await expect(uploadFromLocalFilePath(localFilePath)).rejects.toThrow('Upload failed: No result returned');
   });
 });

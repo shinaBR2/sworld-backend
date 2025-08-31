@@ -24,7 +24,9 @@
     "test:ci": "vitest run --coverage",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org sworld-dc --project node-express ./dist && sentry-cli sourcemaps upload --org sworld-dc --project node-express ./dist",
     "prepare": "husky install",
-    "lint-staged": "lint-staged"
+    "lint-staged": "lint-staged",
+    "format": "biome format --write",
+    "lint": "biome check ."
   },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx,json,md}": [
@@ -32,6 +34,7 @@
     ]
   },
   "devDependencies": {
+    "@biomejs/biome": "2.2.2",
     "@dotenvx/dotenvx": "^1.38.4",
     "@graphql-codegen/cli": "^5.0.3",
     "@graphql-codegen/schema-ast": "^4.1.0",

@@ -231,7 +231,12 @@ const streamSegmentFile = async (segmentUrl: string, storagePath: string) => {
     throw new CustomError('Failed to fetch segment', {
       errorCode: HTTP_ERRORS.EMPTY_RESPONSE,
       shouldRetry: false,
-      context: { segmentUrl, storagePath, responseStatus: response.statusText, statusCode: response.status },
+      context: {
+        segmentUrl,
+        storagePath,
+        responseStatus: response.statusText,
+        statusCode: response.status,
+      },
     });
   }
 

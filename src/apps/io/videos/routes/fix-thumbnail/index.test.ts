@@ -133,7 +133,9 @@ describe('fixThumbnailHandler', () => {
     };
 
     (getVideoById as Mock).mockResolvedValue(mockVideo);
-    (parseM3U8Content as Mock).mockResolvedValue({ segments: { included: [] } });
+    (parseM3U8Content as Mock).mockResolvedValue({
+      segments: { included: [] },
+    });
 
     await expect(fixThumbnailHandler(mockReq, mockRes)).rejects.toThrow();
 

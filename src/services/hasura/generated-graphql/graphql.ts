@@ -2,11 +2,21 @@
 import { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type Exact<T extends { [key: string]: unknown }> = {
+  [K in keyof T]: T[K];
+};
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]?: Maybe<T[SubKey]>;
+};
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
+  [SubKey in K]: Maybe<T[SubKey]>;
+};
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
-export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type Incremental<T> =
+  | T
+  | {
+      [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never;
+    };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: { input: string; output: string };
@@ -11675,7 +11685,12 @@ export type CreateDeviceRequestMutationVariables = Exact<{
 
 export type CreateDeviceRequestMutation = {
   __typename?: 'mutation_root';
-  insert_device_requests_one?: { __typename?: 'device_requests'; id: any; deviceCode: string; userCode: string } | null;
+  insert_device_requests_one?: {
+    __typename?: 'device_requests';
+    id: any;
+    deviceCode: string;
+    userCode: string;
+  } | null;
 };
 
 export type DeletePostMutationVariables = Exact<{
@@ -11684,7 +11699,10 @@ export type DeletePostMutationVariables = Exact<{
 
 export type DeletePostMutation = {
   __typename?: 'mutation_root';
-  delete_posts?: { __typename?: 'posts_mutation_response'; returning: Array<{ __typename?: 'posts'; id: any }> } | null;
+  delete_posts?: {
+    __typename?: 'posts_mutation_response';
+    returning: Array<{ __typename?: 'posts'; id: any }>;
+  } | null;
 };
 
 export type InsertPostMutationVariables = Exact<{
@@ -11703,7 +11721,10 @@ export type UpdatePostMutationVariables = Exact<{
 
 export type UpdatePostMutation = {
   __typename?: 'mutation_root';
-  update_posts?: { __typename?: 'posts_mutation_response'; returning: Array<{ __typename?: 'posts'; id: any }> } | null;
+  update_posts?: {
+    __typename?: 'posts_mutation_response';
+    returning: Array<{ __typename?: 'posts'; id: any }>;
+  } | null;
 };
 
 export type SharePlaylistMutationVariables = Exact<{
@@ -11718,7 +11739,11 @@ export type SharePlaylistMutation = {
     __typename?: 'shared_playlist_recipients_mutation_response';
     returning: Array<{ __typename?: 'shared_playlist_recipients'; id: any }>;
   } | null;
-  update_playlist_by_pk?: { __typename?: 'playlist'; id: any; sharedRecipients?: any | null } | null;
+  update_playlist_by_pk?: {
+    __typename?: 'playlist';
+    id: any;
+    sharedRecipients?: any | null;
+  } | null;
 };
 
 export type ShareVideoMutationVariables = Exact<{
@@ -11733,7 +11758,11 @@ export type ShareVideoMutation = {
     __typename?: 'shared_video_recipients_mutation_response';
     returning: Array<{ __typename?: 'shared_video_recipients'; id: any }>;
   } | null;
-  update_videos_by_pk?: { __typename?: 'videos'; id: any; sharedRecipients?: any | null } | null;
+  update_videos_by_pk?: {
+    __typename?: 'videos';
+    id: any;
+    sharedRecipients?: any | null;
+  } | null;
 };
 
 export type InsertVideosMutationVariables = Exact<{
@@ -11744,7 +11773,12 @@ export type InsertVideosMutation = {
   __typename?: 'mutation_root';
   insert_videos?: {
     __typename?: 'videos_mutation_response';
-    returning: Array<{ __typename?: 'videos'; id: any; title: string; description?: string | null }>;
+    returning: Array<{
+      __typename?: 'videos';
+      id: any;
+      title: string;
+      description?: string | null;
+    }>;
   } | null;
 };
 
@@ -11790,7 +11824,12 @@ export type PlaylistDetailQuery = {
       video: { __typename?: 'videos'; id: any; status?: string | null };
     }>;
   } | null;
-  users: Array<{ __typename?: 'users'; id: any; email: string; username?: string | null }>;
+  users: Array<{
+    __typename?: 'users';
+    id: any;
+    email: string;
+    username?: string | null;
+  }>;
 };
 
 export type UsersQueryVariables = Exact<{
@@ -11799,7 +11838,12 @@ export type UsersQueryVariables = Exact<{
 
 export type UsersQuery = {
   __typename?: 'query_root';
-  users: Array<{ __typename?: 'users'; id: any; email: string; username?: string | null }>;
+  users: Array<{
+    __typename?: 'users';
+    id: any;
+    email: string;
+    username?: string | null;
+  }>;
 };
 
 export class TypedDocumentString<TResult, TVariables>
