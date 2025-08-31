@@ -1,5 +1,5 @@
+import type { Transaction } from 'sequelize';
 import { Task, TaskStatus } from '../models/task';
-import { Transaction } from 'sequelize';
 
 interface CreateTaskParams {
   taskId: string;

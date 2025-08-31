@@ -1,6 +1,10 @@
-import { CloudTasksClient, protos } from '@google-cloud/tasks';
+import { CloudTasksClient, type protos } from '@google-cloud/tasks';
 import { sequelize } from 'src/database';
-import { TaskEntityType, TaskStatus, TaskType } from 'src/database/models/task';
+import {
+  type TaskEntityType,
+  TaskStatus,
+  type TaskType,
+} from 'src/database/models/task';
 import { createTask, updateTaskStatus } from 'src/database/queries/tasks';
 import { v5 as uuidv5 } from 'uuid';
 import { envConfig } from './envConfig';
@@ -97,6 +101,9 @@ const createCloudTasks = async (
       transaction,
     });
 
+    // This is should be ts-ignore but not sure
+    // why it auto format to ts-expect-error
+    // @ts-expect-error
     if (dbTask.completed) {
       await transaction.commit();
       return null;
@@ -124,6 +131,7 @@ const createCloudTasks = async (
 
     if (payload) {
       try {
+        // biome-ignore lint/style/noNonNullAssertion: fix later
         cloudTask.httpRequest!.body = Buffer.from(
           JSON.stringify(payload),
         ).toString('base64');
@@ -169,4 +177,4 @@ const createCloudTasks = async (
   }
 };
 
-export { CreateCloudTasksParams, createCloudTasks };
+export { type CreateCloudTasksParams, createCloudTasks };
