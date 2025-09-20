@@ -63,7 +63,7 @@ app.get('/hz', (c) => {
 
 app.route('/videos', videosRouter);
 app.route('/hashnode', hashnodeRouter);
-// app.route('/auth', authRouter);
+app.route('/auth', authRouter);
 
 app.onError((e, c) => {
   const logger = getCurrentLogger();
