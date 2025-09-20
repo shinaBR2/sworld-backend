@@ -186,7 +186,7 @@ describe('streamToStorage', () => {
       event: {
         ...mockValidatedData.event,
         data: {
-          ...mockValidatedData.event,
+          ...mockValidatedData.event.data,
           skipProcess: true,
         },
       },
