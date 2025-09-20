@@ -1,7 +1,7 @@
 // tests/unit/utils/handlers.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Context } from 'hono';
-import { requestHandler } from 'src/utils/handlers';
+import { requestHandler } from './index';
 
 // Mock Hono context
 const createMockContext = (data: any) =>
