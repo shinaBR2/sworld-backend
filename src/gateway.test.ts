@@ -21,7 +21,7 @@ vi.mock('./utils/logger', () => ({
     error: vi.fn(),
     warn: vi.fn(),
   })),
-  createHonoLoggingMiddleware: vi.fn(),
+  createHonoLoggingMiddleware: vi.fn(() => (next) => next()),
 }));
 
 vi.mock('./utils/envConfig', () => ({
