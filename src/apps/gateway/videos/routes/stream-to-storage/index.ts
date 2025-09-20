@@ -13,8 +13,6 @@ import { type Platform, urlPatterns } from 'src/utils/patterns';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
 
-const { computeServiceUrl, ioServiceUrl } = envConfig;
-
 const VIDEO_HANDLERS = {
   HLS: '/videos/stream-hls-handler',
   CONVERT: '/videos/convert-handler',
@@ -30,6 +28,7 @@ const buildHandlerUrl = (baseUrl: string, handler: string): string => {
 };
 
 const streamToStorage = async (validatedData: ConvertRequest) => {
+  const { computeServiceUrl, ioServiceUrl } = envConfig;
   const { signatureHeader, event } = validatedData;
   const { data, metadata } = event;
 
