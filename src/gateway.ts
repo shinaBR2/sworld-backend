@@ -1,5 +1,4 @@
 import 'dotenv/config';
-import './utils/instrument';
 
 import { serve } from '@hono/node-server';
 import { sentry } from '@hono/sentry';
@@ -66,10 +65,6 @@ app.route('/videos', videosRouter);
 // app.route('/hashnode', hashnodeRouter);
 // app.route('/auth', authRouter);
 
-app.routes.forEach((route) => {
-  console.log(`${route.method} ${route.path}`);
-});
-
 app.onError((e, c) => {
   const logger = getCurrentLogger();
   logger.error(e);
@@ -86,3 +81,5 @@ serve(
     console.log(`Server started on port ${info.port}`);
   },
 );
+
+export default app;

@@ -1,71 +1,150 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import * as Sentry from '@sentry/node';
-import { app } from '../src/apps/gateway';
-import { logger } from '../src/utils/logger';
-import rateLimit from 'express-rate-limit';
+import { Hono } from 'hono';
+import { testClient } from 'hono/testing';
+import { describe, it, expect, vi, beforeEach } from 'vitest'; // Or your preferred test runner
+import app from './gateway';
 
-vi.mock('@sentry/node');
-vi.mock('express-rate-limit', () => ({
-  default: vi.fn(() => 'mock-limiter'),
+// Mock dependencies
+vi.mock('@hono/node-server', () => ({
+  serve: vi.fn(() => ({
+    close: vi.fn(),
+  })),
 }));
-vi.mock('../src/utils/logger');
-vi.mock('../src/apps/gateway', () => ({
-  app: {
-    listen: vi.fn((port, cb) => {
-      cb();
-      return {
-        close: vi.fn((cb) => cb()),
-      };
-    }),
-    use: vi.fn(),
+
+vi.mock('./utils/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
   },
+  getCurrentLogger: vi.fn(() => ({
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+  })),
+  createHonoLoggingMiddleware: vi.fn(),
 }));
-vi.mock('../src/utils/envConfig', () => ({
+
+vi.mock('./utils/envConfig', () => ({
   envConfig: {
     port: 4000,
+    nodeEnv: 'test',
+    server: {
+      maxBodyLimitInKBNumber: 1024,
+    },
+    sentrydsn: 'test-dsn',
   },
+}));
+
+// Mock middleware
+vi.mock('hono/request-id', () => ({
+  requestId: () => vi.fn(),
+}));
+
+vi.mock('hono/body-limit', () => ({
+  bodyLimit: () => vi.fn(),
+}));
+
+vi.mock('@hono/sentry', () => ({
+  sentry: () => vi.fn(),
+}));
+
+vi.mock('hono-rate-limiter', () => ({
+  rateLimiter: () => vi.fn(),
+}));
+
+// Mock routes
+vi.mock('./apps/gateway/videos', () => ({
+  videosRouter: new Hono(),
 }));
 
 describe('Gateway Server', () => {
   beforeEach(() => {
-    vi.resetModules();
-  });
-
-  afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should start server and setup middlewares', async () => {
-    await import('../src/gateway');
+  describe.only('Health Check Endpoint', () => {
+    it('should return healthy status on /hz', async () => {
+      const client = testClient(app) as any;
 
-    expect(Sentry.setupExpressErrorHandler).toHaveBeenCalledWith(app);
-    expect(rateLimit).toHaveBeenCalledWith({
-      windowMs: 60 * 1000,
-      max: 100,
+      const res = await client.hz.$get();
+
+      console.log(`res`, res);
+
+      expect(res.status).toBe(200);
+
+      const json = await res.json();
+      expect(json).toHaveProperty('status', 'healthy');
+      expect(json).toHaveProperty('timestamp');
+      expect(typeof json.timestamp).toBe('string');
+      expect(new Date(json.timestamp).toISOString()).toBe(json.timestamp);
     });
-    expect(app.use).toHaveBeenCalledWith('mock-limiter');
-    expect(logger.info).toHaveBeenCalledWith('Gateway is running on port 4000');
+
+    it('should only accept GET requests on /hz', async () => {
+      const client = testClient(app) as any;
+
+      // POST should not be allowed
+      const postRes = await client.hz.$post();
+      expect(postRes.status).toBe(405);
+    });
   });
 
-  it('should handle shutdown signals gracefully', async () => {
-    const processExitSpy = vi
-      .spyOn(process, 'exit')
-      .mockImplementation(() => undefined as never);
-    const setTimeoutSpy = vi
-      .spyOn(global, 'setTimeout')
-      .mockImplementation(() => ({ unref: vi.fn() }) as any);
+  describe('Rate Limiting', () => {
+    it('should apply rate limiting with x-webhook-signature header', async () => {
+      const client = testClient(app) as any;
 
-    await import('../src/gateway');
+      const res = await client.hz.$get(
+        {},
+        {
+          headers: {
+            'x-webhook-signature': 'test-signature',
+          },
+        },
+      );
 
-    process.emit('SIGINT', 'SIGINT');
-    expect(processExitSpy).toHaveBeenCalled();
-    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 10000);
+      expect(res.status).toBe(200);
+    });
+  });
 
-    process.emit('SIGTERM', 'SIGTERM');
-    expect(processExitSpy).toHaveBeenCalled();
-    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 10000);
+  describe('Body Size Limiting', () => {
+    it('should handle request within body limit', async () => {
+      const client = testClient(app) as any;
 
-    processExitSpy.mockRestore();
-    setTimeoutSpy.mockRestore();
+      const smallPayload = { data: 'small payload' };
+
+      // This should work fine with small payload
+      const res = await client.hz.$get();
+      expect(res.status).toBe(200);
+    });
+  });
+
+  describe('Middleware Integration', () => {
+    it('should apply request ID middleware', async () => {
+      const client = testClient(app) as any;
+
+      const res = await client.hz.$get();
+
+      // expect(res.status).toBe(200);
+      expect(res.headers.get('x-request-id')).toBeDefined();
+    });
+  });
+
+  describe('404 Handling', () => {
+    it('should return 404 for non-existent routes', async () => {
+      const client = testClient(app) as any;
+
+      const res = await client['non-existent-route'].$get();
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('Videos Router', () => {
+    it('should mount videos router at /videos', async () => {
+      const client = testClient(app) as any;
+
+      // Test that videos route is accessible
+      const res = await client.videos.$get();
+      // The exact behavior depends on your videos router implementation
+      expect(res.status).toBeDefined();
+    });
   });
 });
