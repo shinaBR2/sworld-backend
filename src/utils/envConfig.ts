@@ -19,6 +19,9 @@ const envConfig = {
   hashnodeEndpoint: process.env.HASHNODE_ENDPOINT,
   hashnodePersonalToken: process.env.HASHNODE_PERSONAL_TOKEN,
   mainSiteUrl: process.env.MAIN_SITE_URL,
+  server: {
+    maxBodyLimitInKBNumber: Number(process.env.MAX_BODY_LIMIT ?? 50),
+  },
 };
 
 export { envConfig };

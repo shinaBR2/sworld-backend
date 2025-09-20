@@ -1,12 +1,48 @@
 import 'dotenv/config';
 import './utils/instrument';
+
+import { serve } from '@hono/node-server';
+import { sentry } from '@hono/sentry';
 import * as Sentry from '@sentry/node';
-import { envConfig } from './utils/envConfig';
 import rateLimit from 'express-rate-limit';
-import { logger } from './utils/logger';
+import { Hono } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
+import { cors } from 'hono/cors';
+import { requestId } from 'hono/request-id';
 import { app } from './apps/gateway';
+import { envConfig } from './utils/envConfig';
+import { createHonoLoggingMiddleware, logger } from './utils/logger';
 
 const port = envConfig.port || 4000;
+
+const app = new Hono();
+app.use('*', requestId());
+app.use(
+  '*',
+  createHonoLoggingMiddleware({
+    nodeEnv: envConfig.nodeEnv,
+  }),
+);
+app.use(
+  '*',
+  bodyLimit({
+    maxSize: envConfig.server.maxBodyLimitInKBNumber * 1024,
+    onError: (c) => {
+      return c.json(
+        {
+          error: 'Request body too large',
+        },
+        413,
+      );
+    },
+  }),
+);
+app.use(
+  '*',
+  sentry({
+    dsn: envConfig.sentrydsn,
+  }),
+);
 
 Sentry.setupExpressErrorHandler(app);
 
