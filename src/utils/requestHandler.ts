@@ -37,15 +37,19 @@ const expressRequestHandler = <T = any, R = any>(
 };
 
 // Hono wrapper
+/**
+ * IMPORTANT!
+ * This requires zodValidator
+ */
 const honoRequestHandler = <T = any, R = any>(
-  handler: BusinessHandler<T, R>,
+  handler: (data: T) => Promise<R> | R,
 ) => {
   return async (c: Context) => {
-    const context: HandlerContext<T> = {
-      validatedData: (c as ValidatedContext<T>).validatedData,
-    };
+    // biome-ignore lint/suspicious/noTsIgnore: fuck it
+    // @ts-ignore
+    const data = c.req.valid('json');
 
-    const result = await handler(context);
+    const result = await handler(data);
     return c.json(result);
   };
 };
