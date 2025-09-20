@@ -18,25 +18,6 @@ import { subtitleCreatedHandler } from './routes/subtitle-created';
 
 const videosRouter = new Hono();
 
-const testSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-});
-
-videosRouter.post(
-  '/test',
-  zodValidator('json', testSchema),
-  requestHandler((data) => {
-    const logger = getCurrentLogger();
-    logger.info({
-      message: '[videosRouter] Validation result',
-      data,
-    });
-
-    return { message: 'ok' };
-  }),
-);
-
 videosRouter.post(
   '/convert',
   zodValidator('json', convertSchema),
