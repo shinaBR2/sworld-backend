@@ -62,7 +62,7 @@ app.get('/hz', (c) => {
 });
 
 app.route('/videos', videosRouter);
-// app.route('/hashnode', hashnodeRouter);
+app.route('/hashnode', hashnodeRouter);
 // app.route('/auth', authRouter);
 
 app.onError((e, c) => {
