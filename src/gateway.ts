@@ -3,17 +3,18 @@ import './utils/instrument';
 
 import { serve } from '@hono/node-server';
 import { sentry } from '@hono/sentry';
-import * as Sentry from '@sentry/node';
-import rateLimit from 'express-rate-limit';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
-import { cors } from 'hono/cors';
+// import { cors } from 'hono/cors';
 import { requestId } from 'hono/request-id';
-import { app } from './apps/gateway';
+import { rateLimiter } from 'hono-rate-limiter';
+import { authRouter } from './apps/gateway/auth';
+import { hashnodeRouter } from './apps/gateway/hashnode';
+import { videosRouter } from './apps/gateway/videos';
 import { envConfig } from './utils/envConfig';
-import { createHonoLoggingMiddleware, logger } from './utils/logger';
+import { createHonoLoggingMiddleware, getCurrentLogger } from './utils/logger';
 
-const port = envConfig.port || 4000;
+const port = Number(envConfig.port) || 4000;
 
 const app = new Hono();
 app.use('*', requestId());
@@ -43,26 +44,41 @@ app.use(
     dsn: envConfig.sentrydsn,
   }),
 );
+app.use(
+  rateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    limit: 100, // Limit each IP to 100 requests per `window` (here, per 1 minutes).
+    standardHeaders: 'draft-6', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+    // TODO: this is important
+    keyGenerator: (c) => c.req.header('x-webhook-signature') ?? '', // Method to generate custom identifiers for clients.
+    // store: ... , // Redis, MemoryStore, etc. See below.
+  }),
+);
 
-Sentry.setupExpressErrorHandler(app);
-
-const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 100, // limit each IP to 100 requests per minute
-});
-
-app.use(limiter);
-
-const server = app.listen(port, () => {
-  logger.info(`Gateway is running on port ${port}`);
-});
-
-const onCloseSignal = () => {
-  server.close(() => {
-    process.exit();
+app.get('/hz', (c) => {
+  return c.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
   });
-  setTimeout(() => process.exit(1), 10000).unref(); // Force shutdown after 10s
-};
+});
 
-process.on('SIGINT', onCloseSignal);
-process.on('SIGTERM', onCloseSignal);
+app.route('/videos', videosRouter);
+// app.route('/hashnode', hashnodeRouter);
+// app.route('/auth', authRouter);
+
+app.onError((e, c) => {
+  const logger = getCurrentLogger();
+  logger.error(e);
+  // TODO: handle proper response
+  return c.json({ error: e.message }, 500);
+});
+
+serve(
+  {
+    fetch: app.fetch,
+    port,
+  },
+  (info) => {
+    console.log(`Server started on port ${info.port}`);
+  },
+);

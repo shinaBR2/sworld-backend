@@ -114,7 +114,7 @@ const honoValidateRequest = <T>(schema: ZodSchema<T, any, any>) => {
       const result = validateData(schema, context);
 
       if (result.success) {
-        (c as any).validatedData = result.data;
+        c.set('validatedData', result.data);
         await next();
       } else {
         const serviceResponse: ServiceResponse<null> = {

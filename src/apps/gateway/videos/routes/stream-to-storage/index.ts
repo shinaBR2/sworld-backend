@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import type { Context } from 'hono';
 import { TaskEntityType, TaskType } from 'src/database/models/task';
 import type { ConvertRequest } from 'src/schema/videos/convert';
 import { verifySignature } from 'src/services/videos/convert/validator';
@@ -11,7 +12,8 @@ import { logger } from 'src/utils/logger';
 import { type Platform, urlPatterns } from 'src/utils/patterns';
 import { AppError, AppResponse } from 'src/utils/schema';
 import { queues } from 'src/utils/systemConfig';
-import type { ValidatedRequest } from 'src/utils/validator';
+
+const { computeServiceUrl, ioServiceUrl } = envConfig;
 
 const VIDEO_HANDLERS = {
   HLS: '/videos/stream-hls-handler',
@@ -27,14 +29,13 @@ const buildHandlerUrl = (baseUrl: string, handler: string): string => {
   return `${baseUrl}${handler}`;
 };
 
-const streamToStorage = async (req: Request, res: Response) => {
-  const { computeServiceUrl, ioServiceUrl } = envConfig;
-  const { validatedData } = req as ValidatedRequest<ConvertRequest>;
+const streamToStorage = async (c: Context) => {
+  const validatedData = c.get('validatedData');
   const { signatureHeader, event } = validatedData;
   const { data, metadata } = event;
 
   if (!verifySignature(signatureHeader)) {
-    return res.json(
+    return c.json(
       AppError('Invalid webhook signature for event', {
         eventId: metadata.id,
       }),
@@ -43,7 +44,7 @@ const streamToStorage = async (req: Request, res: Response) => {
 
   // TODO remove this for simplicity
   if (!computeServiceUrl || !ioServiceUrl) {
-    return res.json(
+    return c.json(
       AppError('Missing environment variable', {
         eventId: metadata.id,
       }),
@@ -55,7 +56,7 @@ const streamToStorage = async (req: Request, res: Response) => {
 
   if (skipProcess) {
     logger.info({ metadata }, 'Skip process');
-    return res.json(AppResponse(true, 'ok'));
+    return c.json(AppResponse(true, 'ok'));
   }
 
   const taskConfig: CreateCloudTasksParams = {
@@ -96,15 +97,15 @@ const streamToStorage = async (req: Request, res: Response) => {
           taskConfig.type = TaskType.IMPORT_PLATFORM;
         } else {
           logger.error({ metadata }, 'Invalid source');
-          return res.json(AppError('Invalid source'));
+          return c.json(AppError('Invalid source'));
         }
     }
 
     const task = await createVideoTask(taskConfig);
     logger.info({ metadata, task }, 'Video task created successfully');
-    return res.json(AppResponse(true, 'ok'));
+    return c.json(AppResponse(true, 'ok'));
   } catch (error) {
-    return res.json(
+    return c.json(
       AppError('Failed to create task', {
         eventId: metadata.id,
         error,

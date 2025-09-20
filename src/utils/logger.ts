@@ -115,6 +115,7 @@ const createHonoLoggingMiddleware = (envConfig: EnvConfig) => {
   };
 };
 
+// Check where use this
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
   transport: {
@@ -126,7 +127,7 @@ const logger = pino({
 });
 
 const httpLogger = pinoHttp({
-  logger,
+  logger: getCurrentLogger(),
   customProps: (req, res) => ({
     cloudEvent: {
       id: req.headers['ce-id'],
