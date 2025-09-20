@@ -29,26 +29,21 @@ const buildHandlerUrl = (baseUrl: string, handler: string): string => {
   return `${baseUrl}${handler}`;
 };
 
-const streamToStorage = async (c: Context) => {
-  const validatedData = c.get('validatedData');
+const streamToStorage = async (validatedData: ConvertRequest) => {
   const { signatureHeader, event } = validatedData;
   const { data, metadata } = event;
 
   if (!verifySignature(signatureHeader)) {
-    return c.json(
-      AppError('Invalid webhook signature for event', {
-        eventId: metadata.id,
-      }),
-    );
+    return AppError('Invalid webhook signature for event', {
+      eventId: metadata.id,
+    });
   }
 
   // TODO remove this for simplicity
   if (!computeServiceUrl || !ioServiceUrl) {
-    return c.json(
-      AppError('Missing environment variable', {
-        eventId: metadata.id,
-      }),
-    );
+    return AppError('Missing environment variable', {
+      eventId: metadata.id,
+    });
   }
 
   const { id: entityId, platform, fileType, skipProcess } = data;
@@ -56,7 +51,7 @@ const streamToStorage = async (c: Context) => {
 
   if (skipProcess) {
     logger.info({ metadata }, 'Skip process');
-    return c.json(AppResponse(true, 'ok'));
+    return AppResponse(true, 'ok');
   }
 
   const taskConfig: CreateCloudTasksParams = {
@@ -97,20 +92,18 @@ const streamToStorage = async (c: Context) => {
           taskConfig.type = TaskType.IMPORT_PLATFORM;
         } else {
           logger.error({ metadata }, 'Invalid source');
-          return c.json(AppError('Invalid source'));
+          return AppError('Invalid source');
         }
     }
 
     const task = await createVideoTask(taskConfig);
     logger.info({ metadata, task }, 'Video task created successfully');
-    return c.json(AppResponse(true, 'ok'));
+    return AppResponse(true, 'ok');
   } catch (error) {
-    return c.json(
-      AppError('Failed to create task', {
-        eventId: metadata.id,
-        error,
-      }),
-    );
+    return AppError('Failed to create task', {
+      eventId: metadata.id,
+      error,
+    });
   }
 };
 

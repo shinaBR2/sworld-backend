@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type ValidationTargets } from 'hono';
 import {
   type HasuraWebhookRequest,
   hasuraWebhookSchema,
@@ -10,8 +10,11 @@ import {
   type SubtitleCreatedRequest,
   subtitleCreatedSchema,
 } from 'src/schema/videos/subtitle-created';
+import { getCurrentLogger } from 'src/utils/logger';
 import { requestHandler } from 'src/utils/requestHandler';
 import { honoValidateRequest } from 'src/utils/validators/request';
+import { zodValidator } from 'src/utils/validators/zodValidator';
+import { type ZodError, type ZodSchema, z } from 'zod';
 import { crawlHandler } from './routes/crawl';
 import { fixVideosDuration } from './routes/fix-videos-duration';
 import { fixVideosThumbnail } from './routes/fix-videos-thumbnail';
@@ -22,10 +25,33 @@ import { subtitleCreatedHandler } from './routes/subtitle-created';
 
 const videosRouter = new Hono();
 
+const testSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
+videosRouter.post('/test', zodValidator('json', testSchema), (c) => {
+  const logger = getCurrentLogger();
+  const data = c.req.valid('json');
+
+  logger.info({
+    message: '[videosRouter] Validation result',
+    data,
+  });
+
+  return c.json({ message: 'ok' });
+});
+
 videosRouter.post(
   '/convert',
-  honoValidateRequest<ConvertRequest>(convertSchema),
-  streamToStorage,
+  zodValidator('json', convertSchema),
+  async (c) => {
+    const data = c.req.valid('json');
+
+    const result = await streamToStorage(data);
+
+    return c.json(result);
+  },
 );
 
 // TODO

@@ -66,6 +66,10 @@ app.route('/videos', videosRouter);
 // app.route('/hashnode', hashnodeRouter);
 // app.route('/auth', authRouter);
 
+app.routes.forEach((route) => {
+  console.log(`${route.method} ${route.path}`);
+});
+
 app.onError((e, c) => {
   const logger = getCurrentLogger();
   logger.error(e);
