@@ -2,8 +2,12 @@ import {
   type ConvertBodySchema,
   transformEvent,
 } from 'src/schema/videos/convert';
-import { createTask } from 'src/services/hasura/queries/tasks';
 import {
+  createTask,
+  updateTaskStatus,
+} from 'src/services/hasura/queries/tasks';
+import {
+  type CloudTask,
   type CreateCloudTasksParams,
   createCloudTasks,
 } from 'src/utils/cloudTask';
@@ -67,16 +71,27 @@ const streamToStorage = async (validatedData: ConvertBodySchema) => {
     });
   }
 
+  let task: CloudTask | null;
   try {
-    const task = await createCloudTasks(taskConfig);
-    logger.info({ metadata, task }, 'Video task created successfully');
-    return AppResponse(true, 'ok');
+    task = await createCloudTasks(taskConfig);
   } catch (gcpCloudTaskError) {
     throw CustomError.critical('Failed to create task', {
       originalError: gcpCloudTaskError,
       shouldRetry: true,
     });
   }
+
+  try {
+    await updateTaskStatus(taskId, 'in_progress');
+  } catch (hasuraError) {
+    throw CustomError.critical('Failed to update task status', {
+      originalError: hasuraError,
+      shouldRetry: true,
+    });
+  }
+
+  logger.info({ metadata, task }, 'Video task created successfully');
+  return AppResponse(true, 'ok');
 };
 
 export { streamToStorage };

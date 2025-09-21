@@ -90,4 +90,4 @@ const createCloudTasks = async (
   return response;
 };
 
-export { type CreateCloudTasksParams, createCloudTasks };
+export { type CreateCloudTasksParams, type CloudTask, createCloudTasks };
