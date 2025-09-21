@@ -1,10 +1,12 @@
 import { Hono } from 'hono';
-import { hasuraWebhookSchema } from 'src/schema/hasura';
-import { convertSchema } from 'src/schema/videos/convert';
+import { hasuraHeadersSchema, hasuraWebhookSchema } from 'src/schema/hasura';
+import { convertBodySchema } from 'src/schema/videos/convert';
 import { crawlSchema } from 'src/schema/videos/crawl';
 import { shareSchema } from 'src/schema/videos/share';
 import { subtitleCreatedSchema } from 'src/schema/videos/subtitle-created';
 import { requestHandler } from 'src/utils/handlers';
+import { validateHasuraSignature } from 'src/utils/validators/validateHasuraSignature';
+import { validateHeaders } from 'src/utils/validators/validateHeaders';
 import { zodValidator } from 'src/utils/validators/zodValidator';
 import { crawlHandler } from './routes/crawl';
 import { fixVideosDuration } from './routes/fix-videos-duration';
@@ -16,9 +18,12 @@ import { subtitleCreatedHandler } from './routes/subtitle-created';
 
 const videosRouter = new Hono();
 
+videosRouter.use('*', validateHeaders(hasuraHeadersSchema));
+videosRouter.use('*', validateHasuraSignature());
+
 videosRouter.post(
   '/convert',
-  zodValidator('json', convertSchema),
+  zodValidator('json', convertBodySchema),
   requestHandler(streamToStorage),
 );
 

@@ -1,8 +1,8 @@
+import { validateMediaURL } from 'src/services/videos/convert/validator';
+import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 import { z } from 'zod';
 import { hasuraEventMetadataSchema } from '../../hasura';
-import { validateMediaURL } from 'src/services/videos/convert/validator';
 import { videoUrlSchema } from '../common';
-import { taskHandlerHeaderSchema } from 'src/utils/cloud-task/schema';
 
 /**
  * These schemas from hasura, for gateway
@@ -43,11 +43,14 @@ const transformEvent = (event: z.infer<typeof eventSchema>) => {
   };
 };
 
+const convertBodySchema = z.object({
+  event: eventSchema,
+});
+type ConvertBodySchema = z.infer<typeof convertBodySchema>;
+
 const convertSchema = z
   .object({
-    body: z.object({
-      event: eventSchema,
-    }),
+    body: convertBodySchema,
     headers: z
       .object({
         'content-type': z.string(),
@@ -80,6 +83,13 @@ const convertHandlerSchema = z.object({
   headers: taskHandlerHeaderSchema.passthrough(),
 });
 
-export { convertSchema, eventSchema, videoDataSchema, convertHandlerSchema };
-export type ConvertRequest = z.infer<typeof convertSchema>;
+export {
+  convertBodySchema,
+  type ConvertBodySchema,
+  transformEvent,
+  // TOO: check usage
+  eventSchema,
+  videoDataSchema,
+  convertHandlerSchema,
+};
 export type ConvertHandlerRequest = z.infer<typeof convertHandlerSchema>;
