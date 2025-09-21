@@ -38,13 +38,13 @@ videosRouter.post(
 );
 videosRouter.post(
   '/fix-duration',
-  validateRequest<FixDurationHandlerRequest>(fixDurationHandlerSchema),
-  fixDurationHandler,
+  honoValidateRequest(fixDurationHandlerSchema),
+  honoRequestHandler(fixDurationHandler),
 );
 videosRouter.post(
   '/fix-thumbnail',
-  validateRequest<FixThumbnailHandlerRequest>(fixThumbnailHandlerSchema),
-  fixThumbnailHandler,
+  honoValidateRequest(fixThumbnailHandlerSchema),
+  honoRequestHandler(fixThumbnailHandler),
 );
 
 export { videosRouter };
