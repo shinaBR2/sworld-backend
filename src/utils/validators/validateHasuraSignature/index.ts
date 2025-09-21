@@ -8,8 +8,8 @@ export const validateHasuraSignature = () => {
     const logger = getCurrentLogger();
 
     const signatureHeader = c.req.header('x-webhook-signature');
-    const body = await c.req.json();
-    const eventId = body?.event?.metadata?.id;
+    const body = await c.req.raw.clone().text();
+    const eventId = JSON.parse(body)?.event?.metadata?.id;
 
     if (!signatureHeader) {
       return c.json(

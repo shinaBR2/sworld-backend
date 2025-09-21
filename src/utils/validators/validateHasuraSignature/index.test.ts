@@ -31,14 +31,14 @@ describe('validateHasuraSignature', async () => {
   const mockGetCurrentLogger = vi.mocked(getCurrentLogger);
   const mockAppError = vi.mocked(AppError);
 
+  const mockText = vi.fn();
+  const mockClone = vi.fn(() => ({ text: mockText }));
+  const mockRaw = { clone: mockClone };
+
   const mockContext = {
     req: {
       header: vi.fn(),
-      json: vi.fn().mockResolvedValue({
-        event: {
-          metadata: { id: 'event-123' },
-        },
-      }),
+      raw: mockRaw,
     },
     json: vi.fn().mockReturnThis(),
   };
@@ -49,6 +49,13 @@ describe('validateHasuraSignature', async () => {
     vi.clearAllMocks();
     mockGetCurrentLogger.mockReturnValue(mockLogger as any);
     mockContext.req.header.mockReturnValue('valid-signature');
+    mockText.mockResolvedValue(
+      JSON.stringify({
+        event: {
+          metadata: { id: 'event-123' },
+        },
+      }),
+    );
   });
 
   it('should call next() when signature is valid', async () => {
@@ -94,7 +101,7 @@ describe('validateHasuraSignature', async () => {
 
   it('should handle missing event metadata', async () => {
     mockValidateSignature.mockReturnValue(true);
-    mockContext.req.json.mockResolvedValueOnce({ event: {} });
+    mockText.mockResolvedValue(JSON.stringify({ event: {} }));
     mockContext.req.header.mockReturnValue('valid-signature');
 
     const middleware = validateHasuraSignature();
