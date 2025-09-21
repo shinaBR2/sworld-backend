@@ -49,11 +49,7 @@ videosRouter.post(
   requestHandler(streamToStorage),
 );
 
-videosRouter.post(
-  '/fix-videos-duration',
-  zodValidator('json', hasuraWebhookSchema),
-  requestHandler(fixVideosDuration),
-);
+videosRouter.post('/fix-videos-duration', requestHandler(fixVideosDuration));
 videosRouter.post(
   '/fix-videos-thumbnail',
   zodValidator('json', hasuraWebhookSchema),
