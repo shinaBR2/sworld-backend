@@ -109,10 +109,6 @@ const honoValidateRequest = <T>(schema: ZodSchema<T, any, any>) => {
   };
 };
 
-// Types for compatibility
-type ValidatedRequest<T extends z.ZodType> = Request & {
-  validatedData: z.infer<T>;
-};
 type ValidatedContext<T extends z.ZodType> = Context & {
   validatedData: z.infer<T>;
 };
@@ -122,6 +118,5 @@ export {
   validateData, // Pure function for testing
   type ValidationContext,
   type ValidationResult,
-  type ValidatedRequest,
   type ValidatedContext,
 };
