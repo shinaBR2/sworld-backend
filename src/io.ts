@@ -1,4 +1,4 @@
-import { serve } from '@hono/node-server/.';
+import { serve } from '@hono/node-server';
 import { sentry } from '@hono/sentry';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
@@ -7,7 +7,7 @@ import { rateLimiter } from 'hono-rate-limiter';
 import { crawlerRouter } from './apps/io/crawler';
 import { videosRouter } from './apps/io/videos';
 import { envConfig } from './utils/envConfig';
-import { createHonoLoggingMiddleware } from './utils/logger';
+import { createHonoLoggingMiddleware, getCurrentLogger } from './utils/logger';
 
 const port = Number(envConfig.port) || 4000;
 
@@ -59,6 +59,13 @@ app.get('/hz', (c) => {
 
 app.route('videos', videosRouter);
 app.route('crawlers', crawlerRouter);
+
+app.onError((e, c) => {
+  const logger = getCurrentLogger();
+  logger.error(e);
+  // TODO: handle proper response
+  return c.json({ error: e.message }, 500);
+});
 
 serve(
   {
