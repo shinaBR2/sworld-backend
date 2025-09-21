@@ -48,22 +48,6 @@ const convertBodySchema = z.object({
 });
 type ConvertBodySchema = z.infer<typeof convertBodySchema>;
 
-const convertSchema = z
-  .object({
-    body: convertBodySchema,
-    headers: z
-      .object({
-        'content-type': z.string(),
-        'x-webhook-signature': z.string(),
-      })
-      .passthrough(),
-  })
-  .transform((req) => ({
-    event: transformEvent(req.body.event),
-    contentTypeHeader: req.headers['content-type'] as string,
-    signatureHeader: req.headers['x-webhook-signature'] as string,
-  }));
-
 /**
  * These schemas for Cloud Task handler
  */
