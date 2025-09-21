@@ -1,10 +1,10 @@
 import express, { type Router } from 'express';
+import {
+  type CrawlHandlerRequest,
+  crawlHandlerSchema,
+} from 'src/schema/videos/crawl';
 import { validateRequest } from 'src/utils/validator';
 import { crawlHandler } from './routes/crawl';
-import {
-  crawlHandlerSchema,
-  type CrawlHandlerRequest,
-} from 'src/schema/videos/crawl';
 
 const crawlerRouter: Router = express.Router();
 
