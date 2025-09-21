@@ -33,7 +33,7 @@ videosRouter.post(
 );
 videosRouter.post(
   '/import-platform-handler',
-  validateRequest<ImportHandlerRequest>(importHandlerSchema),
+  honoValidateRequest(importHandlerSchema),
   importPlatformHandler,
 );
 videosRouter.post(
