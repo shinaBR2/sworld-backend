@@ -89,12 +89,12 @@ videosRouter.post(
 );
 videosRouter.post(
   '/share-playlist',
-  zodValidator('json', shareSchema),
-  requestHandler(sharePlaylistHandler),
+  honoValidateRequest(shareSchema),
+  honoRequestHandler(sharePlaylistHandler),
 );
 videosRouter.post(
   '/share-video',
-  zodValidator('json', shareSchema),
+  honoValidateRequest(shareSchema),
   requestHandler(shareVideoHandler),
 );
 videosRouter.post(
