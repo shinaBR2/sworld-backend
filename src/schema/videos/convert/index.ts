@@ -71,8 +71,6 @@ export {
   convertBodySchema,
   type ConvertBodySchema,
   transformEvent,
-  // TOO: check usage
-  eventSchema,
   videoDataSchema,
   convertHandlerSchema,
 };
