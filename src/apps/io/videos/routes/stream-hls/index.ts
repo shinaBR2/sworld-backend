@@ -6,6 +6,7 @@ import { CustomError } from 'src/utils/custom-error';
 import { HTTP_ERRORS } from 'src/utils/error-codes';
 import { logger } from 'src/utils/logger';
 import type { HandlerContext } from 'src/utils/requestHandler';
+import { AppResponse } from 'src/utils/schema';
 
 const streamHLSHandler = async (
   context: HandlerContext<StreamHandlerRequest>,
@@ -33,7 +34,7 @@ const streamHLSHandler = async (
         },
       });
 
-      return { playableVideoUrl: videoUrl };
+      return AppResponse(true, 'ok', { playableVideoUrl: videoUrl });
     } catch (error) {
       throw CustomError.critical('Hasura server error', {
         originalError: error,
@@ -79,7 +80,7 @@ const streamHLSHandler = async (
       },
     });
 
-    return { playableVideoUrl };
+    return AppResponse(true, 'ok', { playableVideoUrl });
   } catch (error) {
     throw CustomError.critical('Hasura server error', {
       originalError: error,
