@@ -24,6 +24,8 @@ type Documents = {
   '\n  mutation SaveSubtitle($id: uuid!, $object: subtitles_set_input!) {\n    update_subtitles_by_pk(pk_columns: { id: $id }, _set: $object) {\n      id\n    }\n  }\n': typeof types.SaveSubtitleDocument;
   '\n  query PlaylistDetail($id: uuid!, $emails: [String!]!) {\n    playlist_by_pk(id: $id) {\n      playlist_videos(where: { video: { status: { _eq: "ready" } } }) {\n        video {\n          id\n          status\n        }\n      }\n    }\n    users(where: { email: { _in: $emails } }) {\n      id\n      email\n      username\n    }\n  }\n': typeof types.PlaylistDetailDocument;
   '\n  query Users($emails: [String!]!) {\n    users(where: { email: { _in: $emails } }) {\n      id\n      email\n      username\n    }\n  }\n': typeof types.UsersDocument;
+  '\n  mutation createTask($object: tasks_insert_input!) {\n    insert_tasks_one(\n      object: $object,\n      on_conflict: {\n        constraint: tasks_task_id_key\n        update_columns: []\n      }\n    ) {\n      id\n    }\n  }\n': typeof types.CreateTaskDocument;
+  '\n  mutation updateTaskStatus($taskId: uuid!, $status: String!) {\n    update_tasks(\n      where: { task_id: { _eq: $taskId } }\n      _set: { status: $status }\n    ) {\n      affected_rows\n      returning {\n        id\n        task_id\n        status\n      }\n    }\n  }\n': typeof types.UpdateTaskStatusDocument;
 };
 const documents: Documents = {
   '\n  mutation createDeviceRequest($object: device_requests_insert_input!) {\n    insert_device_requests_one(object: $object) {\n      id\n      deviceCode\n      userCode\n    }\n  }\n':
@@ -48,6 +50,10 @@ const documents: Documents = {
     types.PlaylistDetailDocument,
   '\n  query Users($emails: [String!]!) {\n    users(where: { email: { _in: $emails } }) {\n      id\n      email\n      username\n    }\n  }\n':
     types.UsersDocument,
+  '\n  mutation createTask($object: tasks_insert_input!) {\n    insert_tasks_one(\n      object: $object,\n      on_conflict: {\n        constraint: tasks_task_id_key\n        update_columns: []\n      }\n    ) {\n      id\n    }\n  }\n':
+    types.CreateTaskDocument,
+  '\n  mutation updateTaskStatus($taskId: uuid!, $status: String!) {\n    update_tasks(\n      where: { task_id: { _eq: $taskId } }\n      _set: { status: $status }\n    ) {\n      affected_rows\n      returning {\n        id\n        task_id\n        status\n      }\n    }\n  }\n':
+    types.UpdateTaskStatusDocument,
 };
 
 /**
@@ -116,6 +122,18 @@ export function graphql(
 export function graphql(
   source: '\n  query Users($emails: [String!]!) {\n    users(where: { email: { _in: $emails } }) {\n      id\n      email\n      username\n    }\n  }\n',
 ): typeof import('./graphql').UsersDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  mutation createTask($object: tasks_insert_input!) {\n    insert_tasks_one(\n      object: $object,\n      on_conflict: {\n        constraint: tasks_task_id_key\n        update_columns: []\n      }\n    ) {\n      id\n    }\n  }\n',
+): typeof import('./graphql').CreateTaskDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(
+  source: '\n  mutation updateTaskStatus($taskId: uuid!, $status: String!) {\n    update_tasks(\n      where: { task_id: { _eq: $taskId } }\n      _set: { status: $status }\n    ) {\n      affected_rows\n      returning {\n        id\n        task_id\n        status\n      }\n    }\n  }\n',
+): typeof import('./graphql').UpdateTaskStatusDocument;
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

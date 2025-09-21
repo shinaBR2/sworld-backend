@@ -1,5 +1,5 @@
 /* eslint-disable */
-import type { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
+import { DocumentTypeDecoration } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -11875,11 +11875,41 @@ export type UsersQuery = {
   }>;
 };
 
+export type CreateTaskMutationVariables = Exact<{
+  object: Tasks_Insert_Input;
+}>;
+
+export type CreateTaskMutation = {
+  __typename?: 'mutation_root';
+  insert_tasks_one?: { __typename?: 'tasks'; id: any } | null;
+};
+
+export type UpdateTaskStatusMutationVariables = Exact<{
+  taskId: Scalars['uuid']['input'];
+  status: Scalars['String']['input'];
+}>;
+
+export type UpdateTaskStatusMutation = {
+  __typename?: 'mutation_root';
+  update_tasks?: {
+    __typename?: 'tasks_mutation_response';
+    affected_rows: number;
+    returning: Array<{
+      __typename?: 'tasks';
+      id: any;
+      task_id: any;
+      status: string;
+    }>;
+  } | null;
+};
+
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
 {
-  __apiType?: DocumentTypeDecoration<TResult, TVariables>['__apiType'];
+  __apiType?: NonNullable<
+    DocumentTypeDecoration<TResult, TVariables>['__apiType']
+  >;
   private value: string;
   public __meta__?: Record<string, any> | undefined;
 
@@ -11889,7 +11919,7 @@ export class TypedDocumentString<TResult, TVariables>
     this.__meta__ = __meta__;
   }
 
-  toString(): string & DocumentTypeDecoration<TResult, TVariables> {
+  override toString(): string & DocumentTypeDecoration<TResult, TVariables> {
     return this.value;
   }
 }
@@ -12056,3 +12086,31 @@ export const UsersDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UsersQuery, UsersQueryVariables>;
+export const CreateTaskDocument = new TypedDocumentString(`
+    mutation createTask($object: tasks_insert_input!) {
+  insert_tasks_one(
+    object: $object
+    on_conflict: {constraint: tasks_task_id_key, update_columns: []}
+  ) {
+    id
+  }
+}
+    `) as unknown as TypedDocumentString<
+  CreateTaskMutation,
+  CreateTaskMutationVariables
+>;
+export const UpdateTaskStatusDocument = new TypedDocumentString(`
+    mutation updateTaskStatus($taskId: uuid!, $status: String!) {
+  update_tasks(where: {task_id: {_eq: $taskId}}, _set: {status: $status}) {
+    affected_rows
+    returning {
+      id
+      task_id
+      status
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<
+  UpdateTaskStatusMutation,
+  UpdateTaskStatusMutationVariables
+>;
