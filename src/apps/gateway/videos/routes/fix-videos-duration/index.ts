@@ -11,10 +11,6 @@ import { queues } from 'src/utils/systemConfig';
 const fixVideosDuration = async () => {
   const { ioServiceUrl } = envConfig;
 
-  if (!ioServiceUrl) {
-    return AppError('Missing environment variable');
-  }
-
   // TODO remove this for simplicity
   if (!ioServiceUrl) {
     return AppError('Missing environment variable');
