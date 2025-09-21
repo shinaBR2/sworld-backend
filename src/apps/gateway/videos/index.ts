@@ -21,6 +21,28 @@ const videosRouter = new Hono();
 videosRouter.use('*', validateHeaders(hasuraHeadersSchema));
 videosRouter.use('*', validateHasuraSignature());
 
+/**
+ * curl command for local test
+ * curl -X POST 'http://localhost:4000/videos/convert' \
+  -H 'Content-Type: application/json' \
+  -H 'x-webhook-signature: <SIGNATURE>' \
+  -d '{
+    "event": {
+      "metadata": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "span_id": "0000000000000001",
+        "trace_id": "00000000000000000000000000000001"
+      },
+      "data": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "user_id": "550e8400-e29b-41d4-a716-446655440001",
+        "video_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "skip_process": false,
+        "keep_original_source": true
+      }
+    }
+  }'
+ */
 videosRouter.post(
   '/convert',
   zodValidator('json', convertBodySchema),
