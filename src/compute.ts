@@ -60,7 +60,7 @@ app.get('/hz', (c) => {
   });
 });
 
-app.use('/videos', videosRouter);
+app.route('/videos', videosRouter);
 
 app.onError((e, c) => {
   const logger = getCurrentLogger();
