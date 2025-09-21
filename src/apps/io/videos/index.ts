@@ -34,7 +34,7 @@ videosRouter.post(
 videosRouter.post(
   '/import-platform-handler',
   honoValidateRequest(importHandlerSchema),
-  importPlatformHandler,
+  honoRequestHandler(importPlatformHandler),
 );
 videosRouter.post(
   '/fix-duration',
