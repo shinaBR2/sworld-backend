@@ -1,13 +1,14 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { Hono } from 'hono';
 
 // Mock Hono
-vi.mock('hono', () => {
-  const mockHono = vi.fn(() => ({
-    post: vi.fn(),
-  }));
-  return { Hono: mockHono };
-});
+const mockPost = vi.fn();
+const mockHono = vi.fn(() => ({
+  post: mockPost,
+}));
+
+vi.mock('hono', () => ({
+  Hono: mockHono,
+}));
 
 // Mock dependencies
 vi.mock('./routes/crawl', () => ({
@@ -27,28 +28,23 @@ vi.mock('src/utils/requestHandler', () => ({
 }));
 
 describe('crawlerRouter', () => {
-  let mockApp: { post: ReturnType<typeof vi.fn> };
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockApp = { post: vi.fn() };
-    vi.mocked(Hono).mockReturnValue(mockApp as unknown as Hono);
   });
 
   it('should set up router correctly', async () => {
-    // Import the module under test
-    const { crawlerRouter } = await import('./index');
+    // Import the module under test and its dependencies
+    await import('./index');
     const { honoValidateRequest } = await import(
       'src/utils/validators/request'
     );
     const { honoRequestHandler } = await import('src/utils/requestHandler');
-    const { crawlHandler } = await import('./routes/crawl');
 
     // Verify Hono router was created
-    expect(Hono).toHaveBeenCalled();
+    expect(mockHono).toHaveBeenCalled();
 
     // Verify the route was set up correctly
-    expect(mockApp.post).toHaveBeenCalledWith(
+    expect(mockPost).toHaveBeenCalledWith(
       '/crawl-handler',
       'mockMiddleware',
       'mockHandler',
