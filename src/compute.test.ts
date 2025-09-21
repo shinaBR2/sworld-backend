@@ -47,7 +47,7 @@ describe('Compute Application', () => {
     vi.resetModules();
 
     // Mock environment
-    originalEnv = process.env;
+    originalEnv = { ...process.env };
     process.env.NODE_ENV = 'test';
     process.env.PORT = '3000';
     process.env.HASURA_GRAPHQL_ENDPOINT = 'http://localhost:8080/v1/graphql';
@@ -69,7 +69,7 @@ describe('Compute Application', () => {
   });
 
   afterEach(() => {
-    process.env = originalEnv;
+    process.env = { ...originalEnv };
     vi.restoreAllMocks();
   });
 
