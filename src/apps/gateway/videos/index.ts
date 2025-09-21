@@ -99,8 +99,8 @@ videosRouter.post(
 );
 videosRouter.post(
   '/subtitle-created',
-  zodValidator('json', subtitleCreatedSchema),
-  requestHandler(subtitleCreatedHandler),
+  honoValidateRequest(subtitleCreatedSchema),
+  honoRequestHandler(subtitleCreatedHandler),
 );
 
 export { videosRouter };
