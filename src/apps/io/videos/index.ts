@@ -1,23 +1,9 @@
-import express, { type Router } from 'express';
 import { Hono } from 'hono';
-import {
-  type FixDurationHandlerRequest,
-  fixDurationHandlerSchema,
-} from 'src/schema/videos/fix-duration';
-import {
-  type FixThumbnailHandlerRequest,
-  fixThumbnailHandlerSchema,
-} from 'src/schema/videos/fix-thumbnail';
-import {
-  type ImportHandlerRequest,
-  importHandlerSchema,
-} from 'src/schema/videos/import-platform';
-import {
-  type StreamHandlerRequest,
-  streamHandlerSchema,
-} from 'src/schema/videos/stream-hls';
+import { fixDurationHandlerSchema } from 'src/schema/videos/fix-duration';
+import { fixThumbnailHandlerSchema } from 'src/schema/videos/fix-thumbnail';
+import { importHandlerSchema } from 'src/schema/videos/import-platform';
+import { streamHandlerSchema } from 'src/schema/videos/stream-hls';
 import { honoRequestHandler } from 'src/utils/requestHandler';
-import { validateRequest } from 'src/utils/validator';
 import { honoValidateRequest } from 'src/utils/validators/request';
 import { fixDurationHandler } from './routes/fix-duration';
 import { fixThumbnailHandler } from './routes/fix-thumbnail';
