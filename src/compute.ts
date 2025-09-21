@@ -1,4 +1,4 @@
-import { serve } from '@hono/node-server/.';
+import { serve } from '@hono/node-server';
 import { sentry } from '@hono/sentry';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
