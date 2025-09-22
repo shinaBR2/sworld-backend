@@ -32,6 +32,8 @@ const streamToStorage = async (validatedData: ConvertBodySchema) => {
 
   const entityType = 'video';
   const type = 'import_platform';
+
+  // If retry, what happen to this?
   const taskId = uuidv5(
     JSON.stringify({
       entityType: 'video',
