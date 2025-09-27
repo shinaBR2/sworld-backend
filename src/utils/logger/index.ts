@@ -156,4 +156,4 @@ const httpLogger = pinoHttp({
   },
 });
 
-export { logger, httpLogger, createHonoLoggingMiddleware, getCurrentLogger };
+export { createHonoLoggingMiddleware, getCurrentLogger };

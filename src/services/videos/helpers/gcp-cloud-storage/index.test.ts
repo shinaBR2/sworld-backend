@@ -1,7 +1,5 @@
 /** biome-ignore-all lint/complexity/useArrowFunction: it breaks the test */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { readdir } from 'fs/promises';
-import path from 'path';
 import {
   getDownloadUrl,
   uploadFile,
@@ -12,35 +10,85 @@ import {
 import { existsSync } from 'fs';
 import { PassThrough, Readable } from 'node:stream';
 
-const mockReadable = {
-  on: vi.fn().mockImplementation((event, handler) => {
-    if (event === 'finish') {
-      setTimeout(() => handler(), 0);
-    }
-    return mockReadable;
-  }),
-  pipe: vi.fn().mockImplementation((dest) => {
+interface MockReadable extends NodeJS.ReadableStream {
+  on: (event: string, handler: (...args: any[]) => void) => MockReadable;
+  pipe: (dest: NodeJS.WritableStream) => MockReadable;
+  emit: (event: string | symbol, ...args: any[]) => boolean;
+}
+
+const mockReadable: MockReadable = {
+  readable: true,
+  read: vi.fn(),
+  setEncoding: vi.fn().mockReturnThis(),
+  pause: vi.fn().mockReturnThis(),
+  resume: vi.fn().mockReturnThis(),
+  isPaused: vi.fn().mockReturnValue(false),
+  pipe: vi.fn().mockImplementation(function (
+    this: MockReadable,
+    dest: NodeJS.WritableStream,
+  ) {
+    this.dest = dest;
     setTimeout(() => dest.emit('finish'), 0);
-    return mockReadable; // Return the source stream instead of dest
+    return this;
   }),
-  emit: vi.fn(),
+  unpipe: vi.fn().mockReturnThis(),
+  unshift: vi.fn(),
+  wrap: vi.fn(),
+  [Symbol.asyncIterator]: vi.fn(),
+
+  // Event emitter methods
+  on: vi.fn().mockImplementation(function (
+    this: any,
+    event: string,
+    listener: (...args: any[]) => void,
+  ) {
+    this.listeners = this.listeners || {};
+    this.listeners[event] = listener;
+    return this;
+  }),
+  once: vi.fn(),
+  emit: vi.fn().mockImplementation(function (
+    this: any,
+    event: string | symbol,
+    ...args: any[]
+  ) {
+    if (this.listeners && this.listeners[event as string]) {
+      this.listeners[event as string](...args);
+    }
+    return true;
+  }),
+  addListener: vi.fn(),
+  removeListener: vi.fn(),
+  off: vi.fn(),
+  removeAllListeners: vi.fn(),
+  setMaxListeners: vi.fn(),
+  getMaxListeners: vi.fn(),
+  listeners: vi.fn(),
+  rawListeners: vi.fn(),
+  listenerCount: vi.fn(),
+  eventNames: vi.fn(),
+  prependListener: vi.fn(),
+  prependOnceListener: vi.fn(),
 };
 
-vi.spyOn(Readable, 'from').mockImplementation(() => mockReadable as any);
+vi.spyOn(Readable, 'from').mockImplementation(
+  () => mockReadable as unknown as Readable,
+);
 
-vi.mock('src/utils/logger', () => {
-  const mockLogger = {
-    info: vi.fn(),
-    error: vi.fn(),
-    warn: vi.fn(),
-    debug: vi.fn(),
-  };
+const mockLogger = {
+  info: vi.fn(),
+  error: vi.fn(),
+  warn: vi.fn(),
+  debug: vi.fn(),
+  level: 'info',
+  fatal: vi.fn(),
+  trace: vi.fn(),
+  silent: vi.fn(),
+};
 
-  return {
-    logger: mockLogger,
-    getCurrentLogger: vi.fn(() => mockLogger),
-  };
-});
+vi.mock('src/utils/logger', () => ({
+  getCurrentLogger: vi.fn(() => mockLogger),
+}));
 
 // Create mock functions
 const uploadMock = vi.fn().mockResolvedValue([{}]);
