@@ -48,6 +48,7 @@ describe('logger', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    vi.resetModules();
     // Re-import the module to reset state
     loggerModule = await import('.');
   });
