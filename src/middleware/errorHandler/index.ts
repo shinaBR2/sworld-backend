@@ -1,6 +1,6 @@
-import { CustomError } from 'core/customError';
-import { ERROR_CODE } from 'core/errorCodes';
 import { PostHog } from 'posthog-node';
+import { CustomError } from 'src/utils/custom-error';
+import { ERROR_CODE } from 'src/utils/error-codes';
 import { envConfig } from '../../utils/envConfig';
 import { getCurrentLogger } from '../../utils/logger';
 
