@@ -605,14 +605,18 @@ describe('downloadSegments', () => {
   });
 
   test('should download segments successfully', async () => {
-    // Setup mock logger
+    // Setup mock logger with all required Logger interface properties
     const mockLogger = {
       info: vi.fn(),
       error: vi.fn(),
       warn: vi.fn(),
       debug: vi.fn(),
-    };
-    vi.mocked(getCurrentLogger).mockReturnValue(mockLogger);
+      level: 'info',
+      fatal: vi.fn(),
+      trace: vi.fn(),
+      silent: vi.fn(),
+    } as const;
+    vi.mocked(getCurrentLogger).mockReturnValue(mockLogger as any);
 
     await downloadSegments(mockSegments, mockTempDir);
 
