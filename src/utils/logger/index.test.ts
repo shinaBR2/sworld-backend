@@ -1,175 +1,150 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { pino } from 'pino';
-import pinoHttp from 'pino-http';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock pino and pino-http
+// Mock pino
 vi.mock('pino', () => ({
-  pino: vi.fn(() => ({
+  default: vi.fn().mockImplementation(() => ({
     info: vi.fn(),
     error: vi.fn(),
     debug: vi.fn(),
+    warn: vi.fn(),
+    child: vi.fn().mockReturnThis(),
+  })),
+  pino: vi.fn().mockImplementation(() => ({
+    info: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+    warn: vi.fn(),
+    child: vi.fn().mockReturnThis(),
   })),
 }));
 
-vi.mock('pino-http', () => {
-  const mockPinoHttp: any = vi.fn((options: any) => {
-    mockPinoHttp.lastOptions = options;
-    return (req: any, res: any, next: any) => next();
-  });
-  return { default: mockPinoHttp };
+// Mock pino-http
+const mockPinoHttp = vi.fn().mockImplementation((options) => {
+  // Store options for assertions
+  (mockPinoHttp as any).lastOptions = options;
+  // Return a middleware function that immediately calls next()
+  return (req: any, res: any, next: () => void) => {
+    next();
+  };
 });
+(mockPinoHttp as any).lastOptions = {};
+
+vi.mock('pino-http', () => ({
+  default: mockPinoHttp,
+}));
+
+// Mock node:async_hooks
+const mockGetStore = vi.fn();
+const mockRun = vi.fn((_store: unknown, callback: () => void) => callback());
+vi.mock('node:async_hooks', () => ({
+  AsyncLocalStorage: vi.fn(() => ({
+    getStore: mockGetStore,
+    run: mockRun,
+  })),
+}));
 
 describe('logger', () => {
-  const originalEnv = process.env;
+  let loggerModule: typeof import('.');
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    process.env = { ...originalEnv };
+    // Re-import the module to reset state
+    loggerModule = await import('.');
   });
 
-  afterEach(() => {
-    process.env = originalEnv;
+  describe('getCurrentLogger', () => {
+    it('should return a logger instance with expected methods', () => {
+      const logger = loggerModule.getCurrentLogger();
+
+      expect(logger).toBeDefined();
+      expect(typeof logger.info).toBe('function');
+      expect(typeof logger.error).toBe('function');
+      expect(typeof logger.debug).toBe('function');
+      expect(typeof logger.warn).toBe('function');
+    });
   });
 
-  describe('logger configuration', () => {
-    it('should create logger with default config', async () => {
-      const { logger } = await import('.');
+  describe('createHonoLoggingMiddleware', () => {
+    it('should create middleware with production config', async () => {
+      // Mock the pino-http middleware to call next immediately
+      const mockNext = vi.fn();
 
-      expect(pino).toHaveBeenCalledWith({
-        level: 'info',
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
+      const middleware = loggerModule.createHonoLoggingMiddleware({
+        nodeEnv: 'production',
+      });
+
+      expect(typeof middleware).toBe('function');
+
+      // Create a promise that resolves when next is called
+      const nextCalled = new Promise<void>((resolve) => {
+        middleware(
+          {
+            var: { requestId: 'test-request-123' },
+            env: { incoming: {}, outgoing: {} },
+            req: { headers: {} },
+            res: {},
           },
-        },
-      });
-    });
-
-    it('should use LOG_LEVEL from environment', async () => {
-      process.env.LOG_LEVEL = 'debug';
-
-      // Clear module cache to reload with new env
-      vi.resetModules();
-
-      const { logger } = await import('.');
-
-      expect(pino).toHaveBeenCalledWith({
-        level: 'debug',
-        transport: {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
+          () => {
+            mockNext();
+            resolve();
           },
-        },
+        );
       });
+
+      // Wait for next to be called or timeout after 1s
+      await Promise.race([
+        nextCalled,
+        new Promise((resolve) => setTimeout(resolve, 1000)),
+      ]);
+
+      expect(mockPinoHttp).toHaveBeenCalled();
+      expect(mockNext).toHaveBeenCalled();
     });
   });
 
-  describe('httpLogger configuration', () => {
-    let httpLoggerConfig: any;
-
-    beforeEach(async () => {
-      vi.resetModules();
-      const { httpLogger } = await import('.');
-      httpLoggerConfig = (pinoHttp as any).lastOptions;
-    });
-
-    it('should create http logger with correct config', () => {
-      expect(httpLoggerConfig).toEqual(
-        expect.objectContaining({
-          customProps: expect.any(Function),
-          redact: expect.arrayContaining([
-            'req.headers["authorization"]',
-            'req.headers["x-signature"]',
-            'req.headers["x-hub-signature"]',
-            'req.headers["x-webhook-signature"]',
-            'req.body.*.token',
-            'req.body.*.password',
-            'req.body.*.secret',
-            'req.body.*.key',
-          ]),
-          serializers: expect.objectContaining({
-            req: expect.any(Function),
-          }),
-        }),
-      );
-    });
-
-    it('should extract cloud event properties correctly', () => {
-      const mockReq = {
-        headers: {
-          'ce-id': 'test-id',
-          'ce-type': 'test-type',
-          'ce-source': 'test-source',
-          'x-cloud-trace-context': 'test-trace',
-        },
-      };
-
-      const props = httpLoggerConfig.customProps(mockReq, {});
-
-      expect(props).toEqual({
-        cloudEvent: {
-          id: 'test-id',
-          type: 'test-type',
-          source: 'test-source',
-        },
-        traceId: 'test-trace',
+  describe('sensitive data redaction', () => {
+    it('should redact sensitive fields', async () => {
+      // Mock the pino-http middleware to capture options
+      const middleware = loggerModule.createHonoLoggingMiddleware({
+        nodeEnv: 'test',
       });
-    });
 
-    it('should handle missing cloud event headers', () => {
-      const mockReq = {
-        headers: {},
-      };
-
-      const props = httpLoggerConfig.customProps(mockReq, {});
-
-      expect(props).toEqual({
-        cloudEvent: {
-          id: undefined,
-          type: undefined,
-          source: undefined,
-        },
-        traceId: undefined,
+      // Create a promise that resolves when next is called
+      const nextCalled = new Promise<void>((resolve) => {
+        middleware(
+          {
+            var: { requestId: 'test-request-123' },
+            env: { incoming: {}, outgoing: {} },
+            req: { headers: {} },
+            res: {},
+          },
+          resolve,
+        );
       });
-    });
 
-    it('should serialize request correctly', () => {
-      const mockReq = {
-        method: 'POST',
-        url: '/test',
-        headers: {
-          'ce-type': 'test-event',
-          'user-agent': 'test-agent',
-        },
-        ip: '127.0.0.1',
-      };
+      // Wait for next to be called or timeout after 1s
+      await Promise.race([
+        nextCalled,
+        new Promise((resolve) => setTimeout(resolve, 1000)),
+      ]);
 
-      const serialized = httpLoggerConfig.serializers.req(mockReq);
+      const pinoHttpOptions = (mockPinoHttp as any).lastOptions;
+      expect(pinoHttpOptions).toBeDefined();
+      expect(pinoHttpOptions.redact).toBeDefined();
 
-      expect(serialized).toEqual({
-        method: 'POST',
-        url: '/test',
-        eventType: 'test-event',
-        ip: '127.0.0.1',
-        userAgent: 'test-agent',
-      });
-    });
+      const sensitiveFields = [
+        'req.headers["authorization"]',
+        'req.headers["x-signature"]',
+        'req.headers["x-hub-signature"]',
+        'req.headers["x-webhook-signature"]',
+        'req.body.*.token',
+        'req.body.*.password',
+        'req.body.*.secret',
+        'req.body.*.key',
+      ];
 
-    it('should handle missing request properties', () => {
-      const mockReq = {
-        headers: {},
-      };
-
-      const serialized = httpLoggerConfig.serializers.req(mockReq);
-
-      expect(serialized).toEqual({
-        method: undefined,
-        url: undefined,
-        eventType: undefined,
-        ip: undefined,
-        userAgent: undefined,
+      sensitiveFields.forEach((field) => {
+        expect(pinoHttpOptions.redact).toContain(field);
       });
     });
   });
