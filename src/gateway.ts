@@ -2,6 +2,7 @@ import 'dotenv/config';
 
 import { serve } from '@hono/node-server';
 import { sentry } from '@hono/sentry';
+import { ERROR_CONFIG } from '@shinabr2/core/universal/errors/errorCodes';
 import { Hono } from 'hono';
 import { bodyLimit } from 'hono/body-limit';
 import { contextStorage } from 'hono/context-storage';
@@ -15,6 +16,8 @@ import { envConfig } from './utils/envConfig';
 import { createHonoLoggingMiddleware, getCurrentLogger } from './utils/logger';
 
 const port = Number(envConfig.port) || 4000;
+
+console.log(`ERROR_CONFIG`, ERROR_CONFIG);
 
 const app = new Hono();
 app.use('*', contextStorage());
