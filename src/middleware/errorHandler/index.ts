@@ -1,6 +1,6 @@
 import { PostHog } from 'posthog-node';
-import { CustomError } from 'src/utils/custom-error';
-import { ERROR_CODE } from 'src/utils/error-codes';
+// import { CustomError } from 'src/utils/custom-error';
+// import { ERROR_CODE } from 'src/utils/error-codes';
 import { envConfig } from '../../utils/envConfig';
 import { getCurrentLogger } from '../../utils/logger';
 
@@ -52,6 +52,7 @@ const errorHandler = (error: unknown) => {
         const posthog = new PostHog(errorTracker.posthogPublicKey, {
           host: errorTracker.posthogHost,
         });
+        // Get this from context
         const userId = error.metadata?.userId?.toString() || '';
         posthog.captureException(error, userId);
         // https://posthog.com/docs/error-tracking/installation/hono
