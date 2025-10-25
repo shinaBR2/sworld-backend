@@ -1,8 +1,10 @@
+import { ERROR_CODES } from '@shinabr2/core/dist/universal/errors/errorCodes';
+import { getContext } from 'hono/context-storage';
 import { PostHog } from 'posthog-node';
-// import { CustomError } from 'src/utils/custom-error';
-// import { ERROR_CODE } from 'src/utils/error-codes';
+import { CustomError } from '../../utils/custom-error';
 import { envConfig } from '../../utils/envConfig';
 import { getCurrentLogger } from '../../utils/logger';
+import type { Env } from '../../utils/types/context';
 
 /**
  * Reference
@@ -14,6 +16,11 @@ const { errorTracker } = envConfig;
 
 const errorHandler = (error: unknown) => {
   const logger = getCurrentLogger();
+
+  const context = getContext<Env>();
+  const userId = context?.var?.userId;
+  const hasuraAction = context?.var?.hasuraAction;
+  const hasuraEventTrigger = context?.var?.hasuraEventTrigger;
 
   /**
    * TODO
@@ -37,7 +44,15 @@ const errorHandler = (error: unknown) => {
      * to let client retry
      */
     if (error.shouldNotify) {
-      logger.error(error, error.systemMessage);
+      logger.error({
+        err: error,
+        message: error.message,
+        metadata: {
+          userId,
+          hasuraAction,
+          hasuraEventTrigger,
+        },
+      });
 
       return {
         result: error.toUserResponse(),
@@ -52,8 +67,6 @@ const errorHandler = (error: unknown) => {
         const posthog = new PostHog(errorTracker.posthogPublicKey, {
           host: errorTracker.posthogHost,
         });
-        // Get this from context
-        const userId = error.metadata?.userId?.toString() || '';
         posthog.captureException(error, userId);
         // https://posthog.com/docs/error-tracking/installation/hono
         posthog.shutdown();
@@ -85,14 +98,25 @@ const errorHandler = (error: unknown) => {
    * which means it will ALWAYS retry
    */
   if (error instanceof Error) {
-    logger.error(error, 'Unexpected error');
+    logger.error(
+      {
+        err: error,
+        message: error.message,
+        metadata: {
+          userId,
+          hasuraAction,
+          hasuraEventTrigger,
+        },
+      },
+      'Unexpected error',
+    );
 
     return {
       result: {
         // error: "Internal Server Error",
         message: error.message,
         extensions: {
-          code: ERROR_CODE.UNEXPECTED_ERROR,
+          code: ERROR_CODES.UNEXPECTED_ERROR,
           shouldRetry: true,
         },
       },
