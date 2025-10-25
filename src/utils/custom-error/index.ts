@@ -108,7 +108,6 @@ class CustomError extends Error {
     this.timestamp = Date.now();
     this.errorCode = errorCode;
     this.severity = severity;
-    this.shouldRetry = shouldRetry;
     this.contexts = [];
 
     const errorConfig = ERROR_CONFIG[errorCode as keyof typeof ERROR_CONFIG];
