@@ -106,6 +106,9 @@ describe('errorHandler', () => {
   });
 
   afterEach(() => {
+    // Reset envConfig.errorTracker to prevent test pollution
+    envConfig.errorTracker.posthogPublicKey = '';
+    envConfig.errorTracker.posthogHost = '';
     vi.clearAllMocks();
   });
 
