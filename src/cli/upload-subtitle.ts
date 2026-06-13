@@ -128,7 +128,10 @@ async function uploadVttFromUrl(
   });
 
   await new Promise<void>((resolve, reject) => {
-    Readable.fromWeb(response.body as never)
+    const source = Readable.fromWeb(response.body as never);
+    // pipe() does not forward source errors; without this a socket drop crashes the process.
+    source.on('error', reject);
+    source
       .pipe(writeStream)
       .on('finish', () => resolve())
       .on('error', reject);
@@ -152,8 +155,8 @@ const FIND_SUBTITLE_QUERY = `
 `;
 
 const UPDATE_SUBTITLE_MUTATION = `
-  mutation UpdateSubtitle($id: uuid!, $url: String!, $isDefault: Boolean!) {
-    update_subtitles_by_pk(pk_columns: { id: $id }, _set: { url: $url, isDefault: $isDefault }) {
+  mutation UpdateSubtitle($id: uuid!, $url: String!, $urlInput: String, $isDefault: Boolean!) {
+    update_subtitles_by_pk(pk_columns: { id: $id }, _set: { url: $url, urlInput: $urlInput, isDefault: $isDefault }) {
       id
     }
   }
@@ -222,6 +225,10 @@ async function gatherArgs(rawArgs: string[]): Promise<SubtitleArgs> {
     const src = await prompt('Subtitle source — local .vtt path OR a URL: ');
     if (/^https?:\/\//i.test(src)) url = src;
     else file = src;
+  }
+  if (file && url) {
+    console.error('Error: use --file OR --url, not both.');
+    process.exit(1);
   }
   if (!file && !url) {
     console.error('Error: a --file or --url is required.');
@@ -364,6 +371,7 @@ async function run(rawArgs: string[]): Promise<void> {
     await client.request(UPDATE_SUBTITLE_MUTATION, {
       id: existing.subtitles[0].id,
       url,
+      urlInput: args.url ?? null,
       isDefault: args.isDefault,
     });
     console.log(

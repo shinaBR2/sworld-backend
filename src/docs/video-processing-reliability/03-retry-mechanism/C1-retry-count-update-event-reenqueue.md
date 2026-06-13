@@ -26,6 +26,10 @@ column (it writes `source/status/thumbnailUrl/duration/sId`).
   existing row (it already keys off the row data; no backend change expected).
 - Document the retry recipe in the epic README / this ticket: set
   `metadata.customRequestHeaders`, then `retry_count = retry_count + 1`.
+- **Gate the re-enqueue on a retryable state.** A `retry_count` bump should only
+  reprocess a video that is actually `failed` (or `processing`), and the bump
+  should reset `status` to `processing`. Don't reprocess a `ready` video on an
+  accidental bump — scope the trigger payload check / dispatcher accordingly.
 
 ## Files to touch (ownership)
 

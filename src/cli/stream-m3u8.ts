@@ -22,7 +22,13 @@
  */
 
 import { Readable } from 'node:stream';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from 'node:fs';
 import { createInterface } from 'node:readline/promises';
 import { Storage } from '@google-cloud/storage';
 import { GraphQLClient } from 'graphql-request';
@@ -182,7 +188,11 @@ function saveConfig(config: CliConfig): void {
   if (!existsSync(CONFIG_DIR)) {
     mkdirSync(CONFIG_DIR, { recursive: true });
   }
-  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2) + '\n');
+  writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2) + '\n', {
+    mode: 0o600,
+  });
+  // Config holds the Hasura admin secret — keep it readable only by the owner.
+  chmodSync(CONFIG_FILE, 0o600);
 }
 
 function handleConfig(args: string[]): void {
@@ -313,12 +323,22 @@ function parseStreamArgs(rawArgs: string[]): StreamArgs {
   const userId =
     resolve(get('--user-id'), 'DEFAULT_USER_ID', 'user-id', config) || USER_ID;
 
+  if (url && file) {
+    console.error('Error: use --url OR --file, not both.');
+    process.exit(1);
+  }
   if (file && !existsSync(file)) {
     console.error(`Error: File not found: ${file}`);
     process.exit(1);
   }
 
   const positionFlag = get('--position');
+  const position =
+    positionFlag !== undefined ? Number(positionFlag) : undefined;
+  if (position !== undefined && !Number.isInteger(position)) {
+    console.error('Error: --position must be an integer.');
+    process.exit(1);
+  }
 
   const gcpKeyPath = resolve(
     get('--gcp-key'),
@@ -344,6 +364,10 @@ function parseStreamArgs(rawArgs: string[]): StreamArgs {
       config,
     ) || '';
   const concurrency = Number(get('--concurrency') || config.concurrency || '5');
+  if (!Number.isFinite(concurrency) || concurrency < 1) {
+    console.error('Error: --concurrency must be a positive number.');
+    process.exit(1);
+  }
 
   return {
     url,
@@ -357,7 +381,7 @@ function parseStreamArgs(rawArgs: string[]): StreamArgs {
     concurrency,
     referer: get('--referer'),
     playlistName: get('--playlist'),
-    position: positionFlag !== undefined ? Number(positionFlag) : undefined,
+    position,
     gcpKeyPath,
     gcpBucket,
     hasuraEndpoint,
@@ -480,8 +504,9 @@ async function parseM3U8Content(
   let modifiedContent = '';
   let totalDuration = 0;
 
+  // #EXTM3U is mandatory and must always be the first line; the version tag is optional.
+  modifiedContent += '#EXTM3U\n';
   if (manifest.version) {
-    modifiedContent += '#EXTM3U\n';
     modifiedContent += `#EXT-X-VERSION:${manifest.version}\n`;
   }
 

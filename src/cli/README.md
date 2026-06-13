@@ -53,7 +53,7 @@ A **failed** video looks exactly like this: `status = 'processing'` and
 
 ### Tables that hang off a video
 
-```
+```text
 videos ──< video_tags >── tags          many-to-many tagging
 videos ──< video_views                  per-user view events
 videos ──< user_video_history           resume position (progress_seconds)
@@ -91,7 +91,7 @@ The CLI tools use the **Hasura admin secret**, which bypasses all of this.
 
 ## 3. The automated processing pipeline
 
-```
+```text
 INSERT videos row
   └─ Hasura trigger `video_on_created` → POST {BACKEND}/videos/convert
        └─ gateway `streamToStorage` (dispatcher)
@@ -128,7 +128,7 @@ It does **not** re-encode — stored bytes = source bytes.
 
 ### Subtitle flow
 
-```
+```text
 INSERT subtitles row { url_input, lang, video_id, is_default }
   └─ Hasura trigger `subtitle_on_created` → POST {BACKEND}/videos/subtitle-created
        ├─ stream the file from `url_input` → GCS videos/{userId}/{videoId}/{lang}.vtt
@@ -143,7 +143,7 @@ INSERT subtitles row { url_input, lang, video_id, is_default }
 
 Bucket: **`sworld-prod.appspot.com`**.
 
-```
+```text
 videos/{userId}/{videoId}/playlist.m3u8     ← written to videos.source
 videos/{userId}/{videoId}/0.ts, 1.ts, …     ← the segments
 videos/{userId}/{videoId}/{name}.vtt        ← subtitle files
@@ -184,7 +184,7 @@ Both scripts are standalone, run via `tsx`, and share one config file at
 
 The owner of every manually-fixed video / playlist / subtitle is **always**:
 
-```
+```text
 USER_ID = 6ff27fda-03e8-4dcd-949b-f1328f955065
 ```
 
