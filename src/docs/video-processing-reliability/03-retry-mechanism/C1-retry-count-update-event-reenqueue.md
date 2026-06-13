@@ -41,6 +41,7 @@ column (it writes `source/status/thumbnailUrl/duration/sId`).
 - [ ] The re-fired payload includes `metadata.customRequestHeaders`.
 - [ ] Backend finalize writes (`source/status/...`) do **not** re-trigger the event (no loop).
 - [ ] `skip_process = true` still short-circuits.
+- [ ] Bumping `retry_count` on a `ready` video does **not** reprocess it (status-guarded).
 
 ## Test plan
 

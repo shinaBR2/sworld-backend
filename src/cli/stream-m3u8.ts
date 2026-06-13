@@ -22,6 +22,7 @@
  */
 
 import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import {
   chmodSync,
   existsSync,
@@ -364,8 +365,8 @@ function parseStreamArgs(rawArgs: string[]): StreamArgs {
       config,
     ) || '';
   const concurrency = Number(get('--concurrency') || config.concurrency || '5');
-  if (!Number.isFinite(concurrency) || concurrency < 1) {
-    console.error('Error: --concurrency must be a positive number.');
+  if (!Number.isInteger(concurrency) || concurrency < 1) {
+    console.error('Error: --concurrency must be a positive integer.');
     process.exit(1);
   }
 
@@ -575,12 +576,8 @@ async function uploadPlaylist(
     metadata: { cacheControl: 'public, max-age=31536000' },
   });
 
-  return new Promise((resolve, reject) => {
-    Readable.from(content)
-      .pipe(stream)
-      .on('finish', () => resolve())
-      .on('error', reject);
-  });
+  // pipeline() awaits completion and tears down both streams on any error.
+  await pipeline(Readable.from(content), stream);
 }
 
 async function uploadSegment(
@@ -606,17 +603,10 @@ async function uploadSegment(
     metadata: { cacheControl: 'public, max-age=31536000' },
   });
 
-  return new Promise((resolve, reject) => {
-    const source = Readable.fromWeb(response.body as any);
-    // The socket drop (BodyTimeout / "other side closed") errors the SOURCE, not
-    // the write stream. pipe() does not forward source errors, so without this the
-    // event is unhandled and crashes the process before withRetry can catch it.
-    source.on('error', reject);
-    source
-      .pipe(writeStream)
-      .on('finish', () => resolve())
-      .on('error', reject);
-  });
+  // pipeline() forwards SOURCE errors (socket drop / body timeout) as a rejection
+  // and tears down both streams, so withRetry can catch and retry the segment.
+  // (A bare pipe() leaves source errors unhandled and crashes the process.)
+  await pipeline(Readable.fromWeb(response.body as any), writeStream);
 }
 
 /** Retry a transient async op (socket drops, body timeouts) with linear backoff. */

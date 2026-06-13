@@ -23,6 +23,10 @@ with the row (id, title, status, metadata.lastError). Signed like other triggers
 
 **B2b (backend PR):** new gateway route `/videos/notify-failure`:
 - validate signature + zod body (id, title, lastError).
+- Pin the `lastError` contract (shared by the Hasura trigger payload and the
+  route's zod validator so they cannot drift):
+  `lastError: { code: string; httpStatus?: number; message: string; at: string }`
+  — these are exactly the operator-safe fields B1 produces.
 - call `postToSlack` (B3) with a readable message: title, video id, error
   code/httpStatus/message, and a link/hint to retry (bump `retry_count`).
 

@@ -27,6 +27,10 @@ handler's catch) so it doesn't collide with the A-path tickets.
   or `middleware/errorHandler`) when a video-processing task throws — derive
   `videoId` from the Cloud Task payload `entityId` / handler context.
 - Only flips to `failed` for video-entity tasks; leave non-video flows untouched.
+- **Sanitize before persisting / alerting.** `error.message` can carry source
+  URLs, query strings, or header values. Redact/whitelist into operator-safe
+  fields (`code`, `httpStatus`, a cleaned `message`) before writing `lastError`
+  or sending to Slack, so hotlink targets and secrets don't leak.
 
 ## Files to touch (ownership)
 

@@ -25,6 +25,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { createInterface } from 'node:readline/promises';
 import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { Storage } from '@google-cloud/storage';
@@ -127,15 +128,8 @@ async function uploadVttFromUrl(
     metadata: { cacheControl: 'public, max-age=31536000' },
   });
 
-  await new Promise<void>((resolve, reject) => {
-    const source = Readable.fromWeb(response.body as never);
-    // pipe() does not forward source errors; without this a socket drop crashes the process.
-    source.on('error', reject);
-    source
-      .pipe(writeStream)
-      .on('finish', () => resolve())
-      .on('error', reject);
-  });
+  // pipeline() forwards source errors as a rejection and tears down both streams.
+  await pipeline(Readable.fromWeb(response.body as never), writeStream);
 }
 
 // ─── Hasura ──────────────────────────────────────────────────────────────────────

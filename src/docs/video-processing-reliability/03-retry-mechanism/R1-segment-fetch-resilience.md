@@ -27,9 +27,11 @@ identical flaws** and they are a likely cause of stuck `processing` videos):
 
 ## Scope
 
-- In `streamSegmentFile` (and `streamSubtitleFile`): attach `.on('error', reject)`
-  to the **source** `Readable` as well as the write stream, so a body/socket
-  error rejects the promise instead of crashing.
+- In `streamSegmentFile` (and `streamSubtitleFile`): replace the bare
+  `Readable.fromWeb(body).pipe(writeStream)` with **`stream.pipeline()`**
+  (`node:stream/promises`). `pipeline()` forwards source errors (body/socket
+  drops) as a rejection **and** tears down both streams — instead of leaving an
+  unhandled source `'error'` that crashes the process. (Matches the CLI fix.)
 - Add a small `withRetry(fn, label, attempts, backoff)` helper and wrap each
   segment fetch+upload (and the subtitle fetch) — retry transient
   network/socket/timeout errors (e.g. 4 attempts, linear backoff). Do not retry

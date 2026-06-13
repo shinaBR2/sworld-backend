@@ -102,13 +102,16 @@ No two parallel tickets touch the same file.
 | `src/schema/videos/convert/index.ts` (shared `videoDataSchema`) | A1 |
 | `src/services/videos/helpers/m3u8/*`, `apps/io/videos/routes/stream-hls/*`, `schema/videos/stream-hls/*` | A2 |
 | `src/services/videos/helpers/subtitle/*`, `apps/gateway/videos/routes/subtitle-created/*`, `schema/videos/subtitle-created/*` | A3 |
-| `src/services/videos/helpers/file/*`, `helpers/thumbnail/*`, `services/videos/convert/handler.ts`, `schema/videos/convert` (handler-schema only) | A4 |
+| `src/services/videos/helpers/file/*`, `helpers/thumbnail/*`, `services/videos/convert/handler.ts` | A4 |
 | `src/services/hasura/mutations/videos/markFailed.ts` (new) + central error wrapper | B1 |
 | `src/services/.../slack.ts` (new) | B3 |
 | `apps/gateway/videos/routes/notify-failure/*` (new) + router registration | B2 |
 
-> ⚠️ A1 owns the **shared** `videoDataSchema`. A2/A4 read from it but must not
-> edit it — that's why A1 is a separate foundation ticket they all block on.
+> ⚠️ `src/schema/videos/convert/index.ts` (the shared `videoDataSchema`) is owned
+> **solely by A1**. A2/A4 only *consume* the parsed `customRequestHeaders` in their
+> own handlers/helpers and must **not** edit the schema — which is why they are
+> sequenced strictly after A1 (a hard dependency), not parallel with it. With that
+> sequencing, A2/A3/A4 touch disjoint files and are safe to run in parallel.
 
 ---
 
