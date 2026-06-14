@@ -17,10 +17,10 @@ const subtitleCreatedHandler = async (
   // metadata of its own, so source the request headers from the parent video's
   // metadata.customRequestHeaders (set as an A2/A3/A4 retry hint).
   const video = await getVideoById(videoId);
+  // `.data` is undefined when parsing fails (e.g. malformed metadata), so `?.`
+  // covers both "no/invalid metadata" and "no customRequestHeaders" in one path.
   const parsedMetadata = videoMetadataSchema.safeParse(video?.metadata ?? {});
-  const customRequestHeaders = parsedMetadata.success
-    ? parsedMetadata.data.customRequestHeaders
-    : undefined;
+  const customRequestHeaders = parsedMetadata.data?.customRequestHeaders;
 
   // Download subtitle from url
   const storagePath = `videos/${userId}/${videoId}/${lang}.vtt`;
