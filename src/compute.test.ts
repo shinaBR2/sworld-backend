@@ -30,6 +30,10 @@ vi.mock('./apps/compute/videos', () => ({
   videosRouter: mockVideosRouter,
 }));
 
+vi.mock('src/middleware/reportVideoFailure', () => ({
+  reportVideoTaskFailure: vi.fn(),
+}));
+
 // Mock Hasura client
 vi.mock('src/services/hasura/client', () => ({
   createHasuraClient: vi.fn().mockReturnValue({

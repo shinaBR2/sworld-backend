@@ -63,6 +63,10 @@ vi.mock('./apps/io/crawler', () => ({
   crawlerRouter: 'mockCrawlerRouter',
 }));
 
+vi.mock('./middleware/reportVideoFailure', () => ({
+  reportVideoTaskFailure: vi.fn(),
+}));
+
 // Mock sentry
 vi.mock('@hono/sentry', () => ({
   sentry: () => vi.fn(),
@@ -140,7 +144,7 @@ describe('IO Application', () => {
     expect(mockRoute).toHaveBeenCalledWith('crawlers', 'mockCrawlerRouter');
   });
 
-  it('should set up error handling', () => {
+  it('should set up error handling', async () => {
     // Verify onError was called with a function
     expect(mockOnError).toHaveBeenCalledWith(expect.any(Function));
 
@@ -155,7 +159,7 @@ describe('IO Application', () => {
 
     // Test the error handler
     const testError = new Error('Test error');
-    errorHandler(testError, mockCtx);
+    await errorHandler(testError, mockCtx);
 
     // Verify the error was logged
     expect(mockLogger.error).toHaveBeenCalledWith(testError);

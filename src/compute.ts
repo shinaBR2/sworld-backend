@@ -5,6 +5,7 @@ import { bodyLimit } from 'hono/body-limit';
 import { contextStorage } from 'hono/context-storage';
 import { requestId } from 'hono/request-id';
 import { rateLimiter } from 'hono-rate-limiter';
+import { reportVideoTaskFailure } from 'src/middleware/reportVideoFailure';
 import { envConfig } from 'src/utils/envConfig';
 import {
   createHonoLoggingMiddleware,
@@ -65,9 +66,11 @@ app.get('/hz', (c) => {
 
 app.route('/videos', videosRouter);
 
-app.onError((e, c) => {
+app.onError(async (e, c) => {
   const logger = getCurrentLogger();
   logger.error(e);
+  // Flag the video failed on a terminal error (B1); never throws.
+  await reportVideoTaskFailure(e, c);
   // TODO: handle proper response
   return c.json({ error: e.message }, 500);
 });
