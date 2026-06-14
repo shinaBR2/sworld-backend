@@ -1,12 +1,16 @@
 import type { Context } from 'hono';
-import { markVideoFailed } from 'src/services/hasura/mutations/videos/markFailed';
 import { CustomError } from 'src/utils/custom-error';
 import { getCurrentLogger } from 'src/utils/logger';
 
 /**
- * Call from a video-processing app's `onError` (compute / io). When a TERMINAL
- * failure happens for a known video, flag the video `failed` (which fires the
- * Slack alert via B2).
+ * Call from the central request-handler wrapper (`honoRequestHandler`). When a
+ * TERMINAL failure happens for a video-processing task, flag the video `failed`
+ * (which fires the Slack alert via B2).
+ *
+ * A "video-processing task" is identified purely by its Cloud-Task payload
+ * shape: `validatedData.body.data.id` is the video id. Crawler tasks carry no
+ * `id`, and gateway (Hasura action/event) routes use `validatedData.event` —
+ * so non-video flows fall straight through the guard below, untouched.
  *
  * "Terminal" = a non-retryable `CustomError` (Option A) — e.g. a 403 hotlink
  * block. Transient/retryable errors are left alone so Cloud Tasks can retry and
@@ -28,6 +32,12 @@ const reportVideoTaskFailure = async (
       context.get('validatedData')?.body?.data?.id;
     if (!videoId) return;
 
+    // Imported lazily so merely loading `honoRequestHandler` (used by every
+    // route, incl. non-Hasura gateway ones) doesn't eagerly construct the
+    // Hasura client, which throws at import when its env vars are absent.
+    const { markVideoFailed } = await import(
+      'src/services/hasura/mutations/videos/markFailed'
+    );
     await markVideoFailed(videoId, error);
     logger.info({ videoId }, 'Marked video as failed');
   } catch (markError) {

@@ -1,4 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const mockReportVideoTaskFailure = vi.fn();
+vi.mock('src/middleware/reportVideoFailure', () => ({
+  reportVideoTaskFailure: (...args: unknown[]) =>
+    mockReportVideoTaskFailure(...args),
+}));
+
 import { honoRequestHandler, type BusinessHandler } from './requestHandler';
 import type { Context } from 'hono';
 
@@ -16,6 +23,10 @@ describe('requestHandler', () => {
   const mockErrorHandler: BusinessHandler = async () => {
     throw new Error('Business logic error');
   };
+
+  beforeEach(() => {
+    mockReportVideoTaskFailure.mockReset();
+  });
 
   describe('honoRequestHandler', () => {
     it('should handle successful requests', async () => {
@@ -53,6 +64,17 @@ describe('requestHandler', () => {
       });
     });
 
+    it('should NOT report a video failure on success', async () => {
+      const mockContext = {
+        get: vi.fn().mockReturnValue({ foo: 'bar' }),
+        json: vi.fn(),
+      } as unknown as Context;
+
+      await honoRequestHandler(mockSuccessHandler)(mockContext);
+
+      expect(mockReportVideoTaskFailure).not.toHaveBeenCalled();
+    });
+
     it('should let errors bubble up to middleware', async () => {
       const mockContext = {
         get: vi.fn().mockReturnValue({ foo: 'bar' }),
@@ -64,6 +86,23 @@ describe('requestHandler', () => {
         'Business logic error',
       );
       expect(mockContext.json).not.toHaveBeenCalled();
+    });
+
+    it('should report the video failure before re-throwing on error', async () => {
+      const mockContext = {
+        get: vi.fn().mockReturnValue({ foo: 'bar' }),
+        json: vi.fn(),
+      } as unknown as Context;
+
+      await expect(
+        honoRequestHandler(mockErrorHandler)(mockContext),
+      ).rejects.toThrow('Business logic error');
+
+      expect(mockReportVideoTaskFailure).toHaveBeenCalledTimes(1);
+      const [reportedError, reportedContext] =
+        mockReportVideoTaskFailure.mock.calls[0];
+      expect((reportedError as Error).message).toBe('Business logic error');
+      expect(reportedContext).toBe(mockContext);
     });
   });
 });
