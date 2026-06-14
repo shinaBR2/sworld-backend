@@ -1,15 +1,22 @@
 import { CustomError } from 'src/utils/custom-error';
+import { graphql } from '../../generated-graphql';
+import type {
+  MarkVideoFailedMutation,
+  MarkVideoFailedMutationVariables,
+  VideoMetadataQuery,
+  VideoMetadataQueryVariables,
+} from '../../generated-graphql/graphql';
 import { hasuraClient } from '../../client';
 
-const GET_VIDEO_METADATA = `
+const VIDEO_METADATA = graphql(/* GraphQL */ `
   query VideoMetadata($videoId: uuid!) {
     videos_by_pk(id: $videoId) {
       metadata
     }
   }
-`;
+`);
 
-const MARK_VIDEO_FAILED = `
+const MARK_VIDEO_FAILED = graphql(/* GraphQL */ `
   mutation MarkVideoFailed($videoId: uuid!, $metadata: jsonb!) {
     update_videos_by_pk(
       pk_columns: { id: $videoId }
@@ -18,7 +25,7 @@ const MARK_VIDEO_FAILED = `
       id
     }
   }
-`;
+`);
 
 interface LastError {
   code: string;
@@ -69,16 +76,27 @@ const markVideoFailed = async (
   videoId: string,
   error: unknown,
 ): Promise<void> => {
-  const current = await hasuraClient.request<{
-    videos_by_pk: { metadata: Record<string, unknown> | null } | null;
-  }>(GET_VIDEO_METADATA, { videoId });
+  const current = await hasuraClient.request<
+    VideoMetadataQuery,
+    VideoMetadataQueryVariables
+  >({
+    document: VIDEO_METADATA.toString(),
+    variables: { videoId },
+  });
 
   const metadata = {
-    ...(current.videos_by_pk?.metadata ?? {}),
+    ...((current.videos_by_pk?.metadata as Record<string, unknown> | null) ??
+      {}),
     lastError: buildLastError(error),
   };
 
-  await hasuraClient.request(MARK_VIDEO_FAILED, { videoId, metadata });
+  await hasuraClient.request<
+    MarkVideoFailedMutation,
+    MarkVideoFailedMutationVariables
+  >({
+    document: MARK_VIDEO_FAILED.toString(),
+    variables: { videoId, metadata },
+  });
 };
 
 export { buildLastError, markVideoFailed };

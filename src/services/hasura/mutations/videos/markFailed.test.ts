@@ -53,7 +53,7 @@ describe('markVideoFailed', () => {
     );
 
     expect(mockRequest).toHaveBeenCalledTimes(2);
-    const markVars = mockRequest.mock.calls[1][1] as {
+    const markVars = mockRequest.mock.calls[1][0].variables as {
       videoId: string;
       metadata: Record<string, unknown>;
     };
@@ -73,7 +73,7 @@ describe('markVideoFailed', () => {
 
     await markVideoFailed('v2', new Error('x'));
 
-    const markVars = mockRequest.mock.calls[1][1] as {
+    const markVars = mockRequest.mock.calls[1][0].variables as {
       metadata: Record<string, unknown>;
     };
     expect(markVars.metadata.lastError).toBeTruthy();
