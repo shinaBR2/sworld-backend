@@ -23,9 +23,9 @@ fires an **event trigger** that calls the backend, which downloads/copies the
 media into our own Google Cloud Storage (GCS) bucket and flips the row to
 `ready`. The frontend then plays it from GCS.
 
-The CLI tools in this folder (`stream-m3u8.ts`, `upload-subtitle.ts`) do the
-**same work by hand** when the automated pipeline fails — they are operator
-tools, not part of the running services.
+The CLI tools in this folder (`stream-m3u8.ts`, `upload-subtitle.ts`,
+`repair-fmp4.ts`) do the **same work by hand** when the automated pipeline fails
+— they are operator tools, not part of the running services.
 
 ---
 
@@ -307,6 +307,43 @@ What it does:
 | `--lang`       | Language code (default `vi`).                               |
 | `--name`       | Storage file name without extension (default: source's base name). |
 | `--not-default`| Do **not** mark this as the default track (default: it is). |
+
+### `repair-fmp4.ts` — fix a noisy video (`.ts` → fMP4)
+
+For a video that streamed in fine and is `ready`, but plays **intermittent
+garbled/noise audio on desktop Chrome** (hls.js's MPEG-TS AAC-demux race — the
+"Gosick" bug). It repackages that one video's already-stored `.ts` into
+**fMP4/CMAF** (`init.mp4` + `.m4s`), which delivers the audio config upfront and
+kills the race. See `src/docs/fmp4-default-output/` for the full background.
+
+It reads the `.ts` **we already own** (its public GCS playlist), so it works even
+after the original source URL has expired. The normal streaming flow is
+untouched — this is a targeted, on-demand repair.
+
+```bash
+# Preview what it would do (no writes):
+npx tsx src/cli/repair-fmp4.ts repair --video-id <uuid> --dry-run
+
+# Repair for real:
+npx tsx src/cli/repair-fmp4.ts repair --video-id <uuid>
+```
+
+What it does (swap-in **before** delete — never a broken window):
+
+1. Look up the video → resolve its GCS path `videos/{userId}/{videoId}`.
+2. ffmpeg-remux the stored playlist → fMP4 (`-c:v copy`, audio re-encoded to AAC).
+3. Upload `init.mp4` + `.m4s` (new names, alongside the old `.ts`).
+4. Verify `init.mp4` is in storage, then **swap** `playlist.m3u8` to the fMP4 one
+   (served `no-cache` so clients refetch instead of holding the old manifest).
+5. Delete the now-orphaned `.ts` (skip with `--skip-delete`).
+
+Then watch it on the frontend to confirm the noise is gone.
+
+| Flag            | Meaning                                                     |
+| --------------- | ---------------------------------------------------------- |
+| `--video-id`    | Video to repair (required).                                |
+| `--dry-run`     | Show the plan, write nothing.                              |
+| `--skip-delete` | Keep the old `.ts` after the swap (manual cleanup later).  |
 
 ---
 
