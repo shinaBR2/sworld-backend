@@ -63,7 +63,12 @@ const processStream = async (
 ): Promise<ProcessStreamResult> => {
   const { sourceUrl, storagePath } = input;
   const { excludePatterns, customRequestHeaders } = options;
-  const concurrency = options.concurrencyLimit ?? DEFAULT_SEGMENT_CONCURRENCY;
+  // Guard against 0/negative (would make `i += concurrency` hang/never end);
+  // matches the previous `||` fallback behaviour.
+  const concurrency =
+    options.concurrencyLimit && options.concurrencyLimit > 0
+      ? options.concurrencyLimit
+      : DEFAULT_SEGMENT_CONCURRENCY;
   const errorContext = { sourceUrl, storagePath };
 
   deps.logger.info(errorContext, 'Starting M3U8 streaming');

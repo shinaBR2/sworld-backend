@@ -136,6 +136,20 @@ describe('processStream', () => {
     expect(deps.logger.error).toHaveBeenCalled();
   });
 
+  it('falls back to the default concurrency on a non-positive limit (no hang)', async () => {
+    const deps = makeDeps();
+
+    const result = await processStream(
+      { sourceUrl: SOURCE, storagePath: STORAGE_PATH },
+      { ...OPTIONS, concurrencyLimit: 0 },
+      deps,
+    );
+
+    // playlist + 2 segments still uploaded — the loop terminated
+    expect(deps.storage.uploadStream).toHaveBeenCalledTimes(3);
+    expect(result.segments.included).toHaveLength(2);
+  });
+
   it('fails the upload when a segment cannot be fetched', async () => {
     const deps = makeDeps({ segmentBody: () => null });
 
