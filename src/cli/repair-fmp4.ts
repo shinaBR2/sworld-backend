@@ -16,7 +16,7 @@
  * (gcp-key, gcp-bucket, hasura-endpoint, hasura-secret).
  *
  * Usage:
- *   npx tsx src/cli/repair-fmp4.ts repair --video-id <uuid> [--dry-run] [--skip-delete]
+ *   npx tsx src/cli/repair-fmp4.ts repair --video-id <uuid> [--dry-run] [--delete-ts]
  */
 
 import {
@@ -48,6 +48,11 @@ ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
 const CONFIG_FILE = path.join(os.homedir(), '.sworld-cli', 'config.json');
 const PLAYLIST_NAME = 'playlist.m3u8';
+// The fMP4 playlist gets its OWN name (not an overwrite of playlist.m3u8). The
+// original `.ts` playlist was uploaded with a 1-year max-age, so overwriting it
+// can't reach clients/edge caches that already hold it. Publishing at a fresh
+// URL + repointing `videos.source` sidesteps caching entirely.
+const FMP4_PLAYLIST_NAME = 'playlist-fmp4.m3u8';
 const PLAYLIST_CONTENT_TYPE = 'application/vnd.apple.mpegurl';
 
 interface CliConfig {
@@ -81,7 +86,7 @@ function resolve(
 interface RepairArgs {
   videoId: string;
   dryRun: boolean;
-  skipDelete: boolean;
+  deleteTs: boolean;
   gcpKeyPath?: string;
   gcpBucket: string;
   hasuraEndpoint: string;
@@ -130,7 +135,7 @@ function parseRepairArgs(rawArgs: string[]): RepairArgs {
   return {
     videoId,
     dryRun: has('--dry-run'),
-    skipDelete: has('--skip-delete'),
+    deleteTs: has('--delete-ts'),
     gcpKeyPath,
     gcpBucket,
     hasuraEndpoint,
@@ -285,6 +290,28 @@ async function getVideo(args: RepairArgs): Promise<VideoRow> {
   return data.videos_by_pk;
 }
 
+const UPDATE_SOURCE_MUTATION = `
+  mutation UpdateSource($videoId: uuid!, $source: String!) {
+    update_videos_by_pk(
+      pk_columns: { id: $videoId }
+      _set: { source: $source }
+    ) { id }
+  }
+`;
+
+async function updateVideoSource(
+  args: RepairArgs,
+  source: string,
+): Promise<void> {
+  const client = new GraphQLClient(args.hasuraEndpoint, {
+    headers: { 'x-hasura-admin-secret': args.hasuraSecret },
+  });
+  await client.request(UPDATE_SOURCE_MUTATION, {
+    videoId: args.videoId,
+    source,
+  });
+}
+
 // ─── Repair command ─────────────────────────────────────────────────────────
 
 async function handleRepair(rawArgs: string[]) {
@@ -304,8 +331,8 @@ async function handleRepair(rawArgs: string[]) {
   console.log('=== fMP4 Repair ===');
   console.log(`  Video ID:    ${args.videoId}`);
   console.log(`  GCP Bucket:  ${args.gcpBucket}`);
-  console.log(`  Dry run:     ${args.dryRun}`);
-  console.log(`  Skip delete: ${args.skipDelete}`);
+  console.log(`  Dry run:        ${args.dryRun}`);
+  console.log(`  Delete old .ts: ${args.deleteTs}`);
   console.log('');
 
   const video = await getVideo(args);
@@ -320,20 +347,26 @@ async function handleRepair(rawArgs: string[]) {
   const staleTs = existing.filter((f) => f.name.endsWith('.ts'));
   console.log(`  Existing .ts segments: ${staleTs.length}`);
 
+  const fmp4PlaylistPath = `${storagePath}/${FMP4_PLAYLIST_NAME}`;
+  const newSource = getDownloadUrl(args.gcpBucket, fmp4PlaylistPath);
+
   if (args.dryRun) {
     console.log('');
     console.log('[DRY RUN] Would:');
     console.log(`  1. ffmpeg-remux ${storagePath}/${PLAYLIST_NAME} → fMP4`);
     console.log('  2. upload init.mp4 + .m4s (new names, alongside the .ts)');
-    console.log(`  3. swap ${PLAYLIST_NAME} to the fMP4 playlist (no-cache)`);
     console.log(
-      `  4. ${args.skipDelete ? 'KEEP' : 'delete'} the ${staleTs.length} old .ts segment(s)`,
+      `  3. write the fMP4 playlist to ${FMP4_PLAYLIST_NAME} (no-cache)`,
+    );
+    console.log(`  4. point videos.source → ${newSource}`);
+    console.log(
+      `  5. ${args.deleteTs ? `delete the ${staleTs.length} old .ts segment(s) + ${PLAYLIST_NAME}` : `KEEP the ${staleTs.length} old .ts (re-runnable; use --delete-ts to remove)`}`,
     );
     console.log('[DRY RUN] Done — nothing written.');
     return;
   }
 
-  // 1-2. Repackage + upload the new fMP4 objects (additive, non-destructive).
+  // 1-2. Repackage + upload the new fMP4 segments (additive, non-destructive).
   console.log('');
   console.log('Repackaging to fMP4 (ffmpeg) + uploading new segments…');
   const { initName, segmentNames, playlistContent } = await repackageToFmp4(
@@ -344,7 +377,7 @@ async function handleRepair(rawArgs: string[]) {
     `  Uploaded ${initName} + ${segmentNames.length} .m4s segment(s).`,
   );
 
-  // 3. Verify the new init exists before we swap/delete (never a broken window).
+  // 3. Verify the new init exists before we publish (never a broken window).
   const [initExists] = await bucket.file(`${storagePath}/${initName}`).exists();
   if (!initExists) {
     throw new Error(
@@ -352,27 +385,37 @@ async function handleRepair(rawArgs: string[]) {
     );
   }
 
-  // 4. Swap the shared playlist to the fMP4 one. no-cache so clients refetch
-  //    instead of holding the old .ts manifest from its long max-age.
-  console.log('Swapping playlist.m3u8 → fMP4 (no-cache)…');
-  await bucket.file(`${storagePath}/${PLAYLIST_NAME}`).save(playlistContent, {
+  // 4. Write the fMP4 playlist to its OWN name (no-cache), then point source at
+  //    it. A fresh URL has no cache history, so clients get the fMP4 at once —
+  //    unlike overwriting playlist.m3u8, which the edge may serve stale for up to
+  //    its original 1-year max-age. source is only flipped after the fMP4 files
+  //    are all in place, so a failure earlier leaves the .ts video serving.
+  console.log(`Writing ${FMP4_PLAYLIST_NAME} (no-cache)…`);
+  await bucket.file(fmp4PlaylistPath).save(playlistContent, {
     contentType: PLAYLIST_CONTENT_TYPE,
     metadata: { cacheControl: 'no-cache' },
   });
+  console.log('Pointing videos.source → fMP4 playlist…');
+  await updateVideoSource(args, newSource);
 
-  // 5. Only now remove the orphaned .ts.
-  if (args.skipDelete) {
-    console.log(
-      `Keeping ${staleTs.length} old .ts segment(s) (--skip-delete).`,
-    );
+  // 5. The old .ts is now superseded. Keep it by default (the repair stays
+  //    re-runnable from the original); delete only when asked.
+  if (args.deleteTs) {
+    const stale = [
+      ...staleTs,
+      ...existing.filter((f) => f.name.endsWith(`/${PLAYLIST_NAME}`)),
+    ];
+    console.log(`Deleting ${stale.length} superseded .ts object(s)…`);
+    await Promise.all(stale.map((f) => f.delete()));
   } else if (staleTs.length) {
-    console.log(`Deleting ${staleTs.length} old .ts segment(s)…`);
-    await Promise.all(staleTs.map((f) => f.delete()));
+    console.log(
+      `Keeping ${staleTs.length} old .ts segment(s) (re-runnable; --delete-ts to remove).`,
+    );
   }
 
   console.log('');
   console.log('=== Done ===');
-  console.log(`  ${storagePath}/${PLAYLIST_NAME} now serves fMP4.`);
+  console.log(`  videos.source now → ${newSource}`);
   console.log('  Verify it plays clean on desktop Chrome, then you are set.');
 }
 
@@ -388,13 +431,13 @@ function main() {
     console.log('Repackage one already-stored noisy video from .ts to fMP4.');
     console.log('');
     console.log('Usage:');
-    console.log('  repair --video-id <uuid> [--dry-run] [--skip-delete]');
+    console.log('  repair --video-id <uuid> [--dry-run] [--delete-ts]');
     console.log('');
     console.log('Options:');
     console.log('  --video-id <uuid>   Video to repair (required)');
     console.log('  --dry-run           Show the plan, write nothing');
     console.log(
-      '  --skip-delete       Keep the old .ts segments after the swap',
+      '  --delete-ts         Delete the old .ts after repair (default: keep, re-runnable)',
     );
     console.log('  --gcp-key <path>    Override GCS key file');
     console.log('  --gcp-bucket <name> Override GCS bucket');

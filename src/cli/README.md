@@ -328,22 +328,29 @@ npx tsx src/cli/repair-fmp4.ts repair --video-id <uuid> --dry-run
 npx tsx src/cli/repair-fmp4.ts repair --video-id <uuid>
 ```
 
-What it does (swap-in **before** delete — never a broken window):
+What it does (publish-then-repoint — never a broken window):
 
 1. Look up the video → resolve its GCS path `videos/{userId}/{videoId}`.
 2. ffmpeg-remux the stored playlist → fMP4 (`-c:v copy`, audio re-encoded to AAC).
 3. Upload `init.mp4` + `.m4s` (new names, alongside the old `.ts`).
-4. Verify `init.mp4` is in storage, then **swap** `playlist.m3u8` to the fMP4 one
-   (served `no-cache` so clients refetch instead of holding the old manifest).
-5. Delete the now-orphaned `.ts` (skip with `--skip-delete`).
+4. Verify `init.mp4` is in storage, write the fMP4 playlist to its **own** name
+   `playlist-fmp4.m3u8` (served `no-cache`), then point `videos.source` at it.
+5. Keep the old `.ts` by default (the repair stays re-runnable from the
+   original). Pass `--delete-ts` to remove the superseded `.ts` + `playlist.m3u8`.
+
+**Why a new playlist name (not an overwrite):** the original `.ts` `playlist.m3u8`
+was uploaded with a **1-year `max-age`**. Overwriting that object can't reach
+clients/edge caches that already hold it — they'd keep serving `.ts` for up to a
+year. Publishing the fMP4 at a fresh URL and repointing `source` makes the repair
+visible immediately, every time, with no cache dependency.
 
 Then watch it on the frontend to confirm the noise is gone.
 
-| Flag            | Meaning                                                     |
-| --------------- | ---------------------------------------------------------- |
-| `--video-id`    | Video to repair (required).                                |
-| `--dry-run`     | Show the plan, write nothing.                              |
-| `--skip-delete` | Keep the old `.ts` after the swap (manual cleanup later).  |
+| Flag           | Meaning                                                          |
+| -------------- | --------------------------------------------------------------- |
+| `--video-id`   | Video to repair (required).                                     |
+| `--dry-run`    | Show the plan, write nothing.                                   |
+| `--delete-ts`  | Delete the old `.ts` after repair (default: keep, re-runnable). |
 
 ---
 
