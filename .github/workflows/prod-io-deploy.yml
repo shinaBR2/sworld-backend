@@ -7,7 +7,12 @@ on:
     branches:
       - main
     paths:
-      - 'src/**'
+      - 'src/apps/io/**'
+      - 'src/io.ts'
+      - 'src/middleware/**' # shared
+      - 'src/schema/**' # shared
+      - 'src/services/**' # shared
+      - 'src/utils/**' # shared
       - 'Dockerfile.io'
       - 'package.json'
       - 'package-lock.json'

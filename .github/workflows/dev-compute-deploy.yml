@@ -7,7 +7,12 @@ on:
     branches:
       - main
     paths:
-      - 'src/**'
+      - 'src/apps/compute/**'
+      - 'src/compute.ts'
+      - 'src/middleware/**' # shared
+      - 'src/schema/**' # shared
+      - 'src/services/**' # shared
+      - 'src/utils/**' # shared
       - 'Dockerfile.compute'
       - 'package.json'
       - 'package-lock.json'
