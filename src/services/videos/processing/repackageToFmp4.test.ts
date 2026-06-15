@@ -122,6 +122,38 @@ describe('repackageToFmp4', () => {
     expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
+  it('swallows + warns a cleanup failure on the success path', async () => {
+    const { deps } = makeDeps({
+      cleanup: async () => {
+        throw new Error('rm -rf failed');
+      },
+    });
+
+    const result = await repackageToFmp4({ storagePath: STORAGE_PATH }, deps);
+
+    expect(result.initName).toBe('init.mp4');
+    expect(deps.logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ storagePath: STORAGE_PATH }),
+      'fMP4 repackage cleanup failed',
+    );
+  });
+
+  it('a cleanup failure never masks the primary error', async () => {
+    const { deps } = makeDeps({
+      uploadStream: async () => {
+        throw new Error('GCS down');
+      },
+      cleanup: async () => {
+        throw new Error('rm -rf failed');
+      },
+    });
+
+    await expect(
+      repackageToFmp4({ storagePath: STORAGE_PATH }, deps),
+    ).rejects.toThrow('Failed to upload fMP4 artifacts');
+    expect(deps.logger.warn).toHaveBeenCalled();
+  });
+
   it('wraps upload failures and still cleans up', async () => {
     const { deps, cleanup } = makeDeps({
       uploadStream: async () => {

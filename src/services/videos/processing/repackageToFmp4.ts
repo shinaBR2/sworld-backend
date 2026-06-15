@@ -33,7 +33,7 @@ const repackageToFmp4 = async (
   // The repair reads the `.ts` we already own — its public playlist URL, fed to
   // ffmpeg as the remux source. (No original third-party URL: it's likely gone.)
   const sourceUrl = deps.storage.getDownloadUrl(
-    path.join(storagePath, PLAYLIST_NAME),
+    path.posix.join(storagePath, PLAYLIST_NAME),
   );
   deps.logger.info(
     { storagePath, sourceUrl },
@@ -58,7 +58,7 @@ const repackageToFmp4 = async (
       // off its current `.ts` playlist until the caller (P2) swaps it.
       await deps.storage.uploadStream({
         stream: artifacts.init.stream,
-        storagePath: path.join(storagePath, artifacts.init.name),
+        storagePath: path.posix.join(storagePath, artifacts.init.name),
         contentType: INIT_CONTENT_TYPE,
       });
 
@@ -66,7 +66,7 @@ const repackageToFmp4 = async (
       for (const segment of artifacts.segments) {
         await deps.storage.uploadStream({
           stream: segment.stream,
-          storagePath: path.join(storagePath, segment.name),
+          storagePath: path.posix.join(storagePath, segment.name),
           contentType: SEGMENT_CONTENT_TYPE,
         });
         segmentNames.push(segment.name);
@@ -96,7 +96,17 @@ const repackageToFmp4 = async (
       });
     }
   } finally {
-    await cleanup();
+    // Cleanup (temp dir removal) must never mask the real failure above, nor
+    // fail an otherwise-successful repair — a leaked temp dir is only worth a
+    // warning. So swallow-and-log; the primary error always propagates.
+    try {
+      await cleanup();
+    } catch (cleanupError) {
+      deps.logger.warn(
+        { storagePath, cleanupError },
+        'fMP4 repackage cleanup failed',
+      );
+    }
   }
 };
 
