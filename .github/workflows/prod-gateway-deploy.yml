@@ -1,11 +1,13 @@
 name: Deploy Gateway to PROD
 
 on:
+  # Manual redeploy (e.g. to ship a shared-code change that already merged).
+  workflow_dispatch:
   push:
     branches:
       - main
     paths:
-      - 'src/apps/gateway/**'
+      - 'src/**'
       - 'Dockerfile.gateway'
       - 'package.json'
       - 'package-lock.json'

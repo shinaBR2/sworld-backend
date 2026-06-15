@@ -1,11 +1,13 @@
 name: Deploy IO to PROD
 
 on:
+  # Manual redeploy (e.g. to ship a shared-code change that already merged).
+  workflow_dispatch:
   push:
     branches:
       - main
     paths:
-      - 'src/apps/io/**'
+      - 'src/**'
       - 'Dockerfile.io'
       - 'package.json'
       - 'package-lock.json'

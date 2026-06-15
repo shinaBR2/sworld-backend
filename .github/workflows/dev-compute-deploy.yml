@@ -1,11 +1,13 @@
 name: Deploy Compute to dev
 
 on:
+  # Manual redeploy (e.g. to ship a shared-code change that already merged).
+  workflow_dispatch:
   push:
     branches:
       - main
     paths:
-      - 'src/apps/compute/**'
+      - 'src/**'
       - 'Dockerfile.compute'
       - 'package.json'
       - 'package-lock.json'
