@@ -9,8 +9,10 @@
  * `videos` row when it doesn't exist, folding the manual "insert row first" step
  * into the command.
  *
- * It reuses the same ffmpeg command as the compute flow (`videoConfig.ffmpegCommands`),
- * so the output format stays in sync (fMP4/CMAF: playlist.m3u8 + init.mp4 + .m4s).
+ * The transcode is the SHARED core — it calls the same `convertToHLS` the compute
+ * convert handler uses (which reads `videoConfig.ffmpegCommands`), so the output
+ * format can never drift (fMP4/CMAF: playlist.m3u8 + init.mp4 + .m4s). Only the
+ * CLI plumbing (local temp dir, GCS key, create/finalize) lives in this file.
  *
  * Setup reuses the same `~/.sworld-cli/config.json` as `stream-m3u8.ts`
  * (gcp-key, gcp-bucket, hasura-endpoint, hasura-secret, user-id). Configure it
@@ -24,7 +26,6 @@
 import { randomUUID } from 'node:crypto';
 import {
   existsSync,
-  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -34,16 +35,20 @@ import { rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createInterface } from 'node:readline/promises';
-import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import ffprobeInstaller from '@ffprobe-installer/ffprobe';
 import { type Bucket, Storage } from '@google-cloud/storage';
 import { slugify } from '@shinabr2/core/universal/common';
 import ffmpeg from 'fluent-ffmpeg';
 import { GraphQLClient } from 'graphql-request';
 import { nanoid } from 'nanoid';
-import { videoConfig } from 'src/services/videos/config';
+// The transcode itself is the SHARED core — the exact same function the compute
+// convert handler runs (so the output format can never drift). Only the
+// CLI-specific plumbing (local temp dir, GCS key, create/finalize) lives here.
+import { convertToHLS } from 'src/services/videos/helpers/ffmpeg';
 
-ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+// convertToHLS (imported above) sets the ffmpeg binary path on the shared
+// fluent-ffmpeg singleton at its module load; we set ffprobe here for the
+// duration probe below.
 ffmpeg.setFfprobePath(ffprobeInstaller.path);
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -286,43 +291,22 @@ const getDuration = (inputPath: string): Promise<number> =>
   });
 
 /**
- * Convert a local video to HLS in a fresh temp dir using the SAME ffmpeg command
- * as the compute convert flow (`videoConfig.ffmpegCommands`) — so the CLI output
- * matches production (fMP4: playlist.m3u8 + init.mp4 + .m4s). Returns the output
- * dir and a cleanup().
+ * Convert a local video to HLS into a fresh temp dir, delegating the actual
+ * transcode to the SHARED `convertToHLS` core (same `videoConfig.ffmpegCommands`
+ * the compute handler uses → fMP4: playlist.m3u8 + init.mp4 + .m4s). Only the
+ * temp-dir lifecycle is CLI-local. Returns the output dir and a cleanup().
  */
-const convertToHls = async (
+const convertLocalToHls = async (
   inputPath: string,
 ): Promise<{ outputDir: string; cleanup: () => Promise<void> }> => {
-  const tempDir = mkdtempSync(path.join(os.tmpdir(), 'sworld-convert-'));
-  const outputDir = path.join(tempDir, 'out');
-  mkdirSync(outputDir, { recursive: true });
-  const playlistPath = path.join(outputDir, PLAYLIST_NAME);
-
-  await new Promise<void>((resolve, reject) => {
-    ffmpeg(inputPath)
-      .outputOptions(videoConfig.ffmpegCommands)
-      .output(playlistPath)
-      .on('progress', (p) => {
-        if (p.percent)
-          process.stdout.write(`\r  Encoding: ${p.percent.toFixed(1)}%   `);
-      })
-      .on('end', () => {
-        process.stdout.write('\n');
-        resolve();
-      })
-      .on('error', (err, _stdout, stderr) =>
-        reject(
-          new Error(`ffmpeg convert failed: ${err.message}\n${stderr ?? ''}`),
-        ),
-      )
-      .run();
-  });
-
+  // mkdtemp creates the dir (convertToHLS writes playlist.m3u8 into it but does
+  // not create it). convertToHLS requires absolute input + output paths.
+  const outputDir = mkdtempSync(path.join(os.tmpdir(), 'sworld-convert-'));
+  await convertToHLS(path.resolve(inputPath), outputDir);
   return {
     outputDir,
     cleanup: async () => {
-      await rm(tempDir, { recursive: true, force: true });
+      await rm(outputDir, { recursive: true, force: true });
     },
   };
 };
@@ -609,7 +593,7 @@ const handleConvert = async (rawArgs: string[]) => {
   // 1. Convert locally.
   console.log('');
   console.log('Converting (ffmpeg)…');
-  const { outputDir, cleanup } = await convertToHls(args.file);
+  const { outputDir, cleanup } = await convertLocalToHls(args.file);
 
   try {
     // 2. Upload the HLS output.
