@@ -319,7 +319,7 @@ converted video has none, like the stream CLI).
 | `--title <title>` | Required when creating a new row. |
 | `--slug <slug>` | Slug (default: `slugify(title)`). |
 | `--video-id <uuid>` | Existing row to finalize; if missing, it's created with this id. |
-| `--video-url <url>` | Stored as `videos.video_url` on create (default: the file path). |
+| `--video-url <url>` | Stored as `videos.video_url` on create (default: `local:<filename>`). |
 | `--public` | Mark the new video public (default: private). |
 | `--playlist <name>` | Find-or-create playlist (by slug) and link. |
 | `--position <n>` | Position in the playlist (default: append). |

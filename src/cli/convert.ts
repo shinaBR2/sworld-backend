@@ -135,7 +135,11 @@ interface ConvertArgs {
 const parseConvertArgs = (rawArgs: string[]): ConvertArgs => {
   const get = (flag: string): string | undefined => {
     const idx = rawArgs.indexOf(flag);
-    return idx !== -1 ? rawArgs[idx + 1] : undefined;
+    if (idx === -1) return undefined;
+    const value = rawArgs[idx + 1];
+    // A missing value (end of args, or another --flag) is treated as unset, not
+    // silently swallowing the next flag as this one's value.
+    return value && !value.startsWith('--') ? value : undefined;
   };
   const has = (flag: string): boolean => rawArgs.includes(flag);
 
@@ -258,10 +262,20 @@ const uploadDir = async (
 // ─── ffmpeg / ffprobe ────────────────────────────────────────────────────────
 
 const getDuration = (inputPath: string): Promise<number> =>
-  new Promise((resolve) => {
+  new Promise((resolve, reject) => {
     ffmpeg.ffprobe(inputPath, (err, metadata) => {
+      // Fail loud rather than fabricating a duration — finalizing a row with a
+      // bogus duration is worse than stopping and telling the operator.
+      if (err) {
+        reject(new Error(`ffprobe failed for ${inputPath}: ${err.message}`));
+        return;
+      }
       const duration = metadata?.format?.duration;
-      resolve(err || !duration ? 1 : Math.floor(duration));
+      if (!duration) {
+        reject(new Error(`Could not determine duration for ${inputPath}`));
+        return;
+      }
+      resolve(Math.floor(duration));
     });
   });
 
@@ -354,7 +368,9 @@ const createVideo = async (
       id: videoId,
       title,
       slug: args.slug?.trim() || slugify(title),
-      video_url: args.videoUrl || path.resolve(args.file),
+      // video_url is the "original source". A local convert has none, so default
+      // to a non-path sentinel — never the operator's absolute filesystem path.
+      video_url: args.videoUrl || `local:${path.basename(args.file)}`,
       user_id: args.userId,
       skip_process: true,
       status: 'processing',
@@ -486,37 +502,54 @@ const handleConvert = async (rawArgs: string[]) => {
   }
 
   // Decide create-vs-update. The row exists only when an id is given AND found.
+  // The check is a read-only query, so it runs in dry-run too (when creds are
+  // present) — that keeps the dry-run plan honest about create vs finalize.
+  const hasHasuraCreds = Boolean(args.hasuraEndpoint && args.hasuraSecret);
+  const existenceKnown =
+    !args.skipDb && Boolean(args.videoId) && hasHasuraCreds;
   const willUpdateExisting =
-    !args.dryRun && !args.skipDb && args.videoId
-      ? await videoExists(args, args.videoId)
-      : false;
+    existenceKnown && (await videoExists(args, args.videoId as string));
   const videoId = args.videoId || randomUUID();
   const mustCreate = !args.skipDb && !willUpdateExisting;
 
-  // Creating a row needs a title (unless we're only uploading, --skip-db).
-  if (mustCreate && !args.title && interactive) {
+  // Creating a row needs a non-blank title (unless we're only uploading, --skip-db).
+  if (mustCreate && !args.title?.trim() && interactive) {
     args.title = await prompt('Title (creating a new video): ');
   }
-  if (mustCreate && !args.title && !args.dryRun) {
+  if (mustCreate && !args.title?.trim() && !args.dryRun) {
     console.error(
       'Error: --title is required to create a new video row (or pass --video-id of an existing row, or --skip-db).',
     );
     process.exit(1);
   }
 
-  if (args.playlistName === undefined && !args.standalone && interactive) {
+  // No point prompting for a playlist when DB writes (and thus linking) are off.
+  if (
+    args.playlistName === undefined &&
+    !args.standalone &&
+    !args.skipDb &&
+    interactive
+  ) {
     const name = await prompt('Playlist name (empty for standalone): ');
     args.playlistName = name || undefined;
   }
 
   const storagePath = `videos/${args.userId}/${videoId}`;
 
+  // Existence is only known when we could check it (creds present). With an id
+  // but no creds (e.g. cred-less dry-run) we can't say create vs finalize.
+  const dbAction = args.skipDb
+    ? 'skip (--skip-db)'
+    : willUpdateExisting
+      ? 'finalize existing'
+      : args.videoId && !existenceKnown
+        ? `create or finalize ${videoId} (existence not checked)`
+        : `create "${args.title?.trim() ?? '(needs --title)'}"`;
+
   console.log('=== Video Convert (local → HLS) ===');
   console.log(`  File:        ${args.file}`);
   console.log(`  Video ID:    ${videoId}${args.videoId ? '' : ' (generated)'}`);
-  console.log(
-    `  DB action:   ${args.skipDb ? 'skip (--skip-db)' : willUpdateExisting ? 'finalize existing' : `create "${args.title ?? '(needs --title)'}"`}`,
-  );
+  console.log(`  DB action:   ${dbAction}`);
   console.log(`  User ID:     ${args.userId}`);
   console.log(`  GCP Bucket:  ${args.gcpBucket || '(not set)'}`);
   console.log(`  Storage:     ${storagePath}/`);
@@ -553,9 +586,7 @@ const handleConvert = async (rawArgs: string[]) => {
     console.log(
       `  2. upload playlist.m3u8 + init.mp4 + .m4s → ${storagePath}/`,
     );
-    console.log(
-      `  3. ${args.skipDb ? 'skip DB' : willUpdateExisting ? `finalize existing video ${videoId}` : `create video ${videoId} ("${args.title}") then finalize`}`,
-    );
+    console.log(`  3. DB: ${dbAction}`);
     if (args.playlistName) {
       const where =
         args.position !== undefined
@@ -656,7 +687,7 @@ const main = () => {
       '  --video-id <uuid>   Existing row to finalize; if missing, it is created',
     );
     console.log(
-      '  --video-url <url>   Stored as videos.video_url on create (default: file path)',
+      '  --video-url <url>   Stored as videos.video_url on create (default: local:<filename>)',
     );
     console.log(
       '  --public            Mark the new video public (default: private)',
