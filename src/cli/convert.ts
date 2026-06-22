@@ -202,7 +202,9 @@ const parseConvertArgs = (rawArgs: string[]): ConvertArgs => {
   return {
     file,
     videoId: get('--video-id'),
-    title: get('--title'),
+    // Normalize at the source: a blank/whitespace title is treated as unset, so
+    // every downstream check + the insert see a real title or nothing.
+    title: get('--title')?.trim() || undefined,
     slug: get('--slug'),
     videoUrl: get('--video-url'),
     isPublic: has('--public'),
