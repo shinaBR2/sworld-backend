@@ -48,12 +48,6 @@ ffmpeg.setFfprobePath(ffprobeInstaller.path);
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-/**
- * Owner of every manually-created video / playlist. Per project rule this is
- * ALWAYS the same account (overridable via --user-id).
- */
-const USER_ID = '6ff27fda-03e8-4dcd-949b-f1328f955065';
-
 const PLAYLIST_NAME = 'playlist.m3u8';
 const CACHE_CONTROL = 'public, max-age=31536000';
 
@@ -154,9 +148,19 @@ const parseConvertArgs = (rawArgs: string[]): ConvertArgs => {
   }
 
   const file = get('--file') || '';
-  const userId =
-    resolveValue(get('--user-id'), 'DEFAULT_USER_ID', 'user-id', config) ||
-    USER_ID;
+  // Owner comes from --user-id > env > config. Never hardcoded in source.
+  const userId = resolveValue(
+    get('--user-id'),
+    'DEFAULT_USER_ID',
+    'user-id',
+    config,
+  );
+  if (!userId) {
+    console.error(
+      'Error: user-id not configured. Set it with `stream-m3u8.ts config set user-id <uuid>`, or pass --user-id <uuid>.',
+    );
+    process.exit(1);
+  }
 
   const positionFlag = get('--position');
   const position =
@@ -708,7 +712,9 @@ const main = () => {
     console.log(
       '  --skip-db           Convert + upload to GCS but skip all Hasura writes',
     );
-    console.log(`  --user-id <uuid>    Override owner (default: ${USER_ID})`);
+    console.log(
+      '  --user-id <uuid>    Owner (from --user-id > env > config user-id)',
+    );
     console.log('');
     console.log('Configure once (shared with stream-m3u8.ts):');
     console.log(
