@@ -37,8 +37,16 @@ const uploadThumbnailFromUrl = async (
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
   };
   if (referer) {
-    headers.Referer = referer.endsWith('/') ? referer : `${referer}/`;
-    headers.Origin = referer.replace(/\/$/, '');
+    // Parse as a URL so Origin is a real origin (scheme://host[:port]) and the
+    // Referer keeps any path — string surgery mangles referers that have a path.
+    try {
+      const url = new URL(referer);
+      headers.Referer = url.href;
+      headers.Origin = url.origin;
+    } catch {
+      // Not a parseable URL — pass it through as the Referer as-is.
+      headers.Referer = referer;
+    }
   }
 
   const response = await fetch(imageUrl, { headers });

@@ -74,6 +74,62 @@ describe('uploadThumbnailFromUrl', () => {
     expect(headers.Origin).toBe('https://site.example');
   });
 
+  it('keeps the referer path but sets Origin to the real origin', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(imageResponse('image/jpeg'));
+    const { bucket } = makeBucket();
+    await uploadThumbnailFromUrl(bucket, {
+      imageUrl: 'https://host/x.jpg',
+      referer: 'https://site.example/watch/123',
+      storagePath: 'videos/u/v',
+    });
+    const headers = (fetchMock.mock.calls[0][1] as RequestInit)
+      .headers as Record<string, string>;
+    expect(headers.Referer).toBe('https://site.example/watch/123');
+    expect(headers.Origin).toBe('https://site.example');
+  });
+
+  it('falls back to Referer-as-is when the referer is not a valid URL', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(imageResponse('image/jpeg'));
+    const { bucket } = makeBucket();
+    await uploadThumbnailFromUrl(bucket, {
+      imageUrl: 'https://host/x.jpg',
+      referer: 'not-a-url',
+      storagePath: 'videos/u/v',
+    });
+    const headers = (fetchMock.mock.calls[0][1] as RequestInit)
+      .headers as Record<string, string>;
+    expect(headers.Referer).toBe('not-a-url');
+    expect(headers.Origin).toBeUndefined();
+  });
+
+  it('falls back to a .jpg extension for an unrecognized image type', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(imageResponse('image/bmp'));
+    const { bucket, file } = makeBucket();
+    await uploadThumbnailFromUrl(bucket, {
+      imageUrl: 'https://host/x',
+      storagePath: 'videos/u/v',
+    });
+    expect(file).toHaveBeenCalledWith('videos/u/v/thumbnail.jpg');
+  });
+
+  it('throws when the downloaded image is too small', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      imageResponse('image/jpeg', 50),
+    );
+    const { bucket, save } = makeBucket();
+    await expect(
+      uploadThumbnailFromUrl(bucket, {
+        imageUrl: 'https://host/x.jpg',
+        storagePath: 'videos/u/v',
+      }),
+    ).rejects.toThrow('too small');
+    expect(save).not.toHaveBeenCalled();
+  });
+
   it('throws on a non-image content-type', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(imageResponse('text/html'));
     const { bucket, save } = makeBucket();

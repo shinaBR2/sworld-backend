@@ -215,7 +215,11 @@ interface StreamArgs {
 function parseStreamArgs(rawArgs: string[]): StreamArgs {
   const get = (flag: string): string | undefined => {
     const idx = rawArgs.indexOf(flag);
-    return idx !== -1 ? rawArgs[idx + 1] : undefined;
+    if (idx === -1) return undefined;
+    const value = rawArgs[idx + 1];
+    // A missing value (end of args, or another --flag) is treated as unset, not
+    // silently swallowing the next flag as this one's value.
+    return value && !value.startsWith('--') ? value : undefined;
   };
   const has = (flag: string): boolean => rawArgs.includes(flag);
 
