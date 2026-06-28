@@ -810,15 +810,20 @@ function main() {
   }
 
   if (command === 'stream') {
-    handleStream(args.slice(1)).catch((error) => {
-      console.error('');
-      console.error('=== Error ===');
-      console.error(error.message || error);
-      if (error.response) {
-        console.error('Response:', JSON.stringify(error.response, null, 2));
-      }
-      process.exit(1);
-    });
+    handleStream(args.slice(1))
+      // Exit explicitly on success — GCS/fetch keep-alive sockets (esp. after
+      // transient retries) can otherwise keep the event loop alive for minutes,
+      // hanging any batch that waits on this process.
+      .then(() => process.exit(0))
+      .catch((error) => {
+        console.error('');
+        console.error('=== Error ===');
+        console.error(error.message || error);
+        if (error.response) {
+          console.error('Response:', JSON.stringify(error.response, null, 2));
+        }
+        process.exit(1);
+      });
     return;
   }
 
