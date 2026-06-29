@@ -200,9 +200,57 @@ const streamFile = async (params: StreamFileParams) => {
   });
 };
 
+/** Default lifetime of a generated V4 signed upload URL. */
+const SIGNED_UPLOAD_URL_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+interface SignedUploadUrlParams {
+  /** Ready-to-use object path in the bucket, e.g. 'videos/<userId>/<id>/<uuid>.mp4'. Must be relative (no leading '/'). */
+  objectPath: string;
+  /** MIME type the client must send on the PUT; pinned into the signed URL. */
+  contentType: string;
+  /** Override the signed URL lifetime, in milliseconds. */
+  ttlMs?: number;
+}
+
+/**
+ * Generate a V4 signed PUT URL so a client can upload a single object directly
+ * to GCS, plus the public URL the object will have once uploaded.
+ *
+ * The caller owns the object path — this helper only signs it (the matrix and
+ * path construction live in the action handler). The signed URL pins
+ * Content-Type, so the client MUST send the same `contentType` header on the PUT.
+ *
+ * Signing requires the active credentials to expose a private key OR
+ * `iam.serviceAccounts.signBlob` (Service Account Token Creator). On Cloud Run
+ * with ADC, grant the runtime SA Token Creator on itself for this to work.
+ */
+const getSignedUploadUrl = async ({
+  objectPath,
+  contentType,
+  ttlMs = SIGNED_UPLOAD_URL_TTL_MS,
+}: SignedUploadUrlParams) => {
+  const bucket = getDefaultBucket();
+  const expiresAt = Date.now() + ttlMs;
+
+  const [uploadUrl] = await bucket.file(objectPath).getSignedUrl({
+    version: 'v4',
+    action: 'write',
+    expires: expiresAt,
+    contentType,
+  });
+
+  return {
+    uploadUrl,
+    publicUrl: getDownloadUrl(objectPath),
+    expiresAt: new Date(expiresAt).toISOString(),
+  };
+};
+
 export {
   DEFAULT_UPLOAD_OPTIONS,
+  SIGNED_UPLOAD_URL_TTL_MS,
   getDownloadUrl,
+  getSignedUploadUrl,
   uploadFile,
   uploadFolderParallel,
   streamFile,
