@@ -203,6 +203,9 @@ const streamFile = async (params: StreamFileParams) => {
 /** Default lifetime of a generated V4 signed upload URL. */
 const SIGNED_UPLOAD_URL_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
+/** GCS hard limit for V4 signed-URL expiry: 7 days. The client library throws beyond this. */
+const MAX_SIGNED_UPLOAD_URL_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 604,800,000 ms
+
 interface SignedUploadUrlParams {
   /** Ready-to-use object path in the bucket, e.g. 'videos/<userId>/<id>/<uuid>.mp4'. Must be relative (no leading '/'). */
   objectPath: string;
@@ -229,6 +232,16 @@ const getSignedUploadUrl = async ({
   contentType,
   ttlMs = SIGNED_UPLOAD_URL_TTL_MS,
 }: SignedUploadUrlParams) => {
+  if (
+    !Number.isFinite(ttlMs) ||
+    ttlMs <= 0 ||
+    ttlMs > MAX_SIGNED_UPLOAD_URL_TTL_MS
+  ) {
+    throw new Error(
+      `ttlMs must be a positive number not exceeding ${MAX_SIGNED_UPLOAD_URL_TTL_MS}ms (GCS V4 7-day limit), got ${ttlMs}`,
+    );
+  }
+
   const bucket = getDefaultBucket();
   const expiresAt = Date.now() + ttlMs;
 

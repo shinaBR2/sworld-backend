@@ -193,6 +193,22 @@ describe('gcp-cloud-storage-helpers', () => {
       expect(opts.expires).toBeGreaterThanOrEqual(before + 60_000);
       expect(opts.expires).toBeLessThanOrEqual(Date.now() + 60_000);
     });
+
+    it.each([
+      ['over the 7-day GCS V4 limit', 8 * 24 * 60 * 60 * 1000],
+      ['zero', 0],
+      ['negative', -1],
+      ['not finite', Number.POSITIVE_INFINITY],
+    ])('rejects a ttlMs that is %s without signing', async (_label, ttlMs) => {
+      await expect(
+        getSignedUploadUrl({
+          objectPath: 'videos/user-1/abc/def.mp4',
+          contentType: 'video/mp4',
+          ttlMs,
+        }),
+      ).rejects.toThrow(/ttlMs/);
+      expect(mockFile.getSignedUrl).not.toHaveBeenCalled();
+    });
   });
 
   describe('uploadFile', () => {
