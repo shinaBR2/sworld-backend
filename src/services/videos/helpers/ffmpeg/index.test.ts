@@ -394,15 +394,20 @@ describe('FFmpeg Helpers', () => {
     const outputDir = '/tmp/work';
     const filename = 'thumbnail--123.jpg';
 
-    it('seeks to the exact timestamp (before input) and grabs one frame', async () => {
+    it('seeks to the exact ABSOLUTE timestamp (before input) and grabs one frame', async () => {
       mockFFmpeg.on.mockImplementation((event, callback) => {
         if (event === 'end') callback();
         return mockFFmpeg;
       });
 
-      await takeScreenshotAtTime(videoPath, outputDir, filename, 3.14);
+      // A large absolute media time (as passed for a later fMP4 segment) must be
+      // forwarded to `-ss` verbatim, not reduced to an in-segment offset.
+      await takeScreenshotAtTime(videoPath, outputDir, filename, 600);
 
       expect(vi.mocked(ffmpeg)).toHaveBeenCalledWith(videoPath);
+      expect(mockFFmpeg.inputOptions).toHaveBeenCalledWith(['-ss', '600']);
+      // A fractional absolute time is also forwarded unchanged.
+      await takeScreenshotAtTime(videoPath, outputDir, filename, 3.14);
       expect(mockFFmpeg.inputOptions).toHaveBeenCalledWith(['-ss', '3.14']);
       expect(mockFFmpeg.outputOptions).toHaveBeenCalledWith([
         '-frames:v',

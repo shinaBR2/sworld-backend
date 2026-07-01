@@ -179,10 +179,16 @@ const takeScreenshot = async (
  * then re-decoded to the requested position — accurate on a short, seekable
  * fMP4 file (init.mp4 + one .m4s concatenated) while staying cheap.
  *
+ * `atSeconds` is the ABSOLUTE media time on the file's own timeline. For a
+ * concatenated fMP4 segment this is NOT rebased to zero: the fragment keeps its
+ * `tfdt` baseMediaDecodeTime, so callers must pass the absolute timestamp (not
+ * an in-segment offset) for the seek to land on the requested frame.
+ *
  * @param videoPath - Absolute path to a seekable local video file
  * @param outputDir - Absolute path to the output directory
  * @param filename - Output file name without path (e.g. 'thumbnail--123.jpg')
- * @param atSeconds - Seek position within the file, in seconds (clamped to >= 0)
+ * @param atSeconds - Absolute seek position on the file's timeline, in seconds
+ *                    (clamped to >= 0)
  * @returns Promise<void> - Resolves once the frame is written, rejects on error
  */
 const takeScreenshotAtTime = async (

@@ -144,7 +144,7 @@ describe('extractThumbnailAtTime', () => {
     );
   });
 
-  it('downloads init + covering segment, screenshots at the offset, uploads, and returns the public URL', async () => {
+  it('downloads init + covering segment, screenshots at the absolute time, uploads, and returns the public URL', async () => {
     const url = await extractThumbnailAtTime({
       source: PLAYLIST_URL,
       atSeconds: 10,
@@ -164,12 +164,14 @@ describe('extractThumbnailAtTime', () => {
       undefined,
     );
 
-    // Seeks to the in-segment offset (10 - 8 = 2s), not the absolute timestamp.
+    // Seeks by the ABSOLUTE media time (10s), NOT the in-segment offset
+    // (10 - 8 = 2s). Concatenating init.mp4 + the .m4s does not rebase
+    // timestamps, so the absolute time is what lands on the requested frame.
     expect(takeScreenshotAtTime).toHaveBeenCalledWith(
       expect.stringContaining('playable.mp4'),
       workingDir,
       expect.stringMatching(/^thumbnail--\d+\.jpg$/),
-      expect.closeTo(2, 3),
+      expect.closeTo(10, 3),
     );
 
     // Uploads to the required storage path and returns its public URL.
@@ -192,7 +194,7 @@ describe('extractThumbnailAtTime', () => {
       videoId: 'v1',
     });
 
-    // Clamped to 0 → first segment, offset 0.
+    // Clamped to 0 → first segment; absolute seek is 0.
     expect(downloadFile).toHaveBeenCalledWith(
       'https://storage.googleapis.com/bucket/videos/u1/v1/0.m4s',
       expect.stringContaining('segment.m4s'),
@@ -207,7 +209,8 @@ describe('extractThumbnailAtTime', () => {
   });
 
   it('clamps atSeconds below the known duration', async () => {
-    // duration=17 → clamp to 16 → falls in last segment (starts 13s) offset 3s.
+    // duration=17 → clamp to 16 → falls in last segment (starts 13s), which is
+    // the in-segment offset of 3s but an ABSOLUTE seek time of 16s.
     await extractThumbnailAtTime({
       source: PLAYLIST_URL,
       atSeconds: 9999,
@@ -221,11 +224,13 @@ describe('extractThumbnailAtTime', () => {
       expect.stringContaining('segment.m4s'),
       undefined,
     );
+    // Seeks by the clamped ABSOLUTE time (16s), NOT the in-segment offset (3s).
+    // A regression to `offsetInSegment` would seek 3s and fail here.
     expect(takeScreenshotAtTime).toHaveBeenCalledWith(
       expect.any(String),
       workingDir,
       expect.any(String),
-      expect.closeTo(3, 3),
+      expect.closeTo(16, 3),
     );
   });
 

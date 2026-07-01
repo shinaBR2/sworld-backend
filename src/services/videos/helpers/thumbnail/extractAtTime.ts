@@ -188,11 +188,18 @@ const extractThumbnailAtTime = async (
       outputPath: playablePath,
     });
 
+    // Seek by the ABSOLUTE media time, not `offsetInSegment`. Concatenating
+    // init.mp4 + one .m4s does NOT rebase timestamps: fMP4/CMAF fragments keep
+    // their `tfdt` baseMediaDecodeTime on the original media timeline, so the
+    // covering segment's samples still live at their absolute PTS (e.g. a
+    // segment starting at ~593.8s). Seeking to the in-segment offset would land
+    // before the fragment's first frame and ffmpeg would clamp to the wrong
+    // frame; `offsetInSegment` is kept only for segment selection + diagnostics.
     await takeScreenshotAtTime(
       playablePath,
       workingDir,
       thumbnailFilename,
-      offsetInSegment,
+      clampedSeconds,
     );
 
     const storagePath = `videos/${userId}/${videoId}/${thumbnailFilename}`;
