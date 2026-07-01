@@ -120,4 +120,15 @@ describe('setThumbnailAtTime handler', () => {
     expect(res.message).toMatch(/Empty HLS content/);
     expect(setVideoThumbnailMock).not.toHaveBeenCalled();
   });
+
+  it('falls back to a generic message when a non-Error is thrown', async () => {
+    extractThumbnailAtTimeMock.mockRejectedValue('some string');
+
+    // biome-ignore lint/suspicious/noExplicitAny: test context shim
+    const res = await setThumbnailAtTime(makeContext() as any);
+
+    expect(res.success).toBe(false);
+    expect(res.message).toBe('Failed to set video thumbnail');
+    expect(setVideoThumbnailMock).not.toHaveBeenCalled();
+  });
 });
