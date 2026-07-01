@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CustomError } from 'src/utils/custom-error';
+import { VIDEO_ERRORS } from 'src/utils/error-codes';
 import {
   cleanupDirectory,
   createDirectory,
@@ -125,6 +126,51 @@ describe('findCoveringSegment', () => {
       findCoveringSegment({ playlistUrl: PLAYLIST_URL, atSeconds: 1 }),
     ).rejects.toThrow(CustomError);
   });
+
+  it('throws when the covering segment is missing its init (#EXT-X-MAP)', async () => {
+    // A playlist with segments but NO #EXT-X-MAP → the covering segment's
+    // `map.uri` is undefined, which is not decodable on its own.
+    mockPlaylistResponse(`#EXTM3U
+#EXT-X-VERSION:7
+#EXT-X-TARGETDURATION:9
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:8.0,
+0.m4s
+#EXTINF:5.0,
+1.m4s
+#EXT-X-ENDLIST
+`);
+
+    // t=10s falls inside segment 1 (the covering branch), which lacks an init.
+    await expect(
+      findCoveringSegment({ playlistUrl: PLAYLIST_URL, atSeconds: 10 }),
+    ).rejects.toMatchObject({
+      errorCode: VIDEO_ERRORS.INVALID_VIDEO_FORMAT,
+      message: 'HLS segment missing init (#EXT-X-MAP)',
+    });
+  });
+
+  it('throws when the last (fallback) segment is missing its init (#EXT-X-MAP)', async () => {
+    // No #EXT-X-MAP, and `atSeconds` past the end → falls to the last segment,
+    // which also lacks an init.
+    mockPlaylistResponse(`#EXTM3U
+#EXT-X-VERSION:7
+#EXT-X-TARGETDURATION:9
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:8.0,
+0.m4s
+#EXTINF:5.0,
+1.m4s
+#EXT-X-ENDLIST
+`);
+
+    await expect(
+      findCoveringSegment({ playlistUrl: PLAYLIST_URL, atSeconds: 100 }),
+    ).rejects.toMatchObject({
+      errorCode: VIDEO_ERRORS.INVALID_VIDEO_FORMAT,
+      message: 'HLS segment missing init (#EXT-X-MAP)',
+    });
+  });
 });
 
 describe('extractThumbnailAtTime', () => {
@@ -245,6 +291,29 @@ describe('extractThumbnailAtTime', () => {
         videoId: 'v1',
       }),
     ).rejects.toBeInstanceOf(CustomError);
+
+    expect(cleanupDirectory).toHaveBeenCalledWith(workingDir);
+    expect(uploadFile).not.toHaveBeenCalled();
+  });
+
+  it('re-throws a CustomError unchanged instead of wrapping it', async () => {
+    // An inner dependency rejects with a CustomError; the outer catch must
+    // re-throw that same instance rather than wrapping it in the generic
+    // 'Failed to extract thumbnail at time' error.
+    const innerError = CustomError.medium('inner failure', {
+      errorCode: VIDEO_ERRORS.INVALID_VIDEO_FORMAT,
+      source: 'test',
+    });
+    vi.mocked(downloadFile).mockRejectedValue(innerError);
+
+    await expect(
+      extractThumbnailAtTime({
+        source: PLAYLIST_URL,
+        atSeconds: 10,
+        userId: 'u1',
+        videoId: 'v1',
+      }),
+    ).rejects.toBe(innerError);
 
     expect(cleanupDirectory).toHaveBeenCalledWith(workingDir);
     expect(uploadFile).not.toHaveBeenCalled();
