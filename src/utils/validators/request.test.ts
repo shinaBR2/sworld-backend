@@ -57,6 +57,21 @@ describe('validateData', () => {
     expect(result.error).toContain('query filter');
     expect(result.error).toContain('params id');
   });
+
+  it('should pass through the zod message for non-type issues', () => {
+    const guidSchema = z.object({ params: z.object({ id: z.guid() }) });
+    const context: ValidationContext = {
+      body: {},
+      query: {},
+      headers: {},
+      params: { id: 'not-a-guid' },
+      ip: '203.0.113.195',
+    };
+
+    const result = validateData(guidSchema, context);
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Invalid input: params id: Invalid GUID');
+  });
 });
 
 describe('honoValidateRequest', () => {
