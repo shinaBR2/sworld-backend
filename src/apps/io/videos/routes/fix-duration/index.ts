@@ -37,8 +37,19 @@ const fixDurationHandler = async (
     }
 
     const { source } = video;
+
+    if (!source) {
+      throw CustomError.medium('Video source is missing', {
+        errorCode: VIDEO_ERRORS.FIX_DURATION_ERROR,
+        context: {
+          ...metadata,
+        },
+        source: 'apps/io/videos/routes/fix-duration/index.ts',
+      });
+    }
+
     const { duration } = await parseM3U8Content(
-      source as string,
+      source,
       videoConfig.excludePatterns,
     );
 
