@@ -36,6 +36,7 @@ const generateOptions = async (userId: string) => {
   // (Pseudocode) Retrieve any of the user's previously-
   // registered authenticators
   const userPasskeys = await getUserPasskeys(userId);
+  /* v8 ignore next -- unreachable until the user db read above is implemented */
   logger.info({ userPasskeys }, 'userPasskeys');
 
   const options = await generateRegistrationOptions({
