@@ -64,9 +64,9 @@ describe('honoValidateRequest', () => {
     body: z.object({
       name: z.string(),
     }),
-    params: z.record(z.string()),
-    query: z.record(z.any()),
-    headers: z.record(z.string()),
+    params: z.record(z.string(), z.string()),
+    query: z.record(z.string(), z.any()),
+    headers: z.record(z.string(), z.string()),
   });
 
   it('should pass validation and call next for valid data', async () => {
