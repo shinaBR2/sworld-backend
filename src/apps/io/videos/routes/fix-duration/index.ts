@@ -38,7 +38,7 @@ const fixDurationHandler = async (
 
     const { source } = video;
     const { duration } = await parseM3U8Content(
-      source,
+      source as string,
       videoConfig.excludePatterns,
     );
 

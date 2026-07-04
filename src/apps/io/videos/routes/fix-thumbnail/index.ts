@@ -39,7 +39,7 @@ const fixThumbnailHandler = async (
 
   const { source, user_id: userId } = video;
   const { segments } = await parseM3U8Content(
-    source,
+    source as string,
     videoConfig.excludePatterns,
   );
 
