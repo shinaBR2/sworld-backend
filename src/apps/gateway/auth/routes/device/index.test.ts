@@ -83,7 +83,6 @@ describe('createDeviceRequest', () => {
     expect(generateSecureCode).toHaveBeenCalledWith(64);
     expect(generateHumanCode).toHaveBeenCalled();
 
-    const expectedExpiry = new Date(mockDate.getTime() + 10 * 60 * 1000);
     expect(createDeviceRequestMutation).toHaveBeenCalledWith({
       deviceCode: 'mock-device-code',
       userCode: 'MOCK-123',
