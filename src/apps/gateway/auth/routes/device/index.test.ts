@@ -144,4 +144,19 @@ describe('createDeviceRequest', () => {
     expect(calls[0]?.[0]?.deviceCode).toBe('first-device-code');
     expect(calls[1]?.[0]?.deviceCode).toBe('second-device-code');
   });
+
+  it('should return rate_limit_exceeded when rate limit is hit', async () => {
+    const input = buildInput();
+    input.validatedData.extensionId = 'pppppppppppppppppppppppppppppppp';
+    input.validatedData.ip = '10.0.0.1';
+    input.validatedData.input.input.extensionId =
+      'pppppppppppppppppppppppppppppppp';
+
+    for (let i = 0; i < 10; i++) {
+      await createDeviceRequest(input);
+    }
+
+    const result = await createDeviceRequest(input);
+    expect(result).toEqual(AppError('rate_limit_exceeded'));
+  });
 });
