@@ -1,4 +1,5 @@
 import type { DeviceRequestCreateRequest } from 'src/schema/auth/device';
+import type { CreateDeviceRequestResponse } from 'src/services/hasura/generated-graphql/graphql';
 import { createDeviceRequest as createDeviceRequestMutation } from 'src/services/hasura/mutations/auth/device';
 import { envConfig } from 'src/utils/envConfig';
 import { isValidExtensionId } from 'src/utils/extension';
@@ -6,33 +7,13 @@ import { checkRateLimit } from 'src/utils/rateLimit';
 import type { HandlerContext } from 'src/utils/requestHandler';
 import { generateHumanCode, generateSecureCode } from 'src/utils/string';
 
-interface CreateDeviceRequestData {
-  deviceCode: string;
-  userCode: string;
-  verificationUri: string;
-  verificationUriComplete: string;
-  expiresIn: number;
-  interval: number;
-}
-
-interface CreateDeviceRequestActionError {
-  code: string;
-  message: string;
-}
-
-// Mirrors the Hasura Action's CreateDeviceRequestResponse type exactly
-// ({ success, data, error }) — the generic ServiceResponse/AppResponse
-// envelope ({ success, message, dataObject }) doesn't match this action's
-// declared GraphQL contract, so Hasura can never resolve `data`.
-interface CreateDeviceRequestActionResponse {
-  success: boolean;
-  data?: CreateDeviceRequestData;
-  error?: CreateDeviceRequestActionError;
-}
-
+// Mirrors the generated CreateDeviceRequestResponse ({ success, data, error })
+// exactly — the generic ServiceResponse/AppResponse envelope
+// ({ success, message, dataObject }) doesn't match this action's declared
+// GraphQL contract, so Hasura can never resolve `data`.
 const createDeviceRequest = async (
   context: HandlerContext<DeviceRequestCreateRequest>,
-): Promise<CreateDeviceRequestActionResponse> => {
+): Promise<CreateDeviceRequestResponse> => {
   const { validatedData } = context;
   const { ip, userAgent } = validatedData;
   const { extensionId } = validatedData.input.input;

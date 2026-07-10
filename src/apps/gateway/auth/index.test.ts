@@ -16,19 +16,19 @@ vi.mock('./routes/device/token', () => ({
   getDeviceToken: vi.fn(),
 }));
 
-// Mock the utilities
-vi.mock('src/utils/requestHandler', () => ({
-  honoRequestHandler: vi.fn(
-    (handler: (c: Context) => Promise<Response> | Response) => handler,
-  ),
-  honoActionHandler: vi.fn(
-    (handler: (context: { validatedData: unknown }) => Promise<unknown>) =>
-      async (c: Context) => {
-        const result = await handler({ validatedData: c.get('validatedData') });
-        return c.json(result);
-      },
-  ),
-}));
+// Mock the utilities. honoActionHandler is spied on, not reimplemented, so
+// these tests exercise its real wrapping logic instead of a hand-copy of it.
+vi.mock('src/utils/requestHandler', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('src/utils/requestHandler')>();
+  return {
+    ...actual,
+    honoRequestHandler: vi.fn(
+      (handler: (c: Context) => Promise<Response> | Response) => handler,
+    ),
+    honoActionHandler: vi.fn(actual.honoActionHandler),
+  };
+});
 
 vi.mock('src/utils/validators/request', () => ({
   honoValidateRequest: vi.fn(
