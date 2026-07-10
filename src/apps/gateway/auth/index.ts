@@ -1,10 +1,11 @@
-import type { Context } from 'hono';
 import { Hono } from 'hono';
-import type { DeviceRequestCreateRequest } from 'src/schema/auth/device';
 import { deviceRequestCreateSchema } from 'src/schema/auth/device';
 import { authorizeDeviceSchema } from 'src/schema/auth/device/authorize';
 import { getDeviceTokenSchema } from 'src/schema/auth/device/token';
-import { honoRequestHandler } from 'src/utils/requestHandler';
+import {
+  honoActionHandler,
+  honoRequestHandler,
+} from 'src/utils/requestHandler';
 import { honoValidateRequest } from 'src/utils/validators/request';
 import { createDeviceRequest } from './routes/device';
 import { authorizeDevice } from './routes/device/authorize';
@@ -39,14 +40,10 @@ const authRouter = new Hono();
 authRouter.post(
   '/device',
   honoValidateRequest(deviceRequestCreateSchema),
-  // Not honoRequestHandler: this action's response contract is
-  // { success, data, error }, not the generic ServiceResponse envelope
-  // ({ success, message, dataObject }) other handlers return.
-  async (c: Context) => {
-    const validatedData = c.get('validatedData') as DeviceRequestCreateRequest;
-    const result = await createDeviceRequest({ validatedData });
-    return c.json(result);
-  },
+  // honoActionHandler, not honoRequestHandler: this action's response
+  // contract is { success, data, error }, not the generic ServiceResponse
+  // envelope ({ success, message, dataObject }) other handlers return.
+  honoActionHandler(createDeviceRequest),
 );
 
 authRouter.post(

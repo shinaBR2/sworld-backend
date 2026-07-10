@@ -25,4 +25,29 @@ const honoRequestHandler = <T = any, R = any>(
   };
 };
 
-export { honoRequestHandler, type BusinessHandler, type HandlerContext };
+// A handler backing a Hasura Action with its own declared response
+// contract (e.g. { success, data, error }) instead of the generic
+// ServiceResponse envelope ({ success, message, dataObject }).
+type ActionHandler<T = any, R = any> = (
+  context: HandlerContext<T>,
+) => Promise<R>;
+
+// Same wrapper as honoRequestHandler, just not pinned to ServiceResponse<R>.
+const honoActionHandler = <T = any, R = any>(handler: ActionHandler<T, R>) => {
+  return async (c: Context) => {
+    const context: HandlerContext<T> = {
+      validatedData: c.get('validatedData'),
+    };
+
+    const result = await handler(context);
+    return c.json(result);
+  };
+};
+
+export {
+  honoRequestHandler,
+  honoActionHandler,
+  type BusinessHandler,
+  type ActionHandler,
+  type HandlerContext,
+};

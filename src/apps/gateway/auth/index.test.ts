@@ -21,6 +21,13 @@ vi.mock('src/utils/requestHandler', () => ({
   honoRequestHandler: vi.fn(
     (handler: (c: Context) => Promise<Response> | Response) => handler,
   ),
+  honoActionHandler: vi.fn(
+    (handler: (context: { validatedData: unknown }) => Promise<unknown>) =>
+      async (c: Context) => {
+        const result = await handler({ validatedData: c.get('validatedData') });
+        return c.json(result);
+      },
+  ),
 }));
 
 vi.mock('src/utils/validators/request', () => ({
@@ -80,7 +87,24 @@ describe('authRouter', () => {
     expect(honoValidateRequest).toHaveBeenCalledWith(deviceRequestCreateSchema);
   });
 
-  it('should call createDeviceRequest directly and return its result as JSON (not via honoRequestHandler)', async () => {
+  it('should use honoActionHandler with createDeviceRequest', async () => {
+    const { honoActionHandler } = await import('src/utils/requestHandler');
+    const { createDeviceRequest } = await import('./routes/device');
+
+    const req = new Request('http://localhost/auth/device', {
+      method: 'POST',
+    });
+
+    await app.fetch(req);
+
+    const mockActionHandler = vi.mocked(honoActionHandler);
+    expect(mockActionHandler).toHaveBeenCalled();
+
+    const handlerArg = mockActionHandler.mock.calls[0][0];
+    expect(handlerArg).toBe(createDeviceRequest);
+  });
+
+  it("should return createDeviceRequest's result as the response JSON", async () => {
     const { createDeviceRequest } = await import('./routes/device');
     const mockResponse = {
       success: true,
@@ -101,7 +125,6 @@ describe('authRouter', () => {
 
     const res = await app.fetch(req);
 
-    expect(createDeviceRequest).toHaveBeenCalled();
     await expect(res.json()).resolves.toEqual(mockResponse);
   });
 
