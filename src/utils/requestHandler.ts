@@ -32,19 +32,17 @@ const wrapHandler = <T, R>(
 const honoRequestHandler = <T = any, R = any>(handler: BusinessHandler<T, R>) =>
   wrapHandler(handler);
 
-// A handler backing a Hasura Action with its own declared response
+// For a handler backing a Hasura Action with its own declared response
 // contract (e.g. { success, data, error }) instead of the generic
-// ServiceResponse envelope ({ success, message, dataObject }).
-type ActionHandler<T = any, R = any> = Handler<T, R>;
-
-// Same wrapper as honoRequestHandler, just not pinned to ServiceResponse<R>.
-const honoActionHandler = <T = any, R = any>(handler: ActionHandler<T, R>) =>
+// ServiceResponse envelope ({ success, message, dataObject }) — Handler<T, R>
+// already carries no constraint beyond that, so no separate alias is needed.
+const honoActionHandler = <T = any, R = any>(handler: Handler<T, R>) =>
   wrapHandler(handler);
 
 export {
   honoRequestHandler,
   honoActionHandler,
   type BusinessHandler,
-  type ActionHandler,
+  type Handler,
   type HandlerContext,
 };
