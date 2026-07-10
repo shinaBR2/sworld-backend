@@ -6,10 +6,12 @@ interface HandlerContext<T = any> {
   validatedData: T;
 }
 
-// Pure business logic handler type
-type BusinessHandler<T = any, R = any> = (
-  context: HandlerContext<T>,
-) => Promise<ServiceResponse<R>>;
+// Shared shape: a pure business-logic function taking validated input and
+// resolving some response R.
+type Handler<T = any, R = any> = (context: HandlerContext<T>) => Promise<R>;
+
+// A handler returning the generic ServiceResponse envelope
+type BusinessHandler<T = any, R = any> = Handler<T, ServiceResponse<R>>;
 
 // Shared runtime: pull validatedData off context, run the handler, serialize
 // its result. Both wrappers below differ only in the TS constraint on R.
@@ -33,9 +35,7 @@ const honoRequestHandler = <T = any, R = any>(handler: BusinessHandler<T, R>) =>
 // A handler backing a Hasura Action with its own declared response
 // contract (e.g. { success, data, error }) instead of the generic
 // ServiceResponse envelope ({ success, message, dataObject }).
-type ActionHandler<T = any, R = any> = (
-  context: HandlerContext<T>,
-) => Promise<R>;
+type ActionHandler<T = any, R = any> = Handler<T, R>;
 
 // Same wrapper as honoRequestHandler, just not pinned to ServiceResponse<R>.
 const honoActionHandler = <T = any, R = any>(handler: ActionHandler<T, R>) =>

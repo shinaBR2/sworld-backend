@@ -7,6 +7,14 @@ import { checkRateLimit } from 'src/utils/rateLimit';
 import type { HandlerContext } from 'src/utils/requestHandler';
 import { generateHumanCode, generateSecureCode } from 'src/utils/string';
 
+const deviceError = (
+  code: string,
+  message: string,
+): CreateDeviceRequestResponse => ({
+  success: false,
+  error: { code, message },
+});
+
 // Mirrors the generated CreateDeviceRequestResponse ({ success, data, error })
 // exactly — the generic ServiceResponse/AppResponse envelope
 // ({ success, message, dataObject }) doesn't match this action's declared
@@ -19,22 +27,16 @@ const createDeviceRequest = async (
   const { extensionId } = validatedData.input.input;
 
   if (!isValidExtensionId(extensionId)) {
-    return {
-      success: false,
-      error: { code: 'invalid_client', message: 'Invalid extension ID' },
-    };
+    return deviceError('invalid_client', 'Invalid extension ID');
   }
 
   try {
     checkRateLimit(ip, extensionId);
   } catch {
-    return {
-      success: false,
-      error: {
-        code: 'rate_limit_exceeded',
-        message: 'Too many device requests. Please try again later.',
-      },
-    };
+    return deviceError(
+      'rate_limit_exceeded',
+      'Too many device requests. Please try again later.',
+    );
   }
 
   // Generate codes
