@@ -82,13 +82,18 @@ describe('authRouter', () => {
 
   it('should call createDeviceRequest directly and return its result as JSON (not via honoRequestHandler)', async () => {
     const { createDeviceRequest } = await import('./routes/device');
-    vi.mocked(createDeviceRequest).mockResolvedValue({
+    const mockResponse = {
       success: true,
       data: {
+        deviceCode: 'mock-device-code',
         userCode: 'ABC-123',
         verificationUri: 'https://watch.sworld.dev/pair',
+        verificationUriComplete: 'https://watch.sworld.dev/pair?code=ABC-123',
+        expiresIn: 600,
+        interval: 5,
       },
-    });
+    };
+    vi.mocked(createDeviceRequest).mockResolvedValue(mockResponse);
 
     const req = new Request('http://localhost/auth/device', {
       method: 'POST',
@@ -97,13 +102,7 @@ describe('authRouter', () => {
     const res = await app.fetch(req);
 
     expect(createDeviceRequest).toHaveBeenCalled();
-    await expect(res.json()).resolves.toEqual({
-      success: true,
-      data: {
-        userCode: 'ABC-123',
-        verificationUri: 'https://watch.sworld.dev/pair',
-      },
-    });
+    await expect(res.json()).resolves.toEqual(mockResponse);
   });
 
   it('should register the authorizeDevice POST route', async () => {
