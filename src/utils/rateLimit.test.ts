@@ -1,13 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { checkRateLimit, resetRateLimitStore, MAX_REQUESTS } from './rateLimit';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {
+  checkRateLimit,
+  resetRateLimitStore,
+  MAX_REQUESTS,
+  WINDOW_MS,
+} from './rateLimit';
 
 describe('checkRateLimit', () => {
   beforeEach(() => {
     resetRateLimitStore();
-  });
-
-  it('should allow the first request', () => {
-    expect(() => checkRateLimit('192.168.1.1', 'ext-id')).not.toThrow();
   });
 
   it('should allow requests up to the limit', () => {
@@ -40,5 +41,26 @@ describe('checkRateLimit', () => {
     }
 
     expect(() => checkRateLimit('192.168.1.1', 'ext-two')).not.toThrow();
+  });
+
+  it('should reset the window after the time window expires', () => {
+    const mockDate = new Date('2025-01-01T00:00:00Z');
+    const spy = vi
+      .spyOn(Date, 'now')
+      .mockImplementation(() => mockDate.getTime());
+
+    for (let i = 0; i < MAX_REQUESTS; i++) {
+      checkRateLimit('192.168.1.1', 'ext-id');
+    }
+
+    expect(() => checkRateLimit('192.168.1.1', 'ext-id')).toThrow(
+      'rate_limit_exceeded',
+    );
+
+    spy.mockImplementation(() => mockDate.getTime() + WINDOW_MS + 1);
+
+    expect(() => checkRateLimit('192.168.1.1', 'ext-id')).not.toThrow();
+
+    spy.mockRestore();
   });
 });
