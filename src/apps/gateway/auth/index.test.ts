@@ -80,21 +80,30 @@ describe('authRouter', () => {
     expect(honoValidateRequest).toHaveBeenCalledWith(deviceRequestCreateSchema);
   });
 
-  it('should use honoRequestHandler with createDeviceRequest', async () => {
-    const { honoRequestHandler } = await import('src/utils/requestHandler');
+  it('should call createDeviceRequest directly and return its result as JSON (not via honoRequestHandler)', async () => {
     const { createDeviceRequest } = await import('./routes/device');
+    vi.mocked(createDeviceRequest).mockResolvedValue({
+      success: true,
+      data: {
+        userCode: 'ABC-123',
+        verificationUri: 'https://watch.sworld.dev/pair',
+      },
+    });
 
     const req = new Request('http://localhost/auth/device', {
       method: 'POST',
     });
 
-    await app.fetch(req);
+    const res = await app.fetch(req);
 
-    const mockRequestHandler = vi.mocked(honoRequestHandler);
-    expect(mockRequestHandler).toHaveBeenCalled();
-
-    const handlerArg = mockRequestHandler.mock.calls[0][0];
-    expect(handlerArg).toBe(createDeviceRequest);
+    expect(createDeviceRequest).toHaveBeenCalled();
+    await expect(res.json()).resolves.toEqual({
+      success: true,
+      data: {
+        userCode: 'ABC-123',
+        verificationUri: 'https://watch.sworld.dev/pair',
+      },
+    });
   });
 
   it('should register the authorizeDevice POST route', async () => {
@@ -132,7 +141,7 @@ describe('authRouter', () => {
     await app.fetch(req);
 
     const mockRequestHandler = vi.mocked(honoRequestHandler);
-    const handlerArg = mockRequestHandler.mock.calls[1][0];
+    const handlerArg = mockRequestHandler.mock.calls[0][0];
     expect(handlerArg).toBe(authorizeDevice);
   });
 
@@ -176,7 +185,7 @@ describe('authRouter', () => {
     await app.fetch(req);
 
     const mockRequestHandler = vi.mocked(honoRequestHandler);
-    const handlerArg = mockRequestHandler.mock.calls[2][0];
+    const handlerArg = mockRequestHandler.mock.calls[1][0];
     expect(handlerArg).toBe(getDeviceToken);
   });
 });
