@@ -34,8 +34,10 @@ const createTelegramClient = (): TelegramClient => {
     );
   }
 
+  // Number('') is 0 and Number.isInteger(0) is true, so a blank/whitespace
+  // value would silently pass as apiId 0 without the trim() check.
   const numericApiId = Number(apiId);
-  if (!Number.isInteger(numericApiId)) {
+  if (!apiId.trim() || !Number.isInteger(numericApiId)) {
     throw new Error('Telegram API ID must be a valid integer.');
   }
 

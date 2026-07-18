@@ -69,8 +69,10 @@ const parseLoginArgs = (rawArgs: string[]): LoginArgs => {
     process.exit(1);
   }
 
+  // Number('') is 0 and Number.isInteger(0) is true, so a blank/whitespace
+  // value would silently pass as apiId 0 without the trim() check.
   const apiId = Number(apiIdRaw);
-  if (!Number.isInteger(apiId)) {
+  if (!apiIdRaw.trim() || !Number.isInteger(apiId)) {
     console.error(`Error: api-id must be a valid integer, got "${apiIdRaw}".`);
     process.exit(1);
   }

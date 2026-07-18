@@ -71,6 +71,16 @@ describe('createTelegramClient', () => {
     );
   });
 
+  it('should throw when the API ID is whitespace only (not silently coerce to 0)', () => {
+    vi.mocked(envConfig).telegramApiId = '   ';
+    vi.mocked(envConfig).telegramApiHash = 'test-hash';
+    vi.mocked(envConfig).telegramSession = 'test-session';
+
+    expect(() => createTelegramClient()).toThrow(
+      'Telegram API ID must be a valid integer.',
+    );
+  });
+
   it('should throw when the API ID is not a valid integer', () => {
     vi.mocked(envConfig).telegramApiId = 'not-a-number';
     vi.mocked(envConfig).telegramApiHash = 'test-hash';
