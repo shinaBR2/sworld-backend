@@ -42,14 +42,17 @@ interface LoadedTelegramCredentials {
  * Load the caller's OWN credentials row, or throw a typed error the gateway can
  * route on: `TelegramNotProvisionedError` when there is no row, or
  * `TelegramMisconfiguredError` when the row exists but its hand-provisioned
- * static fields are malformed. This is THE validation choke point — every one of
- * phone_number, api_id, api_hash is hand-entered and used raw downstream
- * (sendCode / TelegramClient), so all three are validated here (api_hash /
- * phone_number trimmed, so a whitespace-only value doesn't slip past a plain
- * falsiness check; api_id via `parseApiId`, whose decimal-only result is returned
- * so callers don't re-parse it) rather than letting an opaque MTProto error
- * surface mid-connect. The single load+validate point shared by the client
- * factory and both login steps. The caller must already have scoped `userId` to
+ * static fields are malformed. This is THE validate-AND-normalize choke point —
+ * every one of phone_number, api_id, api_hash is hand-entered and used downstream
+ * (sendCode / TelegramClient), so all three are checked here AND the cleaned
+ * values are what callers get back: api_hash / phone_number are trimmed (so both
+ * a whitespace-only value fails the blank check and a whitespace-padded value is
+ * cleaned before it reaches MTProto), and api_id is returned already parsed via
+ * `parseApiId` (decimal-only) so callers don't re-parse. This keeps opaque MTProto
+ * errors from surfacing mid-connect for what is really a bad provisioned row. The
+ * single load point shared by the client factory and both login steps. Only the
+ * three static credential fields are normalized — the session strings pass through
+ * untouched. The caller must already have scoped `userId` to
  * the verified identity (x-hasura-user-id) — this query trusts whatever userId it
  * is given.
  */
@@ -60,16 +63,29 @@ const loadTelegramCredentials = async (
   if (!credentials) {
     throw new TelegramNotProvisionedError(userId);
   }
-  if (!credentials.apiHash.trim() || !credentials.phoneNumber.trim()) {
+  const apiHash = credentials.apiHash.trim();
+  const phoneNumber = credentials.phoneNumber.trim();
+  if (!apiHash || !phoneNumber) {
     throw new TelegramMisconfiguredError(userId);
   }
+  let apiId: number;
   try {
     // parseApiId owns the decimal-only api_id rule; reuse it (not a second inline
     // regex) and keep its number result so no caller re-parses.
-    return { credentials, apiId: parseApiId(credentials.apiId) };
+    apiId = parseApiId(credentials.apiId);
   } catch {
     throw new TelegramMisconfiguredError(userId);
   }
+  // Return the NORMALIZED values — trimmed api_hash/phone_number, parsed api_id —
+  // not just the raw row. Trimming only gates the blank check otherwise; the raw
+  // value still flows to TelegramClient/sendCode, so a copy-paste provisioning
+  // slip with surrounding whitespace would surface as an opaque MTProto auth
+  // failure instead of the typed Misconfigured signal. Handing back the cleaned
+  // values makes the choke point actually normalize, not just validate.
+  return {
+    credentials: { ...credentials, apiHash, phoneNumber },
+    apiId,
+  };
 };
 
 interface CreateTelegramClientParams {

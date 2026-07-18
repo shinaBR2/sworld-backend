@@ -108,6 +108,23 @@ describe('requestLoginCode', () => {
     expect(mockClient.disconnect).toHaveBeenCalledOnce();
   });
 
+  it('trims a whitespace-padded phone number and api_hash before contacting Telegram', async () => {
+    // loadTelegramCredentials normalizes the hand-provisioned static fields, so a
+    // copy-paste slip with surrounding whitespace reaches sendCode cleaned rather
+    // than as an opaque MTProto auth failure.
+    vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
+      credentials({ phoneNumber: '  +15551234567  ', apiHash: '  hash-1  ' }),
+    );
+    vi.mocked(saveTelegramPendingLogin).mockResolvedValueOnce(1);
+
+    await requestLoginCode('user-1');
+
+    expect(mockClient.sendCode).toHaveBeenCalledWith(
+      { apiId: 111, apiHash: 'hash-1' },
+      '+15551234567',
+    );
+  });
+
   it('throws (and never builds a client) when the user is not provisioned', async () => {
     vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(null);
 
@@ -185,6 +202,33 @@ describe('submitLoginCode', () => {
     expect(mockClient.disconnect).toHaveBeenCalledOnce();
   });
 
+  it('retries the session persist on a transient failure so the authorized session is not lost', async () => {
+    // auth.SignIn is irreversible — the code is consumed. If the persist blipped
+    // transiently and propagated raw, a retry would re-run SignIn with the spent
+    // code and surface a misleading "invalid code". withRetry absorbs the blip.
+    vi.useFakeTimers();
+    try {
+      vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
+        credentials({
+          pendingSessionString: 'intermediate-session',
+          pendingPhoneCodeHash: 'code-hash',
+        }),
+      );
+      vi.mocked(saveTelegramSession)
+        .mockRejectedValueOnce(new Error('transient hasura error'))
+        .mockResolvedValueOnce(1);
+
+      const pending = submitLoginCode('user-1', '12345');
+      await vi.runAllTimersAsync();
+      await expect(pending).resolves.toBeUndefined();
+
+      expect(saveTelegramSession).toHaveBeenCalledTimes(2);
+      expect(mockClient.invoke).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('throws TelegramSignUpRequiredError (and never persists) when the phone has no account', async () => {
     // auth.SignIn RESOLVES with AuthorizationSignUpRequired for an unregistered
     // phone — the session is not authorized and must not reach session_string.
@@ -221,6 +265,24 @@ describe('submitLoginCode', () => {
       expect(mockClient.disconnect).toHaveBeenCalledOnce();
     },
   );
+
+  it('preserves the original RPCError as `cause` on the mapped typed error', async () => {
+    // A mapped failure must not discard the raw teleproto error — the synthetic
+    // message alone can't confirm which RPCError fired or catch a Telegram
+    // error-string change.
+    vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
+      credentials({
+        pendingSessionString: 'intermediate-session',
+        pendingPhoneCodeHash: 'code-hash',
+      }),
+    );
+    const rpcError = { errorMessage: 'PHONE_CODE_INVALID' };
+    mockClient.invoke.mockRejectedValueOnce(rpcError);
+
+    await expect(submitLoginCode('user-1', '99999')).rejects.toMatchObject({
+      cause: rpcError,
+    });
+  });
 
   it('maps SESSION_PASSWORD_NEEDED to TelegramTwoFactorNotSupportedError', async () => {
     vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(

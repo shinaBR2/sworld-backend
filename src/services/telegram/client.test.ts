@@ -186,6 +186,24 @@ describe('getTelegramClient', () => {
     );
   });
 
+  it('trims a whitespace-padded api_hash before building the client', async () => {
+    // The load choke point normalizes the static fields, so a copy-paste
+    // provisioning slip with surrounding whitespace never reaches TelegramClient
+    // as an opaque auth failure.
+    vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
+      readyRow({ apiHash: '  hash-1  ' }),
+    );
+
+    await getTelegramClient('user-1');
+
+    expect(TelegramClient).toHaveBeenCalledWith(
+      expect.anything(),
+      111,
+      'hash-1',
+      { connectionRetries: 5 },
+    );
+  });
+
   it('throws TelegramNotProvisionedError when the user has no credentials row', async () => {
     vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(null);
 

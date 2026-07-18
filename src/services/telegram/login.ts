@@ -2,10 +2,12 @@ import {
   saveTelegramPendingLogin,
   saveTelegramSession,
 } from 'src/services/hasura/mutations/telegram';
+import { withRetry } from 'src/utils/retry/withRetry';
 import { Api } from 'teleproto';
 import { StringSession } from 'teleproto/sessions';
 import { loadTelegramCredentials, withTelegramClient } from './client';
 import {
+  type TelegramError,
   TelegramInvalidCodeError,
   TelegramLoginNotStartedError,
   TelegramMisconfiguredError,
@@ -49,24 +51,26 @@ const MISCONFIGURED_PHONE_MESSAGES = new Set([
 const toTypedTelegramError = (
   error: unknown,
   userId: string,
-): Error | undefined => {
+): TelegramError | undefined => {
   const message = rpcErrorMessage(error);
   if (message === undefined) {
     return undefined;
   }
+  // Preserve the raw RPCError as `cause` on every mapped error so the original
+  // errorMessage/stack survives for diagnosis.
   if (message === 'SESSION_PASSWORD_NEEDED') {
-    return new TelegramTwoFactorNotSupportedError(userId);
+    return new TelegramTwoFactorNotSupportedError(userId, { cause: error });
   }
   if (INVALID_CODE_MESSAGES.has(message)) {
-    return new TelegramInvalidCodeError(userId);
+    return new TelegramInvalidCodeError(userId, { cause: error });
   }
   // No Telegram account for the provisioned phone — same product state as
   // auth.SignIn's AuthorizationSignUpRequired result.
   if (message === 'PHONE_NUMBER_UNOCCUPIED') {
-    return new TelegramSignUpRequiredError(userId);
+    return new TelegramSignUpRequiredError(userId, { cause: error });
   }
   if (MISCONFIGURED_PHONE_MESSAGES.has(message)) {
-    return new TelegramMisconfiguredError(userId);
+    return new TelegramMisconfiguredError(userId, { cause: error });
   }
   return undefined;
 };
@@ -170,7 +174,20 @@ const submitLoginCode = async (userId: string, code: string): Promise<void> => {
         throw new TelegramSignUpRequiredError(userId);
       }
 
-      return saveTelegramSession({ userId, sessionString: session.save() });
+      // auth.SignIn is irreversible — the phone code is now consumed and this
+      // authorized session exists only in memory. If the persist below failed
+      // transiently and propagated raw, a retry of submitLoginCode would re-run
+      // SignIn with the already-consumed code and be rejected as
+      // PHONE_CODE_EXPIRED → the user would see "invalid code" for a code that
+      // was correct. So retry the persist before giving up. The UPDATE is
+      // idempotent (same session_string, pending fields nulled), so replaying it
+      // after a lost response is safe. A vanished row returns affected_rows: 0
+      // (not a throw) and is handled below; only exhausted transient failure
+      // rethrows raw.
+      return withRetry(
+        () => saveTelegramSession({ userId, sessionString: session.save() }),
+        { label: 'saveTelegramSession' },
+      );
     },
   );
 

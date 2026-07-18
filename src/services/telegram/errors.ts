@@ -3,14 +3,49 @@
 // the "needs login" signal the extension popup watches for to show its
 // login-code prompt instead of the video picker.
 
+interface TelegramErrorOptions {
+  /**
+   * The raw error we mapped from (a teleproto RPCError), preserved as the
+   * standard Error `cause` so a mapped failure can still be traced back to the
+   * original errorMessage/stack in logs — e.g. to catch a Telegram error-string
+   * change — instead of the synthetic message being all that survives.
+   */
+  cause?: unknown;
+}
+
+/**
+ * Base for the per-user Telegram error taxonomy. Every telegram service-layer
+ * failure is one of these, so the gateway (SWO-494) can `instanceof
+ * TelegramError` once and then discriminate on the concrete subclass (`name`)
+ * to choose an action response. Deliberately NOT a `CustomError`: CustomError's
+ * userMessage/shouldRetry/shouldNotify are keyed off ERROR_CONFIG codes in the
+ * shared `@shinabr2/core` package, which has no telegram codes — adding them is
+ * a cross-repo change out of this PR's scope. The gateway remains the right
+ * boundary to wrap these into a CustomError (it needs a type→popup-state map
+ * either way). Carries `userId` for logs (never a secret) and threads `cause`.
+ */
+class TelegramError extends Error {
+  readonly userId: string;
+
+  constructor(message: string, userId: string, options?: TelegramErrorOptions) {
+    super(message, { cause: options?.cause });
+    this.userId = userId;
+    this.name = 'TelegramError';
+  }
+}
+
 /**
  * The user has no telegram_credentials row at all. phone/api_id/api_hash are
  * provisioned out-of-band (the owner inserts the row by hand), so this means
  * "Telegram isn't set up for this user yet".
  */
-class TelegramNotProvisionedError extends Error {
-  constructor(userId: string) {
-    super(`No Telegram credentials provisioned for user ${userId}`);
+class TelegramNotProvisionedError extends TelegramError {
+  constructor(userId: string, options?: TelegramErrorOptions) {
+    super(
+      `No Telegram credentials provisioned for user ${userId}`,
+      userId,
+      options,
+    );
     this.name = 'TelegramNotProvisionedError';
   }
 }
@@ -21,9 +56,9 @@ class TelegramNotProvisionedError extends Error {
  * trigger this — an already-authorized session stays usable.) This is the signal
  * the popup uses to prompt for a login code.
  */
-class TelegramNotAuthenticatedError extends Error {
-  constructor(userId: string) {
-    super(`Telegram login required for user ${userId}`);
+class TelegramNotAuthenticatedError extends TelegramError {
+  constructor(userId: string, options?: TelegramErrorOptions) {
+    super(`Telegram login required for user ${userId}`, userId, options);
     this.name = 'TelegramNotAuthenticatedError';
   }
 }
@@ -32,23 +67,33 @@ class TelegramNotAuthenticatedError extends Error {
  * submitLoginCode was called with no preceding requestLoginCode (no pending
  * phone_code_hash on the row), so there is no login to complete.
  */
-class TelegramLoginNotStartedError extends Error {
-  constructor(userId: string) {
-    super(`No pending Telegram login for user ${userId}; request a code first`);
+class TelegramLoginNotStartedError extends TelegramError {
+  constructor(userId: string, options?: TelegramErrorOptions) {
+    super(
+      `No pending Telegram login for user ${userId}; request a code first`,
+      userId,
+      options,
+    );
     this.name = 'TelegramLoginNotStartedError';
   }
 }
 
 /**
- * The credentials row exists but its hand-provisioned static fields are
- * malformed — a non-decimal api_id or a blank api_hash. Distinct from
- * NotProvisioned (no row at all): here the row is present but unusable, so the
- * gateway can tell the operator to fix provisioning rather than report a 500.
+ * The credentials row exists but a hand-provisioned static field is malformed —
+ * a non-decimal api_id, a blank/whitespace api_hash, or a phone_number Telegram
+ * rejects as invalid/banned. Distinct from NotProvisioned (no row at all): here
+ * the row is present but unusable, so the gateway can tell the operator to fix
+ * provisioning rather than report a 500. The message names all three provisioned
+ * fields (not just api_id/api_hash) because a bad phone_number routes here too —
+ * the remediation is the same category ("fix the provisioned row") regardless of
+ * which field is wrong.
  */
-class TelegramMisconfiguredError extends Error {
-  constructor(userId: string) {
+class TelegramMisconfiguredError extends TelegramError {
+  constructor(userId: string, options?: TelegramErrorOptions) {
     super(
-      `Telegram credentials for user ${userId} are malformed (check api_id / api_hash)`,
+      `Telegram credentials for user ${userId} are malformed (check the provisioned api_id, api_hash and phone_number)`,
+      userId,
+      options,
     );
     this.name = 'TelegramMisconfiguredError';
   }
@@ -60,9 +105,13 @@ class TelegramMisconfiguredError extends Error {
  * common recoverable login failure — the popup should re-prompt for the code
  * (requesting a fresh one if it had expired) rather than surface a raw error.
  */
-class TelegramInvalidCodeError extends Error {
-  constructor(userId: string) {
-    super(`Telegram login code was invalid or expired for user ${userId}`);
+class TelegramInvalidCodeError extends TelegramError {
+  constructor(userId: string, options?: TelegramErrorOptions) {
+    super(
+      `Telegram login code was invalid or expired for user ${userId}`,
+      userId,
+      options,
+    );
     this.name = 'TelegramInvalidCodeError';
   }
 }
@@ -74,10 +123,12 @@ class TelegramInvalidCodeError extends Error {
  * must refuse to persist it as one. Signals a bad/unregistered phone_number, not
  * a wrong code.
  */
-class TelegramSignUpRequiredError extends Error {
-  constructor(userId: string) {
+class TelegramSignUpRequiredError extends TelegramError {
+  constructor(userId: string, options?: TelegramErrorOptions) {
     super(
       `Telegram has no account for the provisioned phone (sign-up required) for user ${userId}`,
+      userId,
+      options,
     );
     this.name = 'TelegramSignUpRequiredError';
   }
@@ -89,16 +140,19 @@ class TelegramSignUpRequiredError extends Error {
  * scope for this pass — this typed error surfaces that clearly instead of leaking
  * a raw MTProto error.
  */
-class TelegramTwoFactorNotSupportedError extends Error {
-  constructor(userId: string) {
+class TelegramTwoFactorNotSupportedError extends TelegramError {
+  constructor(userId: string, options?: TelegramErrorOptions) {
     super(
       `Telegram account requires a 2FA password, which is not supported, for user ${userId}`,
+      userId,
+      options,
     );
     this.name = 'TelegramTwoFactorNotSupportedError';
   }
 }
 
 export {
+  TelegramError,
   TelegramInvalidCodeError,
   TelegramLoginNotStartedError,
   TelegramMisconfiguredError,
