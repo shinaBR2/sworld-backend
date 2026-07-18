@@ -2,6 +2,7 @@ import {
   TaskEntityType,
   TaskType,
 } from 'src/services/hasura/mutations/tasks/constants';
+import { v5 } from 'uuid';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mock modules
@@ -419,5 +420,55 @@ describe('createCloudTasks', () => {
         }),
       }),
     );
+  });
+});
+
+describe('computeTaskId', () => {
+  const params = {
+    entityType: TaskEntityType.VIDEO,
+    entityId: '123',
+    type: TaskType.CONVERT,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockConfig.projectId = 'test-project';
+    mockConfig.location = 'us-central1';
+    mockConfig.cloudTaskServiceAccount = 'cloud-task@email.com';
+    mockQueuePath.mockReturnValue(
+      'projects/test-project/locations/us-central1/queues/test-queue',
+    );
+    mockCreateTask.mockResolvedValue([{ name: 'test-task' }, null, null]);
+  });
+
+  it('hashes entityType, entityId, and type with the cloudTask namespace', async () => {
+    const { computeTaskId } = await import('./cloud-task');
+
+    const taskId = computeTaskId(params);
+
+    expect(v5).toHaveBeenCalledWith(JSON.stringify(params), 'test-namespace');
+    expect(taskId).toBe('mock-uuid');
+  });
+
+  it('matches the taskId createCloudTasks derives internally for the same params', async () => {
+    const { createCloudTasks, computeTaskId } = await import('./cloud-task');
+    const tasksModule = await import('src/services/hasura/mutations/tasks');
+    vi.mocked(tasksModule.createTask).mockResolvedValue({
+      completed: false,
+    } as any);
+    vi.mocked(tasksModule.updateTaskStatus).mockResolvedValue({} as any);
+
+    await createCloudTasks({
+      ...params,
+      queue: 'test-queue',
+      audience: 'https://test.com',
+      url: 'https://test.com',
+    });
+
+    const derivedTaskId = computeTaskId(params);
+
+    expect(
+      mockCreateTask.mock.calls[0][0].task.httpRequest.headers['X-Task-ID'],
+    ).toBe(derivedTaskId);
   });
 });
