@@ -7,10 +7,12 @@ import { Api, TelegramClient } from 'teleproto';
 import { StringSession } from 'teleproto/sessions';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  TelegramCodeExpiredError,
   TelegramInvalidCodeError,
   TelegramLoginNotStartedError,
   TelegramMisconfiguredError,
   TelegramNotProvisionedError,
+  TelegramSessionPersistError,
   TelegramSignUpRequiredError,
   TelegramTwoFactorNotSupportedError,
 } from './errors';
@@ -134,6 +136,25 @@ describe('requestLoginCode', () => {
     expect(TelegramClient).not.toHaveBeenCalled();
   });
 
+  // phone_number is required by the login path (it feeds sendCode), so it is
+  // validated here rather than on the client-build path that never uses it.
+  it.each([
+    ['blank phone_number', { phoneNumber: '' }],
+    ['whitespace-only phone_number', { phoneNumber: '   ' }],
+  ])(
+    'throws TelegramMisconfiguredError (and never builds a client) on %s',
+    async (_label, overrides) => {
+      vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
+        credentials(overrides),
+      );
+
+      await expect(requestLoginCode('user-1')).rejects.toBeInstanceOf(
+        TelegramMisconfiguredError,
+      );
+      expect(TelegramClient).not.toHaveBeenCalled();
+    },
+  );
+
   it('throws (still disconnecting) when the row vanished before the write', async () => {
     vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
       credentials(),
@@ -247,8 +268,8 @@ describe('submitLoginCode', () => {
     expect(mockClient.disconnect).toHaveBeenCalledOnce();
   });
 
-  it.each(['PHONE_CODE_INVALID', 'PHONE_CODE_EMPTY', 'PHONE_CODE_EXPIRED'])(
-    'maps %s to TelegramInvalidCodeError (recoverable, never persisted)',
+  it.each(['PHONE_CODE_INVALID', 'PHONE_CODE_EMPTY'])(
+    'maps %s to TelegramInvalidCodeError (re-prompt on same session, never persisted)',
     async (errorMessage) => {
       vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
         credentials({
@@ -265,6 +286,58 @@ describe('submitLoginCode', () => {
       expect(mockClient.disconnect).toHaveBeenCalledOnce();
     },
   );
+
+  it('maps PHONE_CODE_EXPIRED to TelegramCodeExpiredError, not the wrong-code bucket', async () => {
+    // Expired needs a different recovery (fresh code, not re-prompt), so it must
+    // be a distinct type or the popup loops on "invalid code".
+    vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
+      credentials({
+        pendingSessionString: 'intermediate-session',
+        pendingPhoneCodeHash: 'code-hash',
+      }),
+    );
+    mockClient.invoke.mockRejectedValueOnce({
+      errorMessage: 'PHONE_CODE_EXPIRED',
+    });
+
+    await expect(submitLoginCode('user-1', '12345')).rejects.toBeInstanceOf(
+      TelegramCodeExpiredError,
+    );
+    expect(saveTelegramSession).not.toHaveBeenCalled();
+    expect(mockClient.disconnect).toHaveBeenCalledOnce();
+  });
+
+  it('surfaces a typed TelegramSessionPersistError when the persist fails after all retries', async () => {
+    // auth.SignIn already consumed the code; if the persist can't be saved, the
+    // error must be typed/routable (not the raw hasura error) and must NOT be a
+    // misleading "invalid code".
+    vi.useFakeTimers();
+    try {
+      vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
+        credentials({
+          pendingSessionString: 'intermediate-session',
+          pendingPhoneCodeHash: 'code-hash',
+        }),
+      );
+      vi.mocked(saveTelegramSession).mockRejectedValue(
+        new Error('persistent hasura error'),
+      );
+
+      const pending = submitLoginCode('user-1', '12345');
+      // Attach a rejection handler before advancing timers so the eventual
+      // rejection is never an unhandled one while withRetry backs off.
+      const assertion = expect(pending).rejects.toBeInstanceOf(
+        TelegramSessionPersistError,
+      );
+      await vi.runAllTimersAsync();
+      await assertion;
+
+      expect(mockClient.disconnect).toHaveBeenCalledOnce();
+    } finally {
+      vi.mocked(saveTelegramSession).mockReset();
+      vi.useRealTimers();
+    }
+  });
 
   it('preserves the original RPCError as `cause` on the mapped typed error', async () => {
     // A mapped failure must not discard the raw teleproto error — the synthetic

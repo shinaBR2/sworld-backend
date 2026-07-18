@@ -241,15 +241,13 @@ describe('getTelegramClient', () => {
     expect(client.connect).toHaveBeenCalledOnce();
   });
 
-  // Every hand-provisioned static field is validated at the load choke point,
-  // trimmed so a whitespace-only value can't slip past a plain falsiness check.
+  // api_id and api_hash are validated on the client path (it uses them);
+  // phone_number is NOT (only the login/sendCode path needs it).
   it.each([
     ['non-decimal api_id', { apiId: '12x3' }],
     ['hex api_id', { apiId: '0x10' }],
     ['blank api_hash', { apiHash: '' }],
     ['whitespace-only api_hash', { apiHash: '   ' }],
-    ['blank phone_number', { phoneNumber: '' }],
-    ['whitespace-only phone_number', { phoneNumber: '  ' }],
   ])('throws TelegramMisconfiguredError on %s', async (_label, overrides) => {
     vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
       readyRow(overrides),
@@ -260,6 +258,31 @@ describe('getTelegramClient', () => {
     );
     expect(TelegramClient).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ['blank phone_number', { phoneNumber: '' }],
+    ['whitespace-only phone_number', { phoneNumber: '  ' }],
+  ])(
+    'tolerates a %s — the client path never uses the phone, so an authorized session still builds',
+    async (_label, overrides) => {
+      // Decoupling guard: a later-blanked phone must not break list/import for a
+      // user whose session_string is still valid. Only the login path validates
+      // phone_number.
+      vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
+        readyRow(overrides),
+      );
+
+      const client = await getTelegramClient('user-1');
+
+      expect(client.connect).toHaveBeenCalledOnce();
+      expect(TelegramClient).toHaveBeenCalledWith(
+        expect.anything(),
+        111,
+        'hash-1',
+        { connectionRetries: 5 },
+      );
+    },
+  );
 
   it('disconnects (and rethrows) if connect() rejects, so it cannot leak the client', async () => {
     vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(readyRow());

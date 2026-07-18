@@ -2,16 +2,18 @@ import {
   saveTelegramPendingLogin,
   saveTelegramSession,
 } from 'src/services/hasura/mutations/telegram';
-import { withRetry } from 'src/utils/retry/withRetry';
+import { isRetryableError, withRetry } from 'src/utils/retry/withRetry';
 import { Api } from 'teleproto';
 import { StringSession } from 'teleproto/sessions';
-import { loadTelegramCredentials, withTelegramClient } from './client';
+import { loadTelegramLoginCredentials, withTelegramClient } from './client';
 import {
+  TelegramCodeExpiredError,
   type TelegramError,
   TelegramInvalidCodeError,
   TelegramLoginNotStartedError,
   TelegramMisconfiguredError,
   TelegramNotProvisionedError,
+  TelegramSessionPersistError,
   TelegramSignUpRequiredError,
   TelegramTwoFactorNotSupportedError,
 } from './errors';
@@ -24,11 +26,10 @@ const rpcErrorMessage = (error: unknown): string | undefined =>
     ? (error as { errorMessage: string }).errorMessage
     : undefined;
 
-/** A wrong/empty/expired login code — recoverable; the popup re-prompts. */
+/** A wrong/empty login code — recoverable against the same pending session. */
 const INVALID_CODE_MESSAGES = new Set([
   'PHONE_CODE_INVALID',
   'PHONE_CODE_EMPTY',
-  'PHONE_CODE_EXPIRED',
 ]);
 /** A bad provisioned phone number — the operator must fix the credentials row. */
 const MISCONFIGURED_PHONE_MESSAGES = new Set([
@@ -60,6 +61,11 @@ const toTypedTelegramError = (
   // errorMessage/stack survives for diagnosis.
   if (message === 'SESSION_PASSWORD_NEEDED') {
     return new TelegramTwoFactorNotSupportedError(userId, { cause: error });
+  }
+  // Expired is NOT folded into invalid: the recovery differs (fresh code vs
+  // re-prompt), so it gets its own typed error the popup can route on.
+  if (message === 'PHONE_CODE_EXPIRED') {
+    return new TelegramCodeExpiredError(userId, { cause: error });
   }
   if (INVALID_CODE_MESSAGES.has(message)) {
     return new TelegramInvalidCodeError(userId, { cause: error });
@@ -98,7 +104,7 @@ const rethrowTyped = (error: unknown, userId: string): never => {
  * state that `submitLoginCode` consumes.
  */
 const requestLoginCode = async (userId: string): Promise<void> => {
-  const { credentials, apiId } = await loadTelegramCredentials(userId);
+  const { credentials, apiId } = await loadTelegramLoginCredentials(userId);
   const session = new StringSession('');
 
   const affectedRows = await withTelegramClient(
@@ -110,11 +116,20 @@ const requestLoginCode = async (userId: string): Promise<void> => {
           credentials.phoneNumber,
         )
         .catch((error) => rethrowTyped(error, userId));
-      return saveTelegramPendingLogin({
-        userId,
-        pendingSessionString: session.save(),
-        phoneCodeHash,
-      });
+      // Retry the persist for the same reason submitLoginCode does: sendCode has
+      // already texted a code (a rate-limited side effect), so a transient blip
+      // that dropped the pending state would force a second requestLoginCode and
+      // another sendCode — repeated sendCodes trip Telegram's FLOOD_WAIT. The
+      // UPDATE is idempotent, so replaying it is safe.
+      return withRetry(
+        () =>
+          saveTelegramPendingLogin({
+            userId,
+            pendingSessionString: session.save(),
+            phoneCodeHash,
+          }),
+        { label: 'saveTelegramPendingLogin', isRetryable: isRetryableError },
+      );
     },
   );
 
@@ -144,7 +159,7 @@ const requestLoginCode = async (userId: string): Promise<void> => {
  * `toTypedTelegramError` maps to the typed taxonomy. All surface as typed errors.
  */
 const submitLoginCode = async (userId: string, code: string): Promise<void> => {
-  const { credentials, apiId } = await loadTelegramCredentials(userId);
+  const { credentials, apiId } = await loadTelegramLoginCredentials(userId);
   if (!credentials.pendingSessionString || !credentials.pendingPhoneCodeHash) {
     throw new TelegramLoginNotStartedError(userId);
   }
@@ -175,19 +190,22 @@ const submitLoginCode = async (userId: string, code: string): Promise<void> => {
       }
 
       // auth.SignIn is irreversible — the phone code is now consumed and this
-      // authorized session exists only in memory. If the persist below failed
-      // transiently and propagated raw, a retry of submitLoginCode would re-run
-      // SignIn with the already-consumed code and be rejected as
-      // PHONE_CODE_EXPIRED → the user would see "invalid code" for a code that
-      // was correct. So retry the persist before giving up. The UPDATE is
-      // idempotent (same session_string, pending fields nulled), so replaying it
-      // after a lost response is safe. A vanished row returns affected_rows: 0
-      // (not a throw) and is handled below; only exhausted transient failure
-      // rethrows raw.
+      // authorized session exists only in memory. If the persist below failed and
+      // propagated raw, a retry of submitLoginCode would re-run SignIn with the
+      // already-consumed code and be rejected as PHONE_CODE_EXPIRED → the user
+      // would see "invalid code" for a code that was correct. So retry the persist
+      // (idempotent UPDATE — same session_string, pending fields nulled — so
+      // replaying after a lost response is safe), and on final failure surface a
+      // TYPED, routable TelegramSessionPersistError instead of the raw hasura
+      // error: the gateway can route it, and its message tells the truth (request
+      // a fresh code) rather than the retry's misleading "invalid code". A vanished
+      // row returns affected_rows: 0 (not a throw) and is handled below.
       return withRetry(
         () => saveTelegramSession({ userId, sessionString: session.save() }),
-        { label: 'saveTelegramSession' },
-      );
+        { label: 'saveTelegramSession', isRetryable: isRetryableError },
+      ).catch((error) => {
+        throw new TelegramSessionPersistError(userId, { cause: error });
+      });
     },
   );
 

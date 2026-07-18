@@ -64,8 +64,14 @@ const loadTelegramCredentials = async (
     throw new TelegramNotProvisionedError(userId);
   }
   const apiHash = credentials.apiHash.trim();
+  // api_id and api_hash are needed by EVERY caller (the client build and both
+  // login steps), so validate them here. phone_number is only used by the
+  // login/sendCode path — NOT the already-authorized client path — so it is
+  // normalized here but its presence is validated by loadTelegramLoginCredentials
+  // (below), otherwise a later-blanked phone would wrongly break list/import for a
+  // user whose session_string is still valid.
   const phoneNumber = credentials.phoneNumber.trim();
-  if (!apiHash || !phoneNumber) {
+  if (!apiHash) {
     throw new TelegramMisconfiguredError(userId);
   }
   let apiId: number;
@@ -73,8 +79,10 @@ const loadTelegramCredentials = async (
     // parseApiId owns the decimal-only api_id rule; reuse it (not a second inline
     // regex) and keep its number result so no caller re-parses.
     apiId = parseApiId(credentials.apiId);
-  } catch {
-    throw new TelegramMisconfiguredError(userId);
+  } catch (error) {
+    // Thread the parse error as `cause` — same diagnosability contract the
+    // RPC-mapped errors follow, so an operator can see which field failed.
+    throw new TelegramMisconfiguredError(userId, { cause: error });
   }
   // Return the NORMALIZED values — trimmed api_hash/phone_number, parsed api_id —
   // not just the raw row. Trimming only gates the blank check otherwise; the raw
@@ -86,6 +94,24 @@ const loadTelegramCredentials = async (
     credentials: { ...credentials, apiHash, phoneNumber },
     apiId,
   };
+};
+
+/**
+ * `loadTelegramCredentials` plus the phone_number-presence requirement that ONLY
+ * the login path (sendCode / auth.SignIn) needs. Kept separate so a blanked or
+ * whitespace-only phone_number fails the login flow — which actually uses it —
+ * without breaking the already-authorized client path (`getTelegramClient`),
+ * which never touches phone_number. Use this from the login steps; use
+ * `loadTelegramCredentials` from the client build.
+ */
+const loadTelegramLoginCredentials = async (
+  userId: string,
+): Promise<LoadedTelegramCredentials> => {
+  const loaded = await loadTelegramCredentials(userId);
+  if (!loaded.credentials.phoneNumber) {
+    throw new TelegramMisconfiguredError(userId);
+  }
+  return loaded;
 };
 
 interface CreateTelegramClientParams {
@@ -184,6 +210,7 @@ export {
   createTelegramClient,
   getTelegramClient,
   loadTelegramCredentials,
+  loadTelegramLoginCredentials,
   parseApiId,
   withTelegramClient,
 };

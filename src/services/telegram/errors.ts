@@ -100,19 +100,40 @@ class TelegramMisconfiguredError extends TelegramError {
 }
 
 /**
- * auth.SignIn rejected because the submitted code was wrong, empty, or expired
- * (PHONE_CODE_INVALID / PHONE_CODE_EMPTY / PHONE_CODE_EXPIRED). This is the
- * common recoverable login failure — the popup should re-prompt for the code
- * (requesting a fresh one if it had expired) rather than surface a raw error.
+ * auth.SignIn rejected because the submitted code was wrong or empty
+ * (PHONE_CODE_INVALID / PHONE_CODE_EMPTY). Recoverable against the SAME pending
+ * session — the popup re-prompts for the code. Distinct from
+ * TelegramCodeExpiredError: a wrong code can be corrected by re-entering, an
+ * expired one cannot.
  */
 class TelegramInvalidCodeError extends TelegramError {
   constructor(userId: string, options?: TelegramErrorOptions) {
     super(
-      `Telegram login code was invalid or expired for user ${userId}`,
+      `Telegram login code was invalid for user ${userId}`,
       userId,
       options,
     );
     this.name = 'TelegramInvalidCodeError';
+  }
+}
+
+/**
+ * auth.SignIn rejected with PHONE_CODE_EXPIRED: the code was well-formed but the
+ * pending phone_code_hash has aged out. Deliberately NOT folded into
+ * TelegramInvalidCodeError — the recovery differs. A wrong code is re-prompted
+ * against the same pending session; an expired one can only be fixed by
+ * restarting requestLoginCode for a fresh code (re-submitting against the stale
+ * hash just expires again → an unbreakable "invalid code" loop). The popup routes
+ * on this to auto-request a new code.
+ */
+class TelegramCodeExpiredError extends TelegramError {
+  constructor(userId: string, options?: TelegramErrorOptions) {
+    super(
+      `Telegram login code expired for user ${userId}; request a fresh code`,
+      userId,
+      options,
+    );
+    this.name = 'TelegramCodeExpiredError';
   }
 }
 
@@ -151,13 +172,35 @@ class TelegramTwoFactorNotSupportedError extends TelegramError {
   }
 }
 
+/**
+ * auth.SignIn succeeded — the code is consumed (irreversible) and an authorized
+ * session exists in memory — but persisting it to the credentials row ultimately
+ * failed (withRetry attempts exhausted, or a non-retryable error). Surfaced as a
+ * typed, routable error rather than the raw hasura error (which the gateway
+ * can't route → generic 500) and rather than a retry that would re-run SignIn
+ * with the now-spent code and mislead the user with "invalid code". The recovery
+ * is to request a fresh code and try again.
+ */
+class TelegramSessionPersistError extends TelegramError {
+  constructor(userId: string, options?: TelegramErrorOptions) {
+    super(
+      `Telegram login succeeded but the session could not be saved for user ${userId}; request a fresh code and try again`,
+      userId,
+      options,
+    );
+    this.name = 'TelegramSessionPersistError';
+  }
+}
+
 export {
+  TelegramCodeExpiredError,
   TelegramError,
   TelegramInvalidCodeError,
   TelegramLoginNotStartedError,
   TelegramMisconfiguredError,
   TelegramNotAuthenticatedError,
   TelegramNotProvisionedError,
+  TelegramSessionPersistError,
   TelegramSignUpRequiredError,
   TelegramTwoFactorNotSupportedError,
 };
