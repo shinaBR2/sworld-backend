@@ -6,6 +6,7 @@ import type {
   SaveTelegramSessionMutation,
   SaveTelegramSessionMutationVariables,
 } from '../../generated-graphql/graphql';
+import { redactHasuraError } from '../../redactError';
 
 // Both mutations UPDATE an existing row (never INSERT): the credentials row is
 // provisioned out-of-band (owner inserts phone/api_id/api_hash by hand), and
@@ -64,15 +65,21 @@ const saveTelegramPendingLogin = async ({
   pendingSessionString,
   phoneCodeHash,
 }: SaveTelegramPendingLoginParams) => {
-  const response = await hasuraClient.request<
-    SaveTelegramPendingLoginMutation,
-    SaveTelegramPendingLoginMutationVariables
-  >({
-    document: SAVE_TELEGRAM_PENDING_LOGIN.toString(),
-    variables: { userId, pendingSessionString, phoneCodeHash },
-  });
+  try {
+    const response = await hasuraClient.request<
+      SaveTelegramPendingLoginMutation,
+      SaveTelegramPendingLoginMutationVariables
+    >({
+      document: SAVE_TELEGRAM_PENDING_LOGIN.toString(),
+      variables: { userId, pendingSessionString, phoneCodeHash },
+    });
 
-  return response.update_telegram_credentials?.affected_rows ?? 0;
+    return response.update_telegram_credentials?.affected_rows ?? 0;
+  } catch (error) {
+    // A raw failure embeds pendingSessionString (a session secret) in its
+    // message — redact before it can be logged/retried/threaded as a cause.
+    throw redactHasuraError('saveTelegramPendingLogin', error);
+  }
 };
 
 interface SaveTelegramSessionParams {
@@ -84,15 +91,21 @@ const saveTelegramSession = async ({
   userId,
   sessionString,
 }: SaveTelegramSessionParams) => {
-  const response = await hasuraClient.request<
-    SaveTelegramSessionMutation,
-    SaveTelegramSessionMutationVariables
-  >({
-    document: SAVE_TELEGRAM_SESSION.toString(),
-    variables: { userId, sessionString },
-  });
+  try {
+    const response = await hasuraClient.request<
+      SaveTelegramSessionMutation,
+      SaveTelegramSessionMutationVariables
+    >({
+      document: SAVE_TELEGRAM_SESSION.toString(),
+      variables: { userId, sessionString },
+    });
 
-  return response.update_telegram_credentials?.affected_rows ?? 0;
+    return response.update_telegram_credentials?.affected_rows ?? 0;
+  } catch (error) {
+    // A raw failure embeds sessionString (the authorized session — a password
+    // equivalent) in its message — redact before it can be logged/retried/threaded.
+    throw redactHasuraError('saveTelegramSession', error);
+  }
 };
 
 export { saveTelegramPendingLogin, saveTelegramSession };

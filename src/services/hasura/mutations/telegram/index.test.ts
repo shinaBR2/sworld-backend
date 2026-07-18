@@ -1,3 +1,4 @@
+import { ClientError } from 'graphql-request';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { hasuraClient } from '../../client';
 import { saveTelegramPendingLogin, saveTelegramSession } from './index';
@@ -86,5 +87,31 @@ describe('saveTelegramSession', () => {
     });
 
     expect(affected).toBe(0);
+  });
+
+  it('never lets the session string escape in a request-failure error', async () => {
+    // graphql-request's ClientError embeds the request variables (the
+    // session secret) in its message; the mutation must redact it so it can't
+    // reach logs via withRetry / an error cause.
+    const secret = '1AgSECRETauthorizedSession';
+    const clientError = new ClientError(
+      { errors: [{ message: 'permission denied' }], status: 400 } as never,
+      {
+        query: 'mutation SaveTelegramSession { ... }',
+        variables: { userId: 'user-1', sessionString: secret },
+      },
+    );
+    vi.mocked(hasuraClient.request).mockRejectedValueOnce(clientError);
+
+    let thrown: unknown;
+    try {
+      await saveTelegramSession({ userId: 'user-1', sessionString: secret });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(Error);
+    expect((thrown as Error).message).not.toContain(secret);
+    expect((thrown as Error).cause).toBeUndefined();
   });
 });

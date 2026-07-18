@@ -4,6 +4,7 @@ import type {
   GetTelegramCredentialsByUserIdQuery,
   GetTelegramCredentialsByUserIdQueryVariables,
 } from '../../generated-graphql/graphql';
+import { redactHasuraError } from '../../redactError';
 
 // One telegram_credentials row, as returned to the backend (admin-secret query).
 type TelegramCredentials =
@@ -32,15 +33,21 @@ const GET_TELEGRAM_CREDENTIALS_BY_USER_ID = graphql(/* GraphQL */ `
 const getTelegramCredentialsByUserId = async (
   userId: string,
 ): Promise<TelegramCredentials | null> => {
-  const response = await hasuraClient.request<
-    GetTelegramCredentialsByUserIdQuery,
-    GetTelegramCredentialsByUserIdQueryVariables
-  >({
-    document: GET_TELEGRAM_CREDENTIALS_BY_USER_ID.toString(),
-    variables: { userId },
-  });
+  try {
+    const response = await hasuraClient.request<
+      GetTelegramCredentialsByUserIdQuery,
+      GetTelegramCredentialsByUserIdQueryVariables
+    >({
+      document: GET_TELEGRAM_CREDENTIALS_BY_USER_ID.toString(),
+      variables: { userId },
+    });
 
-  return response.telegram_credentials[0] ?? null;
+    return response.telegram_credentials[0] ?? null;
+  } catch (error) {
+    // This row holds the session secrets; a raw ClientError can embed the
+    // returned data — redact before it can propagate into logs.
+    throw redactHasuraError('getTelegramCredentialsByUserId', error);
+  }
 };
 
 export { getTelegramCredentialsByUserId };
