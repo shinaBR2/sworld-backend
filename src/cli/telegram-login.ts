@@ -10,17 +10,23 @@
  * one session string, so both services can hold their own live connection
  * without re-running this.
  *
+ * Like `TG_API_ID`/`TG_API_HASH`, an existing `TELEGRAM_SESSION` in env is
+ * reused rather than thrown away: if one is set, this script tries it first
+ * and only falls into the full interactive phone+code+2FA flow when there is
+ * none, or the existing one is no longer valid. Pass --force to skip the
+ * reuse check and always generate a fresh session.
+ *
  * This is NOT the shared `getTelegramClient()` singleton
  * (`src/services/telegram/client.ts`) — that helper requires an existing
  * TELEGRAM_SESSION and is for `gateway`/`io` runtime use. This script's whole
- * job is to produce that session in the first place, so it builds its own
- * client from a blank session.
+ * job is to produce/refresh that session in the first place, so it builds its
+ * own client(s) directly rather than going through the singleton.
  *
  * Setup: get an api_id / api_hash pair from https://my.telegram.org, then
  * either export TG_API_ID / TG_API_HASH or pass them as flags.
  *
  * Usage:
- *   npx tsx src/cli/telegram-login.ts [--api-id <id>] [--api-hash <hash>]
+ *   npx tsx src/cli/telegram-login.ts [--api-id <id>] [--api-hash <hash>] [--force]
  *
  * Manually verified by the operator — this repo has no real Telegram
  * credentials to run it end-to-end in CI/sandbox.
@@ -40,6 +46,7 @@ const CONNECTION_RETRIES = 5;
 interface LoginArgs {
   apiId: number;
   apiHash: string;
+  force: boolean;
 }
 
 const getFlagValue = (rawArgs: string[], flag: string): string | undefined => {
@@ -77,7 +84,7 @@ const parseLoginArgs = (rawArgs: string[]): LoginArgs => {
     process.exit(1);
   }
 
-  return { apiId, apiHash };
+  return { apiId, apiHash, force: rawArgs.includes('--force') };
 };
 
 // ─── Interactive prompt ──────────────────────────────────────────────────────
@@ -89,21 +96,54 @@ const prompt = async (rl: Readline, question: string): Promise<string> =>
 
 // ─── Login flow ──────────────────────────────────────────────────────────────
 
-const runLogin = async (rawArgs: string[]): Promise<void> => {
-  const { apiId, apiHash } = parseLoginArgs(rawArgs);
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-
-  console.log('=== Telegram MTProto Login ===');
-  console.log(
-    'One-time interactive login. On success this prints a session string —',
+/**
+ * Try connecting with the `TELEGRAM_SESSION` already in env instead of
+ * forcing a fresh login. `connect()` alone only proves the transport works —
+ * an invalid/expired/revoked auth key still connects at the network level —
+ * so `getMe()` is the actual validity check.
+ *
+ * Never logs `existingSession` itself, only the identity confirmation or the
+ * (non-secret) error message from a failed connect/getMe.
+ *
+ * @returns true if the existing session is still valid (and the confirmation
+ *   has been printed), false if it's missing/expired/revoked.
+ */
+const tryReuseSession = async (
+  apiId: number,
+  apiHash: string,
+  existingSession: string,
+): Promise<boolean> => {
+  const client = new TelegramClient(
+    new StringSession(existingSession),
+    apiId,
+    apiHash,
+    { connectionRetries: CONNECTION_RETRIES },
   );
-  console.log(
-    'paste it into TELEGRAM_SESSION on gateway/io. Treat it like a password:',
-  );
-  console.log('never commit it, never share it, never log it elsewhere.');
-  console.log('');
 
-  // Start from a blank session — producing one is this script's entire job.
+  try {
+    await client.connect();
+    const me = await client.getMe();
+    console.log(
+      `Existing TELEGRAM_SESSION is still valid — no login needed. Logged in as: @${me.username ?? 'unknown'} (id: ${me.id})`,
+    );
+    return true;
+  } catch (error) {
+    console.log(
+      `Existing TELEGRAM_SESSION is no longer valid (${(error as Error).message}) — starting a fresh login.`,
+    );
+    return false;
+  } finally {
+    await client.disconnect();
+  }
+};
+
+/** Full interactive phone+code+2FA flow, producing and printing a brand-new session. */
+const runFreshLogin = async (
+  rl: Readline,
+  apiId: number,
+  apiHash: string,
+): Promise<void> => {
+  // Start from a blank session — producing one is this function's entire job.
   // Kept as its own typed reference (rather than reading back `client.session`,
   // which is typed as the abstract `Session` base) so `.save()` returns `string`.
   const session = new StringSession('');
@@ -130,18 +170,56 @@ const runLogin = async (rawArgs: string[]): Promise<void> => {
     console.log(sessionString);
     console.log('=== End of session string ===');
   } finally {
-    rl.close();
     await client.disconnect();
   }
 };
 
-runLogin(process.argv.slice(2))
-  // Exit explicitly on success — MTProto keep-alive sockets can otherwise keep
-  // the event loop alive, hanging the process after the script's done its job.
-  .then(() => flushThenExit(0))
-  .catch((error) => {
-    console.error('');
-    console.error('=== Error ===');
-    console.error(error.message || error);
-    flushThenExit(1);
-  });
+const runLogin = async (rawArgs: string[]): Promise<void> => {
+  const { apiId, apiHash, force } = parseLoginArgs(rawArgs);
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+
+  console.log('=== Telegram MTProto Login ===');
+  console.log(
+    'One-time interactive login. On success this prints a session string —',
+  );
+  console.log(
+    'paste it into TELEGRAM_SESSION on gateway/io. Treat it like a password:',
+  );
+  console.log('never commit it, never share it, never log it elsewhere.');
+  console.log('');
+
+  try {
+    if (!force && envConfig.telegramSession) {
+      const reused = await tryReuseSession(
+        apiId,
+        apiHash,
+        envConfig.telegramSession,
+      );
+      if (reused) return;
+    }
+    await runFreshLogin(rl, apiId, apiHash);
+  } finally {
+    rl.close();
+  }
+};
+
+// Only auto-run when executed directly (`npx tsx src/cli/telegram-login.ts`),
+// not when imported — the unit test below imports `tryReuseSession` and must
+// not trigger the real interactive login flow as an import side effect.
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  runLogin(process.argv.slice(2))
+    // Exit explicitly on success — MTProto keep-alive sockets can otherwise
+    // keep the event loop alive, hanging the process after the script's done.
+    .then(() => flushThenExit(0))
+    .catch((error) => {
+      console.error('');
+      console.error('=== Error ===');
+      console.error(error.message || error);
+      flushThenExit(1);
+    });
+}
+
+// Exported for unit testing the session-reuse branch (src/cli/** is otherwise
+// excluded from codecov as standalone operator tooling — see codecov.yml).
+export { tryReuseSession };
