@@ -2,12 +2,7 @@ import { getTelegramCredentialsByUserId } from 'src/services/hasura/queries/tele
 import { TelegramClient } from 'teleproto';
 import { StringSession } from 'teleproto/sessions';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  createTelegramClient,
-  getTelegramClient,
-  parseApiId,
-  withTelegramClient,
-} from './client';
+import { getTelegramClient, parseApiId, withTelegramClient } from './client';
 import {
   TelegramMisconfiguredError,
   TelegramNotAuthenticatedError,
@@ -49,47 +44,33 @@ const readyRow = (overrides = {}) => ({
 });
 
 describe('parseApiId', () => {
+  const INVALID = 'Telegram API ID must be a positive integer.';
+
   it('parses a valid integer string', () => {
     expect(parseApiId('123')).toBe(123);
   });
 
   it('throws on a blank/whitespace value (which Number coerces to 0)', () => {
-    expect(() => parseApiId('   ')).toThrow(
-      'Telegram API ID must be a valid integer.',
-    );
+    expect(() => parseApiId('   ')).toThrow(INVALID);
   });
 
   it('throws on a non-integer value', () => {
-    expect(() => parseApiId('12.5')).toThrow(
-      'Telegram API ID must be a valid integer.',
-    );
+    expect(() => parseApiId('12.5')).toThrow(INVALID);
   });
 
   it('rejects hex and exponent forms that Number() would silently accept', () => {
     // Number('0x10') === 16 and Number('1e3') === 1000 — both are wrong-but-valid
     // apiIds, so the decimal-only guard must reject them.
-    expect(() => parseApiId('0x10')).toThrow(
-      'Telegram API ID must be a valid integer.',
-    );
-    expect(() => parseApiId('1e3')).toThrow(
-      'Telegram API ID must be a valid integer.',
-    );
-  });
-});
-
-describe('createTelegramClient', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+    expect(() => parseApiId('0x10')).toThrow(INVALID);
+    expect(() => parseApiId('1e3')).toThrow(INVALID);
   });
 
-  it('builds a TelegramClient from the given session/apiId/apiHash', () => {
-    const session = new StringSession('s');
-
-    createTelegramClient({ session, apiId: 123, apiHash: 'hash' });
-
-    expect(TelegramClient).toHaveBeenCalledWith(session, 123, 'hash', {
-      connectionRetries: 5,
-    });
+  it('rejects zero and leading-zero forms (a real api_id is a positive int)', () => {
+    // '0' would build a TelegramClient with apiId 0 → opaque MTProto failure
+    // rather than the typed Misconfigured signal.
+    expect(() => parseApiId('0')).toThrow(INVALID);
+    expect(() => parseApiId('00')).toThrow(INVALID);
+    expect(() => parseApiId('007')).toThrow(INVALID);
   });
 });
 

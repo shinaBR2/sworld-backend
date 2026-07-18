@@ -43,11 +43,17 @@ const MISCONFIGURED_PHONE_MESSAGES = new Set([
  * when it isn't one we classify (the caller rethrows it raw). Shared by both
  * login steps so the mapping lives in one place.
  *
- * Out of scope, by design: exotic alternate-auth account states. A 2FA password
- * (SESSION_PASSWORD_NEEDED) maps to a typed "not supported" error; a Telegram
- * login-email account can't complete phone-code sign-in and surfaces raw (a known
- * limitation, tracked alongside 2FA) rather than growing the map to chase the
- * full MTProto RPC-error space.
+ * Only PRODUCT-MEANINGFUL conditions are typed here — states with a distinct
+ * recovery the popup routes on (bad code, expired code, sign-up required, bad
+ * provisioning, 2FA-not-supported). Everything else is left raw ON PURPOSE:
+ * connect-time transport/DC failures (the TelegramClient already retries these
+ * internally via connectionRetries, so an escaped one is a hard infra outage with
+ * no distinct popup state) and exotic alternate-auth states (a Telegram
+ * login-email account can't complete phone-code sign-in) surface raw and are
+ * handled by the gateway's generic-error path — the same path any unexpected
+ * backend error takes — rather than growing this map to chase the full MTProto
+ * RPC-error space. A 2FA password (SESSION_PASSWORD_NEEDED) is the one alternate
+ * state we DO type, as an explicit "not supported" signal.
  */
 const toTypedTelegramError = (
   error: unknown,
@@ -87,6 +93,29 @@ const rethrowTyped = (error: unknown, userId: string): never => {
 };
 
 /**
+ * Persist a login step's state (an idempotent UPDATE returning affected_rows)
+ * with retry, and on final/non-retryable failure surface a typed, routable
+ * TelegramSessionPersistError instead of the raw hasura error. Shared by BOTH
+ * persists — the pending state after sendCode and the authorized session after
+ * the irreversible auth.SignIn — so each has the same guarantees: retry absorbs a
+ * transient blip (a dropped write would otherwise force a second sendCode → risk
+ * FLOOD_WAIT, or, post-SignIn, trap the user on a spent code with a misleading
+ * "invalid code"), and the gateway always gets an `instanceof TelegramError` to
+ * route rather than an unroutable 500. A vanished row returns affected_rows: 0
+ * (not a throw) and is handled by the caller.
+ */
+const persistLoginStep = async (
+  userId: string,
+  label: string,
+  persist: () => Promise<number>,
+): Promise<number> =>
+  withRetry(persist, { label, isRetryable: isRetryableError }).catch(
+    (error) => {
+      throw new TelegramSessionPersistError(userId, { cause: error });
+    },
+  );
+
+/**
  * Step 1 of the in-product MTProto login: ask Telegram to send a login code to
  * the user's own device.
  *
@@ -116,19 +145,12 @@ const requestLoginCode = async (userId: string): Promise<void> => {
           credentials.phoneNumber,
         )
         .catch((error) => rethrowTyped(error, userId));
-      // Retry the persist for the same reason submitLoginCode does: sendCode has
-      // already texted a code (a rate-limited side effect), so a transient blip
-      // that dropped the pending state would force a second requestLoginCode and
-      // another sendCode — repeated sendCodes trip Telegram's FLOOD_WAIT. The
-      // UPDATE is idempotent, so replaying it is safe.
-      return withRetry(
-        () =>
-          saveTelegramPendingLogin({
-            userId,
-            pendingSessionString: session.save(),
-            phoneCodeHash,
-          }),
-        { label: 'saveTelegramPendingLogin', isRetryable: isRetryableError },
+      return persistLoginStep(userId, 'saveTelegramPendingLogin', () =>
+        saveTelegramPendingLogin({
+          userId,
+          pendingSessionString: session.save(),
+          phoneCodeHash,
+        }),
       );
     },
   );
@@ -190,22 +212,13 @@ const submitLoginCode = async (userId: string, code: string): Promise<void> => {
       }
 
       // auth.SignIn is irreversible — the phone code is now consumed and this
-      // authorized session exists only in memory. If the persist below failed and
-      // propagated raw, a retry of submitLoginCode would re-run SignIn with the
-      // already-consumed code and be rejected as PHONE_CODE_EXPIRED → the user
-      // would see "invalid code" for a code that was correct. So retry the persist
-      // (idempotent UPDATE — same session_string, pending fields nulled — so
-      // replaying after a lost response is safe), and on final failure surface a
-      // TYPED, routable TelegramSessionPersistError instead of the raw hasura
-      // error: the gateway can route it, and its message tells the truth (request
-      // a fresh code) rather than the retry's misleading "invalid code". A vanished
-      // row returns affected_rows: 0 (not a throw) and is handled below.
-      return withRetry(
-        () => saveTelegramSession({ userId, sessionString: session.save() }),
-        { label: 'saveTelegramSession', isRetryable: isRetryableError },
-      ).catch((error) => {
-        throw new TelegramSessionPersistError(userId, { cause: error });
-      });
+      // authorized session exists only in memory — so persistLoginStep retries the
+      // save and, on final failure, throws a typed TelegramSessionPersistError
+      // (not the raw error, not a misleading "invalid code"). A vanished row
+      // returns affected_rows: 0 (not a throw) and is handled below.
+      return persistLoginStep(userId, 'saveTelegramSession', () =>
+        saveTelegramSession({ userId, sessionString: session.save() }),
+      );
     },
   );
 

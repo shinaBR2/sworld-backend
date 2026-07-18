@@ -173,18 +173,19 @@ class TelegramTwoFactorNotSupportedError extends TelegramError {
 }
 
 /**
- * auth.SignIn succeeded — the code is consumed (irreversible) and an authorized
- * session exists in memory — but persisting it to the credentials row ultimately
- * failed (withRetry attempts exhausted, or a non-retryable error). Surfaced as a
- * typed, routable error rather than the raw hasura error (which the gateway
- * can't route → generic 500) and rather than a retry that would re-run SignIn
- * with the now-spent code and mislead the user with "invalid code". The recovery
- * is to request a fresh code and try again.
+ * A login-step persist to the credentials row ultimately failed (withRetry
+ * attempts exhausted, or a non-retryable error) — either the pending login state
+ * (after sendCode) or the authorized session (after the irreversible auth.SignIn).
+ * Surfaced as a typed, routable error rather than the raw hasura error (which the
+ * gateway can't route → generic 500) and, for the post-SignIn case, rather than a
+ * retry that would re-run SignIn with the now-spent code and mislead the user with
+ * "invalid code". The recovery for both is the same: request a fresh code and try
+ * again.
  */
 class TelegramSessionPersistError extends TelegramError {
   constructor(userId: string, options?: TelegramErrorOptions) {
     super(
-      `Telegram login succeeded but the session could not be saved for user ${userId}; request a fresh code and try again`,
+      `Telegram login state could not be saved for user ${userId}; request a fresh code and try again`,
       userId,
       options,
     );

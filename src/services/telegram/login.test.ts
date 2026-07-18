@@ -167,6 +167,32 @@ describe('requestLoginCode', () => {
     expect(mockClient.disconnect).toHaveBeenCalledOnce();
   });
 
+  it('surfaces a typed TelegramSessionPersistError when the pending-login persist fails after all retries', async () => {
+    // Symmetric with submitLoginCode: a raw persist error would be unroutable by
+    // the gateway; the pending persist must fail typed too.
+    vi.useFakeTimers();
+    try {
+      vi.mocked(getTelegramCredentialsByUserId).mockResolvedValueOnce(
+        credentials(),
+      );
+      vi.mocked(saveTelegramPendingLogin).mockRejectedValue(
+        new Error('persistent hasura error'),
+      );
+
+      const pending = requestLoginCode('user-1');
+      const assertion = expect(pending).rejects.toBeInstanceOf(
+        TelegramSessionPersistError,
+      );
+      await vi.runAllTimersAsync();
+      await assertion;
+
+      expect(mockClient.disconnect).toHaveBeenCalledOnce();
+    } finally {
+      vi.mocked(saveTelegramPendingLogin).mockReset();
+      vi.useRealTimers();
+    }
+  });
+
   // sendCode is the first Telegram contact with the provisioned phone, so
   // phone-level RPC errors surface here and must be mapped to the typed taxonomy.
   it.each([
